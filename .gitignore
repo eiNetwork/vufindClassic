@@ -1,0 +1,8 @@
+# GNU Emacs temporary files
+
+ChangeLog
+\#*
+.\#*
+TAGS
+*~
+vendor/.git

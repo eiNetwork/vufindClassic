@@ -9,4 +9,8 @@ vendor/.git
 data/*
 local/cache/
 local/cache/*
-marc/*.marc
+marc/*.marc*
+import/*
+*.csv
+logs/*
+solr/*

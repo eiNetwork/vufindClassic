@@ -136,9 +136,9 @@
    <field name="title_sort" type="string" indexed="true" stored="true"/>
    <field name="title_sub" type="text" indexed="true" stored="true"/>
    <field name="title_short" type="text" indexed="true" stored="true"/>
-   <field name="title_full" type="text" indexed="true" stored="true"/>
-   <field name="title_full_unstemmed" type="textProper" indexed="true" stored="true"/>
-   <field name="title_fullStr" type="string" indexed="true" stored="true"/>
+   <field name="title_full" type="text" indexed="true" stored="true" multiValued="true"/>
+   <field name="title_full_unstemmed" type="textProper" indexed="true" stored="true" multiValued="true"/>
+   <field name="title_fullStr" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="title_auth" type="text" indexed="true" stored="true"/>
    <field name="physical" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="publisher" type="textProper" indexed="true" stored="true" multiValued="true"/>
@@ -151,7 +151,7 @@
    <field name="url" type="string" indexed="false" stored="true" multiValued="true"/>
    <field name="thumbnail" type="string" indexed="false" stored="true"/>
    <!-- Catalog Specific Fields -->
-   <field name="lccn" type="string" indexed="true" stored="true"/>
+   <field name="lccn" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="ctrlnum" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="isbn" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="issn" type="isn" indexed="true" stored="true" multiValued="true"/>
@@ -202,6 +202,7 @@
    <field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
    <field name="lexile_score" type="long" indexed="true" stored="true" multiValued="false"/>
    <field name="lexile_code" type="textFacet" indexed="true" stored="true" multiValued="false"/>
+   <field name="externalId" type="string" indexed="true" stored="true" multiValued="false"/>
    <field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
    <field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
    <field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>

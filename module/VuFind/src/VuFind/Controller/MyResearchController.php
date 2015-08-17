@@ -858,6 +858,15 @@ class MyResearchController extends AbstractBase
             return $view->cancelResults;
         }
 
+        // Process freeze requests if necessary:
+        $freezeStatus = $catalog->checkFunction('freezeHolds', compact('patron'));
+        $view = $this->createViewModel();
+        $view->cancelResults = $freezeStatus
+            ? $this->holds()->freezeHolds($catalog, $patron) : [];
+        // If we need to confirm
+        if (!is_array($view->cancelResults)) {
+            return $view->cancelResults;
+        }
         // By default, assume we will not need to display a cancel form:
         $view->cancelForm = false;
 
@@ -1055,9 +1064,11 @@ class MyResearchController extends AbstractBase
                 // Enable renewal form if necessary:
                 $renewForm = true;
             }
-
             // Build record driver:
-            $transactions[] = $this->getDriverForILSRecord($current);
+            $test = $this->getDriverForILSRecord($current);
+            //$test->setRawData($current);
+            $test->setExtraDetail($current);
+            $transactions[] = $test;
         }
 
         return $this->createViewModel(

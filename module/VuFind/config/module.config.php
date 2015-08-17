@@ -441,6 +441,7 @@ $config = [
                     'primo' => 'VuFind\RecordDriver\Factory::getPrimo',
                     'solrauth' => 'VuFind\RecordDriver\Factory::getSolrAuth',
                     'solrdefault' => 'VuFind\RecordDriver\Factory::getSolrDefault',
+                    'solrecontent' => 'VuFind\RecordDriver\Factory::getSolrEContent',
                     'solrmarc' => 'VuFind\RecordDriver\Factory::getSolrMarc',
                     'solrreserves' => 'VuFind\RecordDriver\Factory::getSolrReserves',
                     'solrweb' => 'VuFind\RecordDriver\Factory::getSolrWeb',

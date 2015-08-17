@@ -17,21 +17,42 @@
         <form name="cancelForm" class="inline" action="" method="post" id="cancelHold">
           <input type="hidden" id="submitType" name="cancelSelected" value="1"/>
           <input type="hidden" id="cancelConfirm" name="confirm" value="0"/>
+          <input type="hidden" id="freezeConfirm" name="confirm" value="0"/>
           <div class="btn-group">
-            <input id="cancelSelected" name="cancelSelected" type="submit" value="<?=$this->transEsc("hold_cancel_selected") ?>" class="btn btn-default dropdown-toggle" data-toggle="dropdown"/>
+            <input id="updateSelected" name="updateSelected" type="submit" value="<?=$this->transEsc("hold_update_selected") ?>" class="btn btn-default"/>
+<!--
+            <input id="cancelSelected" name="cancelSelected" type="submit" value="<?=$this->transEsc("hold_update_selected") ?>" class="btn btn-default dropdown-toggle" data-toggle="dropdown"/>
             <ul class="dropdown-menu">
-              <li class="disabled"><a><?=$this->transEsc("confirm_hold_cancel_selected_text") ?></a></li>
+              <li class="disabled"><a><?=$this->transEsc("hold_cancel_selected_text") ?></a></li>
               <li><a href="#" onClick="$('#cancelConfirm').val(1);$('#submitType').attr('name','cancelSelected');$(this).parents('form').submit(); return false;"><?=$this->transEsc('confirm_dialog_yes') ?></a></li>
               <li><a href="#" onClick="return false;"><?=$this->transEsc('confirm_dialog_no')?></a></li>
             </ul>
           </div>
           <div class="btn-group">
+            <input id="updateAll" name="updateAll" type="submit" value="<?=$this->transEsc("hold_update_all") ?>" class="btn btn-default"/>
             <input id="cancelAll" name="cancelAll" type="submit" value="<?=$this->transEsc("hold_cancel_all") ?>" class="btn btn-default dropdown-toggle" data-toggle="dropdown"/>
             <ul class="dropdown-menu">
               <li class="disabled"><a><?=$this->transEsc("confirm_hold_cancel_all_text") ?></a></li>
               <li><a href="#" onClick="$('#cancelConfirm').val(1);$('#submitType').attr('name','cancelAll');$(this).parents('form').submit(); return false;"><?=$this->transEsc('confirm_dialog_yes') ?></a></li>
               <li><a href="#" onClick="return false;"><?=$this->transEsc('confirm_dialog_no')?></a></li>
             </ul>
+          </div>
+          <div class="btn-group">
+            <input id="freezeSelected" name="freezeSelected" type="submit" value="<?=$this->transEsc("hold_freeze_selected") ?>" class="btn btn-default dropdown-toggle" data-toggle="dropdown"/>
+            <ul class="dropdown-menu">
+              <li class="disabled"><a><?=$this->transEsc("confirm_hold_freeze_selected_text") ?></a></li>
+              <li><a href="#" onClick="$('#freezeConfirm').val(1);$('#submitType').attr('name','freezeSelected');$(this).parents('form').submit(); return false;"><?=$this->transEsc('confirm_dialog_yes') ?></a></li>
+              <li><a href="#" onClick="return false;"><?=$this->transEsc('confirm_dialog_no')?></a></li>
+            </ul>
+          </div>
+          <div class="btn-group">
+            <input id="freezeAll" name="freezeAll" type="submit" value="<?=$this->transEsc("hold_freeze_all") ?>" class="btn btn-default dropdown-toggle" data-toggle="dropdown"/>
+            <ul class="dropdown-menu">
+              <li class="disabled"><a><?=$this->transEsc("confirm_hold_freeze_all_text") ?></a></li>
+              <li><a href="#" onClick="$('#freezeConfirm').val(1);$('#submitType').attr('name','freezeAll');$(this).parents('form').submit(); return false;"><?=$this->transEsc('confirm_dialog_yes') ?></a></li>
+              <li><a href="#" onClick="return false;"><?=$this->transEsc('confirm_dialog_no')?></a></li>
+            </ul>
+-->
           </div>
       <? endif; ?>
 
@@ -41,6 +62,7 @@
         <? $iteration++; ?>
         <? $ilsDetails = $resource->getExtraDetail('ils_details'); ?>
         <div id="record<?=$this->escapeHtmlAttr($resource->getUniqueId()) ?>" class="row">
+<!--
           <? if ($this->cancelForm && isset($ilsDetails['cancel_details'])): ?>
             <? $safeId = preg_replace('/[^a-zA-Z0-9]/', '', $resource->getUniqueId()); ?>
             <input type="hidden" name="cancelAllIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" />
@@ -48,6 +70,7 @@
               <input type="checkbox" name="cancelSelectedIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" id="checkbox_<?=$safeId?>" />
             </div>
           <? endif; ?>
+-->
           <div class="col-sm-2 text-center">
             <? if ($summThumb = $this->record($resource)->getThumbnail()): ?>
               <img src="<?=$this->escapeHtmlAttr($summThumb)?>" class="recordcover" alt="<?=$this->transEsc('Cover Image')?>"/>
@@ -145,6 +168,25 @@
             <? endif; ?>
 
           </div>
+          <? if ($this->cancelForm && isset($ilsDetails['cancel_details'])): ?>
+            <? $safeId = preg_replace('/[^a-zA-Z0-9]/', '', $resource->getUniqueId()); ?>
+<!--
+            <input type="hidden" name="cancelAllIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" />
+-->
+            <span>Cancel</span>
+            <div class="pull-left">
+              <input type="checkbox" name="cancelSelectedIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" id="checkbox_<?=$safeId?>" />
+            </div>
+            <br>
+            <? $safeId = preg_replace('/[^a-zA-Z0-9]/', '', $resource->getUniqueId()); ?>
+<!--
+            <input type="hidden" name="freezeAllIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" />
+-->
+            <span>Freeze</span>
+            <div class="pull-left">
+              <input type="checkbox" name="freezeSelectedIDS[]" value="<?=$this->escapeHtmlAttr($ilsDetails['cancel_details']) ?>" id="checkbox_<?=$safeId?>" />
+            </div>
+          <? endif; ?>
         </div>
       <? endforeach; ?>
       <? if ($this->cancelForm): ?></form><? endif; ?>

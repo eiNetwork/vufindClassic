@@ -86,7 +86,7 @@ class Holds extends AbstractRequestBase
 
         // Pick IDs to cancel based on which button was pressed:
         $all = $params->fromPost('cancelAll');
-        $selected = $params->fromPost('cancelSelected');
+        $selected = $params->fromPost('updateSelected');
         if (!empty($all)) {
             $details = $params->fromPost('cancelAllIDS');
         } else if (!empty($selected)) {
@@ -97,6 +97,7 @@ class Holds extends AbstractRequestBase
         }
 
         if (!empty($details)) {
+/*
             // Confirm?
             if ($params->fromPost('confirm') === "0") {
                 if ($params->fromPost('cancelAll') !== null) {
@@ -124,6 +125,7 @@ class Holds extends AbstractRequestBase
                     );
                 }
             }
+*/
 
             foreach ($details as $info) {
                 // If the user input contains a value not found in the session
@@ -153,8 +155,104 @@ class Holds extends AbstractRequestBase
                 }
                 return $cancelResults;
             }
+/*
         } else {
              $flashMsg->setNamespace('error')->addMessage('hold_empty_selection');
+*/
+        }
+        return [];
+    }
+
+    /**
+     * Process freeze requests.
+     *
+     * @param \VuFind\ILS\Connection $catalog ILS connection object
+     * @param array                  $patron  Current logged in patron
+     *
+     * @return array                          The result of the freeze, an
+     * associative array keyed by item ID (empty if no cancellations performed)
+     */
+    public function freezeHolds($catalog, $patron)
+    {
+        // Retrieve the flashMessenger helper:
+        $flashMsg = $this->getController()->flashMessenger();
+        $params = $this->getController()->params();
+
+        // Pick IDs to freeze based on which button was pressed:
+        $all = $params->fromPost('freezeAll');
+        $selected = $params->fromPost('updateSelected');
+        if (!empty($all)) {
+            $details = $params->fromPost('freezeAllIDS');
+        } else if (!empty($selected)) {
+            $details = $params->fromPost('freezeSelectedIDS');
+        } else {
+            // No button pushed -- no action needed
+            return [];
+        }
+
+        if (!empty($details)) {
+/*
+            // Confirm?
+            if ($params->fromPost('confirm') === "0") {
+                if ($params->fromPost('freezeAll') !== null) {
+                    return $this->getController()->confirm(
+                        'hold_freeze_all',
+                        $this->getController()->url()->fromRoute('myresearch-holds'),
+                        $this->getController()->url()->fromRoute('myresearch-holds'),
+                        'confirm_hold_freeze_all_text',
+                        [
+                            'freezeAll' => 1,
+                            'freezeAllIDS' => $params->fromPost('freezeAllIDS')
+                        ]
+                    );
+                } else {
+                    return $this->getController()->confirm(
+                        'hold_freeze_selected',
+                        $this->getController()->url()->fromRoute('myresearch-holds'),
+                        $this->getController()->url()->fromRoute('myresearch-holds'),
+                        'confirm_hold_freeze_selected_text',
+                        [
+                            'freezeSelected' => 1,
+                            'freezeSelectedIDS' =>
+                                $params->fromPost('freezeSelectedIDS')
+                        ]
+                    );
+                }
+            }
+*/
+
+            foreach ($details as $info) {
+                // If the user input contains a value not found in the session
+                // whitelist, something has been tampered with -- abort the process.
+                if (!in_array($info, $this->getSession()->validIds)) {
+                    $flashMsg->setNamespace('error')
+                        ->addMessage('error_inconsistent_parameters');
+                    return [];
+                }
+            }
+
+            // Add Patron Data to Submitted Data
+            $freezeResults = $catalog->freezeHolds(
+                ['details' => $details, 'patron' => $patron]
+            );
+            if ($freezeResults == false) {
+                $flashMsg->setNamespace('error')->addMessage('hold_freeze_fail');
+            } else {
+                if ($freezeResults['count'] > 0) {
+                    // TODO : add a mechanism for inserting tokens into translated
+                    // messages so we can avoid a double translation here.
+                    $msg = $this->getController()
+                        ->translate('hold_freeze_success_items');
+                    $flashMsg->setNamespace('info')->addMessage(
+                        $freezeResults['count'] . ' ' . $msg
+                    );
+                }
+                return $freezeResults;
+            }
+/*
+        } else {
+             $flashMsg->setNamespace('error')->addMessage('hold_empty_selection');
+*/
         }
         return [];
     }

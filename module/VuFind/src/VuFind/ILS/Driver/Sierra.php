@@ -457,6 +457,8 @@ class Sierra extends AbstractBase
             pg_prepare($this->db, "prep_query", $query1);
             foreach ($itemIds as $item) {
                 $callnumber = null;
+                $barcode = null;
+                $number = null;
                 $results1 = pg_execute($this->db, "prep_query", [$item]);
                 while ($row1 = pg_fetch_row($results1)) {
                     if ($row1[4] == "b") {

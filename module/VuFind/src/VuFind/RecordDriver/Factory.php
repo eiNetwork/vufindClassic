@@ -152,6 +152,24 @@ class Factory
     }
 
     /**
+     * Factory for SolrEContent record driver.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return SolrEContent
+     */
+    public static function getSolrEContent(ServiceManager $sm)
+    {
+        $driver = new SolrEContent(
+            $sm->getServiceLocator()->get('VuFind\Config')->get('config'),
+            null,
+            $sm->getServiceLocator()->get('VuFind\Config')->get('searches')
+        );
+        $driver->attachSearchService($sm->getServiceLocator()->get('VuFind\Search'));
+        return $driver;
+    }
+
+    /**
      * Factory for SolrMarc record driver.
      *
      * @param ServiceManager $sm Service manager.

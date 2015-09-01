@@ -33,7 +33,9 @@
       <select class="form-control" id="save_list" name="list">
       <? if ($this->nonContainingLists): ?>
         <? foreach ($this->nonContainingLists as $list): ?>
-          <option value="<?=$list['id'] ?>"<? if ($list['id']==$this->userList()->lastUsed()): ?> selected="selected"<? endif; ?>><?=$this->escapeHtml($list['title'])?></option>
+          <? if ($list['title'] != "Book Cart" ): ?>
+            <option value="<?=$list['id'] ?>"<? if ($list['id']==$this->userList()->lastUsed()): ?> selected="selected"<? endif; ?>><?=$this->escapeHtml($list['title'])?></option>
+          <? endif; ?>
         <? endforeach; ?>
       <? else: ?>
         <option value=""><?=$this->transEsc('My Favorites') ?></option>

@@ -362,13 +362,21 @@ class MyResearchController extends AbstractBase
     }
 
     /**
-     * Action for sending all of a user's saved favorites to the view
+     * Action for sending all of a user's saved book cart items to the view
      *
      * @return mixed
      */
-    public function favoritesAction()
+    public function bookCartAction()
     {
-        // Favorites is the same as MyList, but without the list ID parameter.
+        // make sure they're logged in
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->forwardTo('MyResearch', 'Home');
+        }
+
+        // Book cart is the same as MyList, but with one specific list.  Also, make sure we
+        // know that this is the book cart
+        $this->getRequest()->getQuery()->set('id', $this->getUser()->getBookCart()['id']);
         return $this->forwardTo('MyResearch', 'MyList');
     }
 
@@ -803,7 +811,7 @@ class MyResearchController extends AbstractBase
                 }
             }
             // Redirect to MyResearch home
-            return $this->redirect()->toRoute('myresearch-favorites');
+            return $this->redirect()->toRoute('myresearch-home');
         }
 
         // If we got this far, we must display a confirmation message:

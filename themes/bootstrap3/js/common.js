@@ -92,7 +92,8 @@ function bulkActionSubmit($form) {
   var submit = $form.find('input[type="submit"][clicked=true]').attr('name');
   var checks = $form.find('input.checkbox-select-item:checked');
   if(checks.length == 0 && submit != 'empty') {
-    return Lightbox.displayError(vufindString['bulk_noitems_advice']);
+    Lightbox.displayError(vufindString['bulk_noitems_advice']);
+    return false;
   }
   if (submit == 'print') {
     //redirect page
@@ -101,8 +102,16 @@ function bulkActionSubmit($form) {
       url += '&id[]='+checks[i].value;
     }
     document.location.href = url;
-  } else {
+  } else if (submit == 'saveCart') {
     Lightbox.submit($form, Lightbox.changeContent);
+  } else {
+    // After we close the lightbox, refresh the page      
+    Lightbox.submit($form, function() {
+      Lightbox.addCloseAction(function() {
+        window.location.reload();
+      });
+      Lightbox.confirm(vufindString['bulk_save_success']);
+    });
   }
   return false;
 }
@@ -378,7 +387,6 @@ $(document).ready(function() {
     $(this).closest('.collapse').html('<div class="list-group-item">'+vufindString.loading+'...</div>');
     window.location.assign($(this).attr('href'));
   });
-
   $('[name=bulkActionForm]').submit(function() {
     return bulkActionSubmit($(this));
   });

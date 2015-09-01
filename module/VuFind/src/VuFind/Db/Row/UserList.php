@@ -28,6 +28,7 @@
 namespace VuFind\Db\Row;
 use VuFind\Exception\ListPermission as ListPermissionException,
     VuFind\Exception\MissingField as MissingFieldException,
+    Zend\Db\Sql\Expression,
     Zend\Session\Container as SessionContainer;
 
 /**
@@ -96,11 +97,38 @@ class UserList extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterf
      */
     public function updateFromRequest($user, $request)
     {
-        $this->title = $request->get('title');
+        $this->title = ($request->get('title') == "Book Cart") ? "Book Cart " : $request->get('title');
         $this->description = $request->get('desc');
         $this->public = $request->get('public');
         $this->save($user);
         return $this->id;
+    }
+
+    /**
+     * Create a brand new list object to serve as the user's book cart
+     *
+     * @param \VuFind\Db\Row\User $user    Logged-in user
+     *
+     * @return newly created row
+     * @throws ListPermissionException
+     * @throws MissingFieldException
+     */
+    public function updateNewBookCart($user)
+    {
+        $this->title = "Book Cart";
+        $this->public = 0;
+        $this->save($user);
+        return $this;
+    }
+
+    /**
+     * Return whether this list object is a user's book cart
+     *
+     * @return bool
+     */
+    public function isBookCart()
+    {
+        return ($this->title == "Book Cart");
     }
 
     /**
@@ -190,6 +218,32 @@ class UserList extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterf
     public function isPublic()
     {
         return isset($this->public) && ($this->public == 1);
+    }
+
+    /**
+     * Does this list contain a specific item?
+     *
+     * @param $id ID to check for in the list
+     *
+     * @return bool
+     */
+    public function contains($itemId)
+    {
+        $listId = $this->id;
+        $callback = function ($select) use ($listId, $itemId) {
+            $select->columns(
+                [
+                    '*'
+                ]
+            );
+            $select->join(['r' => 'resource'], 'user_resource.resource_id = r.id', []);
+            $select->where->equalTo('list_id', $listId)
+                          ->equalTo('source', explode("|", $itemId)[0])
+                          ->equalTo('record_id', explode("|", $itemId)[1]);
+        };
+        $table = $this->getDbTable('UserResource');
+        $results = $table->select($callback);
+        return $results->count() > 0;
     }
 
     /**

@@ -117,20 +117,21 @@ class CartController extends AbstractBase
             if (empty($ids)) {
                 return $this->redirectToSource('error', 'bulk_noitems_advice');
             } else {
-                $this->getCart()->removeItems($ids);
+                $user = $this->getUser();
+                $list = $user->getBookCart();
+                foreach($ids as $current) {
+                    $list->removeResourcesById($user, [explode("|", $current)[1]], explode("|", $current)[0]);
+                }
             }
         } else if (strlen($this->params()->fromPost('add', '')) > 0) {
             if (empty($ids)) {
                 return $this->redirectToSource('error', 'bulk_noitems_advice');
             } else {
-                $addItems = $this->getCart()->addItems($ids);
-                if (!$addItems['success']) {
-                    $msg = $this->translate('bookbag_full_msg') . ". "
-                        . $addItems['notAdded'] . " "
-                        . $this->translate('items_already_in_bookbag') . ".";
-                    $this->flashMessenger()->setNamespace('info')
-                        ->addMessage($msg);
-                }
+              $list = $this->getUser()->getBookCart()['id'];
+              $this->favorites()
+                  ->saveBulk(['ids' => $ids, 'list' => $list], $this->getUser());
+              $this->flashMessenger()->setNamespace('info')
+                  ->addMessage('bulk_save_success');
             }
         }
         return $this->createViewModel();
@@ -148,7 +149,7 @@ class CartController extends AbstractBase
         // any) we came from so we can redirect there when we're done:
         $listID = $this->params()->fromPost('listID');
         $this->session->url = empty($listID)
-            ? $this->url()->fromRoute('myresearch-favorites')
+            ? $this->url()->fromRoute('myresearch-bookcart')
             : $this->url()->fromRoute('userList', ['id' => $listID]);
 
         // Now forward to the requested controller/action:
@@ -160,6 +161,8 @@ class CartController extends AbstractBase
         } else if (strlen($this->params()->fromPost('delete', '')) > 0) {
             $controller = 'MyResearch';
             $action = 'Delete';
+        } else if (strlen($this->params()->fromPost('saveList', '')) > 0) {
+            $action = 'Save';
         } else if (strlen($this->params()->fromPost('add', '')) > 0) {
             $action = 'Cart';
         } else if (strlen($this->params()->fromPost('export', '')) > 0) {

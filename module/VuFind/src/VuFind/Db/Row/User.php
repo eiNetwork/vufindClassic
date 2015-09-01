@@ -330,6 +330,24 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
     }
 
     /**
+     * Get the book cart associated with this user.
+     *
+     * @return \VuFind\Db\Row\UserList
+     */    
+    public function getBookCart()
+    {
+        // see whether they have a book cart already
+        foreach( $this->getLists() as $list ) {
+            if( $list['title'] == "Book Cart" ) {
+                return $list;
+            }
+        }
+
+        // if they made it here, they don't have one
+        return $this->getDbTable('UserList')->getNew($this)->updateNewBookCart($this);
+    }
+
+    /**
      * Get information saved in a user's favorites for a particular record.
      *
      * @param string $resourceId ID of record being checked.

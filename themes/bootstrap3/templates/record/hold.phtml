@@ -102,10 +102,42 @@
                 <?=$this->transEsc('select_pickup_location')?>
               </option>
             <? endif; ?>
+            <? $needSeparator = false; ?>
             <? foreach ($this->pickup as $lib): ?>
-              <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
-                <?=$this->escapeHtml($lib['locationDisplay'])?>
-              </option>
+              <? if( isset($this->homeLibrary) && $this->homeLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( isset($this->preferredLibrary) && $this->preferredLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( isset($this->alternateLibrary) && $this->alternateLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? if( $needSeparator ): ?>
+              <option disabled><?=$this->escapeHtml("-------------------------------------")?></option>
+            <? endif; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( (!isset($this->homeLibrary) || $this->homeLibrary != $lib['locationID']) &&
+                     (!isset($this->preferredLibrary) || $this->preferredLibrary != $lib['locationID']) &&
+                     (!isset($this->alternateLibrary) || $this->alternateLibrary != $lib['locationID']) ): ?>
+                <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+              <? endif; ?>
             <? endforeach; ?>
             </select>
           </div>

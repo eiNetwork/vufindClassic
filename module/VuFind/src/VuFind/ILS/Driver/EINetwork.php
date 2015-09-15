@@ -44,9 +44,11 @@ use VuFind\Exception\ILS as ILSException;
  * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
  */
 class EINetwork extends Sierra implements
-    \VuFindHttp\HttpServiceAwareInterface
+    \VuFindHttp\HttpServiceAwareInterface,
+    \VuFind\Db\Table\DbTableAwareInterface
 {
     use \VuFindHttp\HttpServiceAwareTrait;
+    use \VuFind\Db\Table\DbTableAwareTrait;
 
     /**
      * Make an HTTP request
@@ -249,8 +251,8 @@ class EINetwork extends Sierra implements
      */
     public function getMyProfile($userinfo)
     {
-        $profile = json_encode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $userinfo['id']) );
-
+        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $userinfo['id'] . 
+                                                      "?fields=names,addresses,fixedFields,phones,emails"), true );
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
             $userinfo['firstname'] = $names[1];
@@ -266,11 +268,11 @@ class EINetwork extends Sierra implements
             $userinfo['homelib'] = $profile['homeLibraryCode'];
         }
         if(isset($profile['addresses'])) {
-            if(count($profile['addresses'][0]['lines']) > 0) {
-                $userinfo['address1'] = $profile['addresses'][0]['lines'][0];
-            }
-            if(count($profile['addresses'][0]['lines']) > 1) {
-                $userinfo['address2'] = $profile['addresses'][0]['lines'][1];
+            foreach( $profile['addresses'] as $address ) {
+                $userinfo['address' . ($i + 1)] = "";
+                for($j=0; $j<count($address['lines']); $j++ ) {
+                    $userinfo['address' . ($i + 1)] .= (($j > 0) ? ", " : "") . $address['lines'][$j];
+                }
             }
         }
         if(isset($profile['phones'])) {
@@ -281,12 +283,37 @@ class EINetwork extends Sierra implements
                 $userinfo['phone2'] = $profile['phones'][0]['number'];
             }
         }
+        if(isset($profile['emails'])) {
+            if(count($profile['emails']) > 0) {
+                $userinfo['email'] = $profile['emails'][0];
+            }
+            if(count($profile['emails']) > 1) {
+                $userinfo['email2'] = $profile['emails'][1];
+            }
+        }
         if(isset($profile['patronType'])) {
             $userinfo['group'] = $profile['patronType'];
         }
         if(isset($profile['expirationDate'])) {
-            $userinfo['expiration'] = $profile['expirationDate'];
+            $userinfo['expiration'] = substr($profile['expirationDate'], 5) . "-" . substr($profile['expirationDate'], 2, 2);
         }
+        if(isset($profile['fixedFields']['268'])) {
+            if($profile['fixedFields']['268']['value'] == 'p') {
+                $userinfo['notification'] = "Phone";
+            } else if($profile['fixedFields']['268']['value'] == 'z') {
+                $userinfo['notification'] = "Email";
+            }
+        }
+        if(isset($profile['fixedFields']['53'])) {
+            $userinfo['homelibrarycode'] = trim($profile['fixedFields']['53']['value']);
+            $location = $this->getDbTable('Location')->getByCode($userinfo['homelibrarycode']);
+            $userinfo['homelibrary'] = $location->displayName;
+        }
+        // info from the database
+        $user = $this->getDbTable('user')->getByUsername($userinfo['cat_username'], false);
+        $userinfo['preferred_library'] = $user->preferred_library;
+        $userinfo['alternate_library'] = $user->alternate_library;
+
         return $userinfo;
     }
 
@@ -533,6 +560,7 @@ class EINetwork extends Sierra implements
      */
     public function getPickUpLocations($patron, $holdInfo = null)
     {
+/*
         if ($holdInfo != null) {
             $details = $this->getHoldingInfoForItem(
                 $patron['id'], $holdInfo['id'], $holdInfo['item_id']
@@ -548,6 +576,16 @@ class EINetwork extends Sierra implements
             $default = $this->getDefaultPickUpLocation($patron);
             return empty($default) ? [] : [$default];
         }
+echo "##" . $this->getDbTable('Location')->getPickupLocations()->toArray() . "##";
+        $default = $this->getDefaultPickUpLocation($patron);
+        return empty($default) ? [] : [$default];
+*/
+        $locations = $this->getDbTable('Location')->getPickupLocations();
+        $pickupLocations = [];
+        foreach( $locations as $loc ) {
+            $pickupLocations[] = ["locationID" => $loc->code, "locationDisplay" => $loc->displayName];
+        }
+        return $pickupLocations;
     }
 
     /**

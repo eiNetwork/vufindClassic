@@ -22,7 +22,10 @@
           $arrTemplate, $this->profile,
           array(
             $this->transEsc('First Name') => 'firstname',
-            $this->transEsc('Last Name') => 'lastname'
+            $this->transEsc('Last Name') => 'lastname',
+            $this->transEsc('Notification Preference') => 'notification',
+            $this->transEsc('Library Card Number') => 'cat_username',
+            $this->transEsc('Card Expires') => 'expiration'
           )
         );
        ?>
@@ -36,7 +39,7 @@
           <form id="profile_form" class="form-inline" action="" method="post">
             <select id="home_library" name="home_library" class="form-control">
               <? foreach ($this->pickup as $lib): ?>
-                <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+                <option value="<?=$this->escapeHtmlAttr($lib['libraryId'])?>"<?=($selected == $lib['libraryId'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
               <? endforeach; ?>
             </select>
             <input class="btn btn-default" type="submit" value="<?=$this->transEsc('Save')?>" />
@@ -47,13 +50,10 @@
         echo $this->renderArray(
           $arrTemplate, $this->profile,
           array(
-            $this->transEsc('Address') . ' 1' => 'address1',
-            $this->transEsc('Address') . ' 2' => 'address2',
-            $this->transEsc('Zip') => 'zip',
-            $this->transEsc('City') => 'city',
-            $this->transEsc('Country') => 'country',
+            $this->transEsc('Address') => 'address1',
+            $this->transEsc('My Home Library') => 'homelibrary',
             $this->transEsc('Phone Number') => 'phone',
-            $this->transEsc('Group') => 'group'
+            $this->transEsc('Email') => 'email'
           )
         );
       ?>

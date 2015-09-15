@@ -182,6 +182,8 @@ trait HoldsTrait
                 'pickup' => $pickup,
                 'defaultPickup' => $defaultPickup,
                 'homeLibrary' => $this->getUser()->home_library,
+                'preferredLibrary' => $this->getUser()->preferred_library,
+                'alternateLibrary' => $this->getUser()->alternate_library,
                 'extraHoldFields' => $extraHoldFields,
                 'defaultRequiredDate' => $defaultRequired,
                 'requestGroups' => $requestGroups,

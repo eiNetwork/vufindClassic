@@ -331,6 +331,7 @@ $config = [
                 'invokables' => [
                     'changetracker' => 'VuFind\Db\Table\ChangeTracker',
                     'comments' => 'VuFind\Db\Table\Comments',
+                    'location' => 'VuFind\Db\Table\Location',
                     'oairesumption' => 'VuFind\Db\Table\OaiResumption',
                     'resourcetags' => 'VuFind\Db\Table\ResourceTags',
                     'search' => 'VuFind\Db\Table\Search',

@@ -834,6 +834,10 @@ class MyResearchController extends AbstractBase
     protected function getDriverForILSRecord($current)
     {
         $id = isset($current['id']) ? $current['id'] : null;
+        if( strpos($id, ".") > 0 ) 
+        {
+            $id = substr($id, strpos($id, ".") + 1);
+        }
         $source = isset($current['source']) ? $current['source'] : 'VuFind';
         $record = $this->getServiceLocator()->get('VuFind\RecordLoader')
             ->load($id, $source, true);

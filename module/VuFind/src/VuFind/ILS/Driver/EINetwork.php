@@ -313,6 +313,7 @@ class EINetwork extends Sierra implements
         $user = $this->getDbTable('user')->getByUsername($userinfo['cat_username'], false);
         $userinfo['preferred_library'] = $user->preferred_library;
         $userinfo['alternate_library'] = $user->alternate_library;
+        $userinfo['CLEAN_cat_username'] = $user->cat_username;
 
         return $userinfo;
     }
@@ -335,7 +336,6 @@ class EINetwork extends Sierra implements
         if ($this->config['PATRONAPI']['enabled'] == 'true') {
             // use patronAPI to authenticate customer
             $url = $this->config['PATRONAPI']['url'];
-
             // build patronapi pin test request
             $result = $this->sendRequest( $url . urlencode($username) . '/' . urlencode($password) . '/pintest' );
 
@@ -378,6 +378,7 @@ class EINetwork extends Sierra implements
             $ret['id'] = $api_data['RECORDNUM']; // or should I return patron id num?
             $ret['cat_username'] = urlencode($username);
             $ret['cat_password'] = urlencode($password);
+            $ret['CLEAN_cat_username'] = urlencode($username);
 
             $names = explode(',', $api_data['PATRNNAME']);
             $ret['firstname'] = $names[1];
@@ -558,28 +559,8 @@ class EINetwork extends Sierra implements
      * @return array        An array of associative arrays with locationID and
      * locationDisplay keys
      */
-    public function getPickUpLocations($patron, $holdInfo = null)
+    public function getPickUpLocations($patron = false, $holdInfo = null)
     {
-/*
-        if ($holdInfo != null) {
-            $details = $this->getHoldingInfoForItem(
-                $patron['id'], $holdInfo['id'], $holdInfo['item_id']
-            );
-            $pickupLocations = [];
-            foreach ($details['pickup-locations'] as $key => $value) {
-                $pickupLocations[] = [
-                    "locationID" => $key, "locationDisplay" => $value
-                ];
-            }
-            return $pickupLocations;
-        } else {
-            $default = $this->getDefaultPickUpLocation($patron);
-            return empty($default) ? [] : [$default];
-        }
-echo "##" . $this->getDbTable('Location')->getPickupLocations()->toArray() . "##";
-        $default = $this->getDefaultPickUpLocation($patron);
-        return empty($default) ? [] : [$default];
-*/
         $locations = $this->getDbTable('Location')->getPickupLocations();
         $pickupLocations = [];
         foreach( $locations as $loc ) {

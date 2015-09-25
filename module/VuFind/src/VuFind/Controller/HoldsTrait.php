@@ -92,6 +92,10 @@ trait HoldsTrait
         }
 
         // Send various values to the view so we can build the form:
+        if( strpos($gatheredDetails['id'], ".") < 1 )
+        {
+            $gatheredDetails['id'] = "EINetwork." . $gatheredDetails['id'];
+        }
         $pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
         $requestGroups = $catalog->checkCapability(
             'getRequestGroups', [$driver->getUniqueID(), $patron]

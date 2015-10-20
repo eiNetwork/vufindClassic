@@ -1,322 +1,18 @@
 <?php
 
 /**
- * EINetwork-specific adaptation of Sierra ILS driver taking advantage of Sierra API v2.
+ * EINetwork-specific adaptation of Sierra2 ILS driver
  */
 
-/**
- * Sierra (III) ILS Driver for Vufind2
- *
- * PHP version 5
- *
- * Copyright (C) 2013 Julia Bauder
- *
- *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation, either version 3 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @category VuFind2
- * @package  ILS_Drivers
- * @author   Julia Bauder <bauderj@grinnell.edu>
- * @license  http://opensource.org/licenses/GPL-3.0 GNU General Public License
- * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
- */
 namespace VuFind\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
 
-/**
- * Sierra (III) ILS Driver for Vufind2
- *
- * @category VuFind2
- * @package  ILS_Drivers
- * @author   Julia Bauder <bauderj@grinnell.edu>
- * @license  http://opensource.org/licenses/GPL-3.0 GNU General Public License
- * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
- */
-class EINetwork extends Sierra implements
-    \VuFindHttp\HttpServiceAwareInterface,
+class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
 {
-    use \VuFindHttp\HttpServiceAwareTrait;
     use \VuFind\Db\Table\DbTableAwareTrait;
-
-    /**
-     * Make an HTTP request
-     *
-     * @param string $url URL to request
-     *
-     * @return string
-     */
-    protected function sendRequest($url)
-    {
-        // Make the NCIP request:
-        try {
-            $result = $this->httpService->get($url);
-        } catch (\Exception $e) {
-            throw new ILSException($e->getMessage());
-        }
-
-        if (!$result->isSuccess()) {
-            throw new ILSException('HTTP error');
-        }
-
-        return $result->getBody();
-    }
-
-    /**
-     * Make an HTTP Sierra API request
-     *
-     * @param string $url URL to request
-     *
-     * @return string
-     */
-    protected function sendAPIRequest($url)
-    {
-        // make sure we have an access token
-        if( $this->connectToSierraAPI(false) )
-        {
-            // Make the NCIP request:
-            try {
-                $client = $this->httpService->createClient($url, \Zend\Http\Request::METHOD_GET);
-                $client->setHeaders(
-                    array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"])));
-                $result = $client->send();
-            } catch (\Exception $e) {
-                throw new ILSException($e->getMessage());
-            }
-
-            if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error');
-            }
-
-            return $result->getBody();
-        }
-    }
-
-    /**
-     * Make an HTTP Sierra API POST request
-     *
-     * @param string $url  URL to request
-     * @param string $body requestBody
-     *
-     * @return string
-     */
-    protected function postAPIRequest($url, $body)
-    {
-        // make sure we have an access token
-        if( $this->connectToSierraAPI(false) )
-        {
-            // Make the NCIP request:
-            try {
-                $client = $this->httpService->createClient($url, \Zend\Http\Request::METHOD_POST);
-                $client->setHeaders(
-                    array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"])));
-                $client->setRawBody($body);
-                $result = $client->send();
-            } catch (\Exception $e) {
-                throw new ILSException($e->getMessage());
-            }
-
-            if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error' . $result->getBody());
-            }
-
-            return $result->getBody();
-        }
-    }
-
-    /**
-     * Make an HTTP Sierra API PUT request
-     *
-     * @param string $url  URL to request
-     * @param string $body requestBody
-     *
-     * @return string
-     */
-    protected function putAPIRequest($url, $body)
-    {
-        // make sure we have an access token
-        if( $this->connectToSierraAPI(false) )
-        {
-            // Make the NCIP request:
-            try {
-                $client = $this->httpService->createClient($url, \Zend\Http\Request::METHOD_PUT);
-                $client->setHeaders(
-                    array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"])));
-                $client->setRawBody($body);
-                $result = $client->send();
-            } catch (\Exception $e) {
-                throw new ILSException($e->getMessage());
-            }
-
-            if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error' . $result->getBody());
-            }
-
-            return $result->getBody();
-        }
-    }
-
-    /**
-     * Make an HTTP Sierra API DELETE request
-     *
-     * @param string $url  URL to request
-     *
-     * @return string
-     */
-    protected function deleteAPIRequest($url)
-    {
-        // make sure we have an access token
-        if( $this->connectToSierraAPI(false) )
-        {
-            // Make the NCIP request:
-            try {
-                $client = $this->httpService->createClient($url, \Zend\Http\Request::METHOD_DELETE);
-                $client->setHeaders(
-                    array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"])));
-                $result = $client->send();
-            } catch (\Exception $e) {
-                throw new ILSException($e->getMessage());
-            }
-
-            if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error');
-            }
-
-            return ""; //$result->getBody();
-        }
-    }
-
-    /**
-     * Ensure we have a connection to the Sierra API
-     *
-     * @param boolean $renewConnection whether or not to force a refresh of our connection
-     *
-     * @return boolean
-     */
-    protected function connectToSierraAPI($refreshToken)
-    {
-        // see if we already have a valid token
-        if( isset($_SESSION["SIERRA_API_TOKEN"]) && !$refreshToken ) 
-        {
-            if( isset($_SESSION["SIERRA_API_TOKEN_EXPIRATION"]) && (time() < $_SESSION["SIERRA_API_TOKEN_EXPIRATION"]) ) 
-            {
-                return true;
-            }
-        }
-
-        // request a new token
-        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v2/token", \Zend\Http\Request::METHOD_POST);
-        $client->setHeaders(
-                array('Accept' => 'application/json; charset=UTF-8',
-                      'Authorization' => ('Basic ' . base64_encode($this->config['SIERRAAPI']['apiKey'] . ':' . $this->config['SIERRAAPI']['apiSecret']))));
-        $result = $client->send();
-        $result = json_decode($result->getBody(), true);
-
-        if( isset($result["access_token"]) && isset($result["expires_in"]) )
-        {
-            $_SESSION["SIERRA_API_TOKEN"] = $result["access_token"];
-            $_SESSION["SIERRA_API_TOKEN_EXPIRATION"] = time() + $result["expires_in"];
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /**
-     * Get Patron Profile
-     *
-     * This is responsible for retrieving the profile for a specific patron.
-     *
-     * @param array $userinfo The patron array
-     *
-     * @throws ILSException
-     * @return array          Array of the patron's profile data on success.
-     */
-    public function getMyProfile($userinfo)
-    {
-        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $userinfo['id'] . 
-                                                      "?fields=names,addresses,fixedFields,phones,emails"), true );
-        if(isset($profile['names'])) {
-            $names = explode(',', $profile['names'][0]);
-            $userinfo['firstname'] = $names[1];
-            $userinfo['lastname'] = $names[0];
-        }
-        if(isset($profile['emails'])) {
-            $userinfo['email'] = $profile['emails'][0];
-        }
-        if(isset($profile['universityId'])) {
-            $userinfo['college'] = $profile['universityId'];
-        }
-        if(isset($profile['homeLibraryCode'])) {
-            $userinfo['homelib'] = $profile['homeLibraryCode'];
-        }
-        if(isset($profile['addresses'])) {
-            foreach( $profile['addresses'] as $address ) {
-                $userinfo['address' . ($i + 1)] = "";
-                for($j=0; $j<count($address['lines']); $j++ ) {
-                    $userinfo['address' . ($i + 1)] .= (($j > 0) ? ", " : "") . $address['lines'][$j];
-                }
-            }
-        }
-        if(isset($profile['phones'])) {
-            if(count($profile['phones']) > 0) {
-                $userinfo['phone'] = $profile['phones'][0]['number'];
-            }
-            if(count($profile['phones']) > 1) {
-                $userinfo['phone2'] = $profile['phones'][0]['number'];
-            }
-        }
-        if(isset($profile['emails'])) {
-            if(count($profile['emails']) > 0) {
-                $userinfo['email'] = $profile['emails'][0];
-            }
-            if(count($profile['emails']) > 1) {
-                $userinfo['email2'] = $profile['emails'][1];
-            }
-        }
-        if(isset($profile['patronType'])) {
-            $userinfo['group'] = $profile['patronType'];
-        }
-        if(isset($profile['expirationDate'])) {
-            $userinfo['expiration'] = substr($profile['expirationDate'], 5) . "-" . substr($profile['expirationDate'], 2, 2);
-        }
-        if(isset($profile['fixedFields']['268'])) {
-            if($profile['fixedFields']['268']['value'] == 'p') {
-                $userinfo['notification'] = "Phone";
-            } else if($profile['fixedFields']['268']['value'] == 'z') {
-                $userinfo['notification'] = "Email";
-            }
-        }
-        if(isset($profile['fixedFields']['53'])) {
-            $userinfo['homelibrarycode'] = trim($profile['fixedFields']['53']['value']);
-            $location = $this->getDbTable('Location')->getByCode($userinfo['homelibrarycode']);
-            $userinfo['homelibrary'] = $location->displayName;
-        }
-        // info from the database
-        $user = $this->getDbTable('user')->getByUsername($userinfo['cat_username'], false);
-        $userinfo['preferred_library'] = $user->preferred_library;
-        $userinfo['alternate_library'] = $user->alternate_library;
-        $userinfo['CLEAN_cat_username'] = $user->cat_username;
-
-        return $userinfo;
-    }
+    use \VuFind\ILS\Driver\OverDriveTrait;
 
     /**
      * Patron Login
@@ -378,7 +74,6 @@ class EINetwork extends Sierra implements
             $ret['id'] = $api_data['RECORDNUM']; // or should I return patron id num?
             $ret['cat_username'] = urlencode($username);
             $ret['cat_password'] = urlencode($password);
-            $ret['CLEAN_cat_username'] = urlencode($username);
 
             $names = explode(',', $api_data['PATRNNAME']);
             $ret['firstname'] = $names[1];
@@ -411,135 +106,39 @@ class EINetwork extends Sierra implements
     }
 
     /**
-     * Get My Transactions
+     * Get Patron Profile
      *
-     * This is responsible for returning a patron's checked out items.
+     * This is responsible for retrieving the profile for a specific patron.
      *
-     * @param string $patron The patron's id
-     *
-     * @throws ILSException
-     * @return array         Associative array of checked out items.
-     */
-    public function getMyTransactions($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/checkouts"));
-
-        $checkedOutItems = [];
-        for( $i=0; $i<$jsonVals->total; $i++ ) {
-            $thisItem = [];
-
-            // fill in properties
-            $thisItem['source'] = "Solr";
-            $thisItem['renewable'] = true;
-            $thisItem['duedate'] = $jsonVals->entries[$i]->dueDate;
-
-            // get the bib id
-            $arr = explode("/", $jsonVals->entries[$i]->item);
-            $itemId = $arr[count($arr)-1];
-            $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-            $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $itemId));
-            $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
-            $thisItem['institution_name'] = $itemInfo->location->name;
-            $thisItem['borrowingLocation'] = $itemInfo->location->name;
-
-            // get the bib info
-            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/" . $itemInfo->bibIds[0]));
-            $thisItem['title'] = $bibInfo->title;
-            $thisItem['publication_year'] = $bibInfo->publishYear;
-            $thisItem['author'] = $bibInfo->author;
-
-            $checkedOutItems[$i] = $thisItem;
-        }
-        return $checkedOutItems;
-    }
-
-    /**
-     * Get My Fines
-     *
-     * This is responsible for returning a patron's fines.
-     *
-     * @param string $patron The patron's id
+     * @param array $patron The patron array
      *
      * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
+     * @return array          Array of the patron's profile data on success.
      */
-    public function getMyFines($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/fines"));
-        $fines = [];
-        for( $i=0; $i<$jsonVals->total; $i++ ) {
-            $thisItem = [];
+    public function getMyProfile($patron)
+    {
+        $patron = parent::getMyProfile($patron);
 
-            // get the bib id
-            $arr = explode("/", $jsonVals->entries[$i]->item);
-            $itemId = $arr[count($arr)-1];
-            if( $itemId != "" ) {
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $itemId));
+        $location = $this->getDbTable('Location')->getByCode($patron['homelibrarycode']);
+        $patron['homelibrary'] = $location->displayName;
 
-                $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
-                $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-                $thisItem['source'] = "Solr";
-            }
-            else
-            {
-                $thisItem['title'] = $jsonVals->entries[$i]->description;
-            }
-            $thisItem['fine'] = $jsonVals->entries[$i]->itemCharge;
-            $thisItem['amount'] = $jsonVals->entries[$i]->billingFee + $jsonVals->entries[$i]->processingFee;
-            $thisItem['balance'] = $jsonVals->entries[$i]->itemCharge - $jsonVals->entries[$i]->paidAmount;
-            $fines[$i] = $thisItem;
-        }
-        return $fines;
-    }
+        // info from the database
+        $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+        $patron['preferredlibrarycode'] = $user->preferred_library;
+        $location = $this->getDbTable('Location')->getByCode($patron['preferredlibrarycode']);
+        $patron['preferredlibrary'] = $location->displayName;
+        $patron['alternatelibrarycode'] = $user->alternate_library;
+        $location = $this->getDbTable('Location')->getByCode($patron['alternatelibrarycode']);
+        $patron['alternatelibrary'] = $location->displayName;
 
-    /**
-     * Get My Holds
-     *
-     * This is responsible for returning a patron's holds.
-     *
-     * @param string $patron The patron's id
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function getMyHolds($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/holds"));
-        $holds = [];
-        for( $i=0; $i<$jsonVals->total; $i++ ) {
-            $thisItem = [];
+        // overdrive info
+        $lendingOptions = $this->getOverDriveLendingOptions($patron);
+        $patron['OD_eBook'] = $lendingOptions["eBook"];
+        $patron['OD_audiobook'] = $lendingOptions["Audiobook"];
+        $patron['OD_video'] = $lendingOptions["Video"];
+        $patron['OD_renewalInDays'] = $lendingOptions["renewalInDays"];
 
-            // get the hold id
-            $arr = explode("/", $jsonVals->entries[$i]->id);
-            $thisItem['hold_id'] = $arr[count($arr)-1];
-            $thisItem['source'] = "Solr";
-            $thisItem['location'] = $jsonVals->entries[$i]->pickupLocation->name;
-            $thisItem['create'] = $jsonVals->entries[$i]->placed;
-            $thisItem['expire'] = $jsonVals->entries[$i]->notNeededAfterDate;
-            if( $jsonVals->entries[$i]->status->code == "i" ) {
-                $thisItem['available'] = true;
-            } else {
-                $thisItem['position'] = $jsonVals->entries[$i]->priority;
-            }
-            // get the bib id
-            $arr = explode("/", $jsonVals->entries[$i]->record);
-            $id = $arr[count($arr)-1];
-            // it's an item-level hold
-            if( $arr[count($arr)-2] == "items" ) {
-                $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $id));
-                $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
-            // it's bib level
-            } else {
-                $thisItem['id'] = ".b" . $id . $this->getCheckDigit($id);
-            }
-
-            // get the bib info
-            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/" . $itemInfo->bibIds[0]));
-            $thisItem['publication_year'] = $bibInfo->publishYear;
-
-            $holds[$i] = $thisItem;
-        }
-        return $holds;
+        return $patron;
     }
 
     /**
@@ -613,165 +212,6 @@ class EINetwork extends Sierra implements
     }
 
     /**
-     * Renew My Items
-     *
-     * This is responsible for renewing a patron's items.
-     *
-     * @param array  $items  The items to renew
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function renewMyItems($items){
-        return [];
-    }
-
-    /**
-     * Get Renew Details
-     *
-     * This is responsible for providing details for an item's renewal.
-     *
-     * @param string $itemInfo   The item's info
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function getRenewDetails($itemInfo){
-        return $itemInfo['item_id'];
-    }
-
-    /**
-     * Place Hold
-     *
-     * Attempts to place a hold or recall on a particular item and returns
-     * an array with result details or throws an exception on failure of support
-     * classes
-     *
-     * @param array $details An array of item and patron data
-     *
-     * @throws ILSException
-     * @return mixed An array of data on the request including
-     * whether or not it was successful and a system message (if available)
-     */
-    public function placeHold($details)
-    {
-        $body = array('recordType' => substr($details["id"], 1, 1), 
-                      'recordNumber' => (int)substr($details["id"], 2, -1), 
-                      'pickupLocation' => $details['pickUpLocation'], 
-                      'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));
-        $reply = json_encode( $this->postAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $details['patron']['id'] . "/holds/requests", json_encode($body)) );
-        return ['success' => true];
-    }
-
-    /**
-     * Cancel Holds
-     *
-     * This is responsible for cancelling a patron's holds.
-     *
-     * @param array  $holds  The holds to cancel
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function cancelHolds($holds){
-        for($i=0; $i<count($holds["details"]); $i++ )
-        {
-            $jsonVals = json_decode($this->deleteAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i]));
-        }
-        return ['success' => true];
-    }
-
-    /**
-     * Freeze Holds
-     *
-     * This is responsible for (un)freezing a patron's holds.
-     *
-     * @param array  $holds  The holds to freeze
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function freezeHolds($holds){
-        for($i=0; $i<count($holds["details"]); $i++ )
-        {
-            $body = array('freeze' => 'true');
-            $jsonVals = json_decode($this->putAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i]));
-        }
-        return ['success' => true];
-    }
-
-    /**
-     * Get Cancel Hold Details
-     *
-     * This is responsible for providing details for an hold's cancellation.
-     *
-     * @param string $holdInfo   The hold's info
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-    public function getCancelHoldDetails($holdInfo){
-        return $holdInfo['hold_id'];
-    }
-
-    /**
-     * Public Function which specifies renew, hold and cancel settings.
-     *
-     * @param string $function The name of the feature to be checked
-     * @param array  $params   Optional feature-specific parameters (array)
-     *
-     * @return array An array with key-value pairs.
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getConfig($function, $params = null)
-    {
-        if ($function == 'Holds') {
-            return [
-                'HMACKeys' => 'id:item_id:level',
-                'extraHoldFields' =>
-                    'comments:requestGroup:pickUpLocation:requiredByDate',
-                'defaultRequiredDate' => 'driver:0:2:0',
-            ];
-        }
-/*
-        if ($function == 'StorageRetrievalRequests'
-            && $this->storageRetrievalRequests
-        ) {
-            return [
-                'HMACKeys' => 'id',
-                'extraFields' => 'comments:pickUpLocation:requiredByDate:item-issue',
-                'helpText' => 'This is a storage retrieval request help text'
-                    . ' with some <span style="color: red">styling</span>.'
-            ];
-        }
-        if ($function == 'ILLRequests' && $this->ILLRequests) {
-            return [
-                'enabled' => true,
-                'HMACKeys' => 'number',
-                'extraFields' =>
-                    'comments:pickUpLibrary:pickUpLibraryLocation:requiredByDate',
-                'defaultRequiredDate' => '0:1:0',
-                'helpText' => 'This is an ILL request help text'
-                    . ' with some <span style="color: red">styling</span>.'
-            ];
-        }
-        if ($function == 'changePassword') {
-            return [
-                'minLength' => 4,
-                'maxLength' => 20
-            ];
-        }
-*/
-        return [];
-    }
-
-    /**
      * Support method for placeHold -- get holding info for an item.
      *
      * @param string $patronId Patron ID
@@ -829,35 +269,163 @@ class EINetwork extends Sierra implements
         ];
 /**/
     }
-
-    /**
-     * Utility method to calculate a check digit for a given id.
-     *
-     * @param string $id       Record ID
-     *
-     * @return character
-     */
-    protected function getCheckDigit($id)
-    {
-        // pull off the item type if they included it
-        if( !is_numeric($id) ) {
-            $id = substr($id, 1);
-        }
-        // make sure it's a number
-        if( !is_numeric($id) ) {
-            return null;
+	
+    public function updateMyProfile($patron, $updatedInfo){
+        // update the phone and email
+        if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) ) {
+            parent::updateMyProfile($patron, $updatedInfo);
         }
 
-        // calculate it
-        $checkDigit = 0;
-        $multiple = 2;
-        while( $id > 0 ) {
-            $digit = $id % 10;
-            $checkDigit += $multiple * $digit;
-            $id = ($id - $digit) / 10;
-            $multiple++;
+        // see whether they have given us an updated preferred library
+        if( isset($updatedInfo['preferred_library']) ) {
+            $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+            $user->changePreferredLibrary($updatedInfo['preferred_library']);
         }
-        $checkDigit = $checkDigit % 11;
-        return ($checkDigit == 10) ? "x" : $checkDigit;
+
+        // see whether they have given us an updated alternate library
+        if( isset($updatedInfo['alternate_library']) ) {
+            $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+            $user->changeAlternateLibrary($updatedInfo['alternate_library']);
+        }
+
+        // see whether they have updated their overdrive lending periods
+        $formats = array("ebook", "audiobook", "video");
+        foreach( $formats as $thisFormat ) {
+            if( isset($updatedInfo[$thisFormat]) ) {
+                $lendInfo = array("cat_username" => $patron['cat_username'],
+                                  "cat_password" => $patron['cat_password'],
+                                  "format" => $thisFormat,
+                                  "days" => $updatedInfo[$thisFormat] );
+                $this->setOverDriveLendingOption($lendInfo);
+            }
+        }
+
+        // see whether they have given us the notification setting
+        if( isset($updatedInfo['notices']) ) {
+/**
+            //Login to the patron's account
+            $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+            $success = false;
+
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo";
+
+            $curl_connection = curl_init($curl_url);
+            curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+            curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+            curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+            curl_setopt($curl_connection, CURLOPT_POST, true);
+            $post_items = array('code=' . $patron['cat_username'], 'pin=' . $patron['cat_password']);
+            $post_string = implode ('&', $post_items);
+echo $curl_url. "<br>";
+echo $post_string. "<br>";
+            curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+            $sresult = curl_exec($curl_connection);
+echo (strpos("PATTON", $sresult) ? "TRUE" : "FALSE") . "<br>";
+
+/*
+            //Issue a post request to update the patron information
+            $post_items = array('notices' => $updatedInfo['notices']);
+            $patronUpdateParams = implode ('&', $post_items);
+            curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+            $scope = isset($scope) ? $scope : null;
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/modpinfo";
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            $sresult = curl_exec($curl_connection);
+echo $curl_url . "<br>";
+echo $patronUpdateParams . "<br>";
+//echo $sresult . "<br>";
+            curl_close($curl_connection);
+            unlink($cookieJar);
+
+        //$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
+
+        //Should get Patron Information Updated on success
+        if (preg_match('/Patron information updated/', $sresult)){
+            $patronDump = $this->_getPatronDump($this->_getBarcode(), true);
+            $user->phone = $_REQUEST['phone'];
+            $user->email = $_REQUEST['email'];
+            $user->update();
+            //Update the serialized instance stored in the session
+            $_SESSION['userinfo'] = serialize($user);
+            return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
+        }else{
+            return "Your patron information could not be updated.";
+        }
+/*
+        //Setup the call to Millennium
+        $id2= $patronId;
+        $patronDump = $this->_getPatronDump($this->_getBarcode());
+        //$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+
+        $this->_updateVuFindPatronInfo($patronId);
+
+        //Update profile information
+        $extraPostInfo = array();
+        $extraPostInfo['tele1'] = $_REQUEST['phone'];
+        $extraPostInfo['email'] = $_REQUEST['email'];
+        if (isset($_REQUEST['notices'])){
+            $extraPostInfo['notices'] = $_REQUEST['notices'];
+        }
+
+        //Login to the patron's account
+        $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+        $success = false;
+
+        $curl_url = $this->config['Catalog']['url'] . "/patroninfo";
+
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+        curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+        curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+        curl_setopt($curl_connection, CURLOPT_POST, true);
+        $post_data = $this->_getLoginFormValues($patronDump);
+        foreach ($post_data as $key => $value) {
+            $post_items[] = $key . '=' . urlencode($value);
+        }
+        $post_string = implode ('&', $post_items);
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+        $sresult = curl_exec($curl_connection);
+
+        //Issue a post request to update the patron information
+        $post_items = array();
+        foreach ($extraPostInfo as $key => $value) {
+            $post_items[] = $key . '=' . urlencode($value);
+        }
+        $patronUpdateParams = implode ('&', $post_items);
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+        $scope = isset($scope) ? $scope : null;
+        $curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
+        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+        $sresult = curl_exec($curl_connection);
+
+        curl_close($curl_connection);
+        unlink($cookieJar);
+
+        //$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
+
+        //Should get Patron Information Updated on success
+        if (preg_match('/Patron information updated/', $sresult)){
+            $patronDump = $this->_getPatronDump($this->_getBarcode(), true);
+            $user->phone = $_REQUEST['phone'];
+            $user->email = $_REQUEST['email'];
+            $user->update();
+            //Update the serialized instance stored in the session
+            $_SESSION['userinfo'] = serialize($user);
+            return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
+        }else{
+            return "Your patron information could not be updated.";
+        }
+*/
+        }
     }
 }

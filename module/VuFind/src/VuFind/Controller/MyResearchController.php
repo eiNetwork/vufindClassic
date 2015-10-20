@@ -321,10 +321,48 @@ class MyResearchController extends AbstractBase
         // User must be logged in at this point, so we can assume this is non-false:
         $user = $this->getUser();
 
-        // Process home library parameter (if present):
-        $homeLibrary = $this->params()->fromPost('home_library', false);
-        if (!empty($homeLibrary)) {
-            $user->changeHomeLibrary($homeLibrary);
+        // Process update parameters (if present):
+        $notification = $this->params()->fromPost('notification', false);
+        $preferredLibrary = $this->params()->fromPost('preferred_library', false);
+        $alternateLibrary = $this->params()->fromPost('alternate_library', false);
+        $phone = $this->params()->fromPost('phone', false);
+        $email = $this->params()->fromPost('email', false);
+        $OD_eBook = $this->params()->fromPost('OD_eBook', false);
+        $OD_audiobook = $this->params()->fromPost('OD_audiobook', false);
+        $OD_video = $this->params()->fromPost('OD_video', false);
+        if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || 
+            !empty($email) || !empty($OD_eBook) || !empty($OD_audiobook) || !empty($OD_video) ) {
+            // grab this to compare it to what we've got now
+            $catalog = $this->getILS();
+            $profile = $catalog->getMyProfile($patron);
+
+            // load this up, but only if they've changed those properties
+            $updatedInfo = [];
+            if( !empty($notification) && $profile["notificationCode"] != $notification ) {
+                $updatedInfo["notices"] = $notification;
+            }
+            if( !empty($preferredLibrary) && $profile["preferredlibrarycode"] != $preferredLibrary) {
+                $updatedInfo["preferred_library"] = $preferredLibrary;
+            }
+            if( !empty($alternateLibrary) && $profile["alternatelibrarycode"] != $alternateLibrary) {
+                $updatedInfo["alternate_library"] = $alternateLibrary;
+            }
+            if( !empty($phone) && $profile["phone"] != $phone ) {
+                $updatedInfo["phones"] = [["number" => $phone, "type" => "t"]];
+            }
+            if( !empty($email) && $profile["email"] != $email ) {
+                $updatedInfo["emails"] = [$email];
+            }
+            if( !empty($OD_eBook) && intval($profile["OD_eBook"]) != $OD_eBook ) {
+                $updatedInfo["ebook"] = $OD_eBook;
+            }
+            if( !empty($OD_audiobook) && intval($profile["OD_audiobook"]) != $OD_audiobook ) {
+                $updatedInfo["audiobook"] = $OD_audiobook;
+            }
+            if( !empty($OD_video) && intval($profile["OD_video"]) != $OD_video ) {
+                $updatedInfo["video"] = $OD_video;
+            }
+            $this->getILS()->updateMyProfile($patron, $updatedInfo);
             $this->getAuthManager()->updateSession($user);
             $this->flashMessenger()->setNamespace('info')
                 ->addMessage('profile_update');

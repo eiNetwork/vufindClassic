@@ -14,51 +14,178 @@
 
 <div class="row">
   <div class="<?=$this->layoutClass('mainbody')?>">
-    <h2><?=$this->transEsc('Your Profile')?></h2>
-    <?=$this->flashmessages();?>
-    <table class="table table-striped">
-      <?
-        echo $this->renderArray(
-          $arrTemplate, $this->profile,
-          array(
-            $this->transEsc('First Name') => 'firstname',
-            $this->transEsc('Last Name') => 'lastname',
-            $this->transEsc('Notification Preference') => 'notification',
-            $this->transEsc('Library Card Number') => 'CLEAN_cat_username',
-            $this->transEsc('Card Expires') => 'expiration'
-          )
-        );
-       ?>
-      <? if ($showHomeLibForm): ?>
-        <tr><th><?=$this->transEsc('Preferred Library')?>:</th>
+    <div id="staticProfile">
+      <h2><?=$this->transEsc('Your Profile')?></h2>
+      <?=$this->flashmessages();?>
+      <table class="table table-striped">
         <?
-          $selected = (isset($this->profile['home_library']) && $this->profile['home_library'] != "")
-              ? $this->profile['home_library'] : $this->defaultPickupLocation
+          echo $this->renderArray(
+            $arrTemplate, $this->profile,
+            array(
+              $this->transEsc('First Name') => 'firstname',
+              $this->transEsc('Last Name') => 'lastname',
+              $this->transEsc('Notification Preference') => 'notification',
+              $this->transEsc('Library Card Number') => 'cat_username',
+              $this->transEsc('Card Expires') => 'expiration',
+              $this->transEsc('My Preferred Library') => 'preferredlibrary',
+              $this->transEsc('My Alternate Library') => 'alternatelibrary',
+              $this->transEsc('Address') => 'address1',
+              $this->transEsc('My Home Library') => 'homelibrary',
+              $this->transEsc('Phone Number') => 'phone',
+              $this->transEsc('Email') => 'email'
+            )
+          );
         ?>
-        <td>
-          <form id="profile_form" class="form-inline" action="" method="post">
-            <select id="home_library" name="home_library" class="form-control">
-              <? foreach ($this->pickup as $lib): ?>
-                <option value="<?=$this->escapeHtmlAttr($lib['libraryId'])?>"<?=($selected == $lib['libraryId'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+      </table>
+      <h4>OverDrive E-Content Lending Options</h4>
+      <table class="table table-striped">
+        <?
+          echo $this->renderArray(
+            $arrTemplate, $this->profile,
+            array(
+              $this->transEsc('eBook') => 'OD_eBook',
+              $this->transEsc('Audiobook') => 'OD_audiobook',
+              $this->transEsc('Video') => 'OD_video'
+            )
+          );
+        ?>
+      </table>
+      <button onClick="showProfileType('dynamic');">Edit Profile</button>
+    </div>
+    <div id="dynamicProfile" style="display:none">
+      <form id="profile_form" class="form-inline" action="/vufind/MyResearch/Profile" method="post">
+        <h2><?=$this->transEsc('Edit Your Profile')?></h2>
+        <?=$this->flashmessages();?>
+        <table class="table table-striped">
+          <?
+            echo $this->renderArray(
+              $arrTemplate, $this->profile,
+              array(
+                $this->transEsc('First Name') => 'firstname',
+                $this->transEsc('Last Name') => 'lastname'
+              )
+            );
+           ?>
+            <tr><th><?=$this->transEsc('Notification Preference')?>:</th>
+            <?
+              $selected = (isset($this->profile['notification']) && $this->profile['notification'] != "")
+                  ? $this->profile['notification'] : '';
+            ?>
+            <td>
+              <select id="notification" name="notification" class="form-control">
+                <option value="z"<?=($selected == "Email")?' selected="selected"':''?>>Email</option>
+                <option value="p"<?=($selected == "Phone")?' selected="selected"':''?>>Phone</option>
+              </select>
+            </td></tr>
+          <?
+            echo $this->renderArray(
+              $arrTemplate, $this->profile,
+              array(
+                $this->transEsc('Library Card Number') => 'cat_username',
+                $this->transEsc('Card Expires') => 'expiration'
+              )
+            );
+           ?>
+          <? if ($showHomeLibForm): ?>
+            <tr><th><?=$this->transEsc('My Preferred Library')?>:</th>
+            <?
+              $selected = (isset($this->profile['preferredlibrarycode']) && $this->profile['preferredlibrarycode'] != "")
+                  ? $this->profile['preferredlibrarycode'] : $this->defaultPickupLocation
+            ?>
+            <td>
+              <select id="preferred_library" name="preferred_library" class="form-control">
+                <? foreach ($this->pickup as $lib): ?>
+                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+                <? endforeach; ?>
+              </select>
+            </td></tr>
+            <tr><th><?=$this->transEsc('My Alternate Library')?>:</th>
+            <?
+              $selected = (isset($this->profile['alternatelibrarycode']) && $this->profile['alternatelibrarycode'] != "")
+                  ? $this->profile['alternatelibrarycode'] : $this->defaultPickupLocation
+            ?>
+            <td>
+              <select id="alternate_library" name="alternate_library" class="form-control">
+                <? foreach ($this->pickup as $lib): ?>
+                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+                <? endforeach; ?>
+              </select>
+            </td></tr>
+          <? endif; ?>
+          <?
+            echo $this->renderArray(
+              $arrTemplate, $this->profile,
+              array(
+                $this->transEsc('Address') => 'address1',
+                $this->transEsc('My Home Library') => 'homelibrary'
+              )
+            );
+          ?>
+          <tr><th><?=$this->transEsc('Phone Number')?>:</th>
+          <td><input type="text" id="phone" name="phone" value="<?=$this->escapeHtmlAttr($this->profile['phone'])?>" /></td></tr>
+          <tr><th><?=$this->transEsc('Email')?>:</th>
+          <td><input type="text" id="email" name="email" value="<?=$this->escapeHtmlAttr($this->profile['email'])?>" /></td></tr>
+        </table>
+        <h4>OverDrive E-Content Lending Options</h4>
+        <table class="table table-striped">
+          <tr><th><?=$this->transEsc('eBook')?>:</th>
+          <?
+            $selected = (isset($this->profile['OD_eBook']) && $this->profile['OD_eBook'] != "")
+                ? explode(" ", $this->profile['OD_eBook'])[0] : null;
+          ?>
+          <td>
+            <select id="OD_eBook" name="OD_eBook" class="form-control">
+              <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
+                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
               <? endforeach; ?>
             </select>
-            <input class="btn btn-default" type="submit" value="<?=$this->transEsc('Save')?>" />
-          </form>
-        </td>
-      <? endif; ?>
-      <?
-        echo $this->renderArray(
-          $arrTemplate, $this->profile,
-          array(
-            $this->transEsc('Address') => 'address1',
-            $this->transEsc('My Home Library') => 'homelibrary',
-            $this->transEsc('Phone Number') => 'phone',
-            $this->transEsc('Email') => 'email'
-          )
-        );
-      ?>
-    </table>
+          </td></tr>
+          <tr><th><?=$this->transEsc('Audiobook')?>:</th>
+          <?
+            $selected = (isset($this->profile['OD_audiobook']) && $this->profile['OD_audiobook'] != "")
+                ? explode(" ", $this->profile['OD_audiobook'])[0] : null;
+          ?>
+          <td>
+            <select id="OD_audiobook" name="OD_audiobook" class="form-control">
+              <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
+                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+              <? endforeach; ?>
+            </select>
+          </td></tr>
+          <tr><th><?=$this->transEsc('Video')?>:</th>
+          <?
+            $selected = (isset($this->profile['OD_video']) && $this->profile['OD_video'] != "")
+                ? explode(" ", $this->profile['OD_video'])[0] : null;
+          ?>
+          <td>
+            <select id="OD_video" name="OD_video" class="form-control">
+              <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
+                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+              <? endforeach; ?>
+            </select>
+          </td></tr>
+        </table>
+        <input class="btn btn-default" type="submit" value="<?=$this->transEsc('Save')?>" />
+        <button type="button" onClick="showProfileType('static');">Cancel</button>
+      </form>
+    </div>
   </div>
+  <script type="text/javascript">
+    function showProfileType(typeToShow)
+    {
+        if( typeToShow == "dynamic" )
+        {
+            $('#staticProfile').css('display','none'); 
+            $('#dynamicProfile').css('display','inline');
+        }
+        else
+        {
+            $('#dynamicProfile').css('display','none'); 
+            $('#staticProfile').css('display','inline');
+        }
+        $('.alert-info').hide();
+    }
+  </script>
 
   <div class="<?=$this->layoutClass('sidebar')?>">
     <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'profile'))?>

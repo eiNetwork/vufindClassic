@@ -7,8 +7,7 @@ TAGS
 *~
 vendor/.git
 data/*
-local/cache/
-local/cache/*
+local/*
 marc/*.marc*
 import/*
 *.csv

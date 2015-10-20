@@ -7,7 +7,6 @@ TAGS
 *~
 vendor/.git
 data/*
-# had to remove this
 local/*
 marc/*.marc*
 import/*

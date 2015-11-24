@@ -76,9 +76,35 @@ class SolrDefaultBackendFactory extends AbstractSolrBackendFactory
     protected function createBackend(Connector $connector)
     {
         $backend = parent::createBackend($connector);
+        //$manager = $this->serviceLocator->get('VuFind\RecordDriverPluginManager');
+        //$factory = new RecordCollectionFactory([$manager, 'getSolrRecord']);
+        //$backend->setRecordCollectionFactory($factory);
+        //return $backend;
+
         $manager = $this->serviceLocator->get('VuFind\RecordDriverPluginManager');
-        $factory = new RecordCollectionFactory([$manager, 'getSolrRecord']);
+        $factory = new RecordCollectionFactory(
+            array($manager, 'getSolrRecord'),
+            'VuFindSearch\Backend\Solr\Response\Json\RecordCollection',
+            $this->serviceLocator->get('VuFind\RecordLoader')
+        );
         $backend->setRecordCollectionFactory($factory);
         return $backend;
+    }
+
+    /**
+     * Create the SOLR connector.
+     *
+     * @return Connector
+     */
+    protected function createConnector()
+    {
+        $connector = parent::createConnector();
+        $map = $connector->getMap()->getParameters('select', 'defaults');
+        $map->add('group', 'true');
+        $map->add('group.field', 'title');
+        $map->add('group.limit', 50);
+        $map->add('group.ngroups', 'true');
+
+        return $connector;
     }
 }

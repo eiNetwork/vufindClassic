@@ -78,7 +78,7 @@ class EINetwork extends Sierra2 implements
             $names = explode(',', $api_data['PATRNNAME']);
             $ret['firstname'] = $names[1];
             $ret['lastname'] = $names[0];
-            //HIDDEN//$ret['email'] = $api_data['EMAILADDR'];
+            $ret['email'] = $api_data['EMAILADDR'];
             $ret['major'] = null;
             $ret['college'] = $api_data['HOMELIBR'];
             $ret['homelib'] = $api_data['HOMELIBR'];
@@ -125,10 +125,10 @@ class EINetwork extends Sierra2 implements
         // info from the database
         $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
         $patron['preferredlibrarycode'] = $user->preferred_library;
-        $location = $this->getDbTable('Location')->getByCode($patron['preferredlibrarycode']);
+        $location = $this->getDbTable('location')->getByCode($patron['preferredlibrarycode']);
         $patron['preferredlibrary'] = $location->displayName;
         $patron['alternatelibrarycode'] = $user->alternate_library;
-        $location = $this->getDbTable('Location')->getByCode($patron['alternatelibrarycode']);
+        $location = $this->getDbTable('location')->getByCode($patron['alternatelibrarycode']);
         $patron['alternatelibrary'] = $location->displayName;
 
         // overdrive info
@@ -269,7 +269,44 @@ class EINetwork extends Sierra2 implements
         ];
 /**/
     }
+
+    public function getStatus($id) {
+        // make sure it's an overdrive item
+        if( ($overDriveId = $this->getOverDriveID($id)) )
+        {
+            $availability = $this->getProductAvailability($overDriveId);
+            return [[
+                    "id" => $id,
+                    "status" => "STATUS",
+                    "location" => "Overdrive",
+                    "reserve" => "N",
+                    "availability" => $availability->available
+                   ]];
+        }
+        // else pass on to parent
+        else
+        {
+            return parent::getStatus($id);
+        }
+    }
 	
+    public function getHolding($id, array $patron = null)
+    {
+        if( ($overDriveId = $this->getOverDriveID($id)) ) {
+            $availability = $this->getProductAvailability($overDriveId);
+            return [[
+                    "id" => $id,
+                    "location" => "OverDrive",
+                    "isOverDrive" => true,
+                    "copiesOwned" => $availability->collections[0]->copiesOwned,
+                    "copiesAvailable" => $availability->collections[0]->copiesAvailable,
+                    "numberOfHolds" => $availability->collections[0]->numberOfHolds,
+                    "availability" => ($availability->collections[0]->copiesAvailable > 0)
+                   ]];
+        }
+        return parent::getHolding($id, $patron);
+    }
+
     public function updateMyProfile($patron, $updatedInfo){
         // update the phone and email
         if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) ) {
@@ -427,5 +464,35 @@ echo $patronUpdateParams . "<br>";
         }
 */
         }
+    }
+
+    /**
+     * Convenience function to test whether a given Solr ID value corresponds to an OverDrive item
+     *
+     * @param  string $id a Solr ID value
+     * 
+     * @return mixed  OverDrive ID if the Solr ID aps to an OverDrive item, false if not
+     */
+    public function getOverDriveID($id) {
+        // make sure it's an econtent item
+        if( substr($id, 0, 14) == "econtentRecord" )
+        {
+            // grab a bit more information from Solr
+            $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=id%3A%22" . $id . "%22&fl=econtent_source,externalId&wt=csv";
+            $curl_connection = curl_init($curl_url);
+            curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+            $sresult = curl_exec($curl_connection);
+            $values = explode("\n", $sresult);
+
+            // is it an OverDrive item?
+            if( explode(",", $values[1])[0] == "OverDrive" ) {
+                return explode(",", $values[1])[1];
+            }
+        }
+
+        // not OverDrive
+        return false;
     }
 }

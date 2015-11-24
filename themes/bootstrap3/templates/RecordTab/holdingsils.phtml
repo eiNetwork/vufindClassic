@@ -33,8 +33,8 @@
     <? endif; ?>
   <? endif; ?>
 <? endif; ?>
-<? $holdingTitleHold = $this->driver->tryMethod('getRealTimeTitleHold'); if (!empty($holdingTitleHold)): ?>
-    <a class="placehold modal-link" title="<?=$this->transEsc('request_place_text')?>" href="<?=$this->recordLink()->getRequestUrl($holdingTitleHold)?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc('title_hold_place')?></a>
+<? $holdingTitleHold = $this->driver->tryMethod('getRealTimeTitleHold'); if (!empty($holdingTitleHold) && !isset($holdings["OverDrive"])): ?>
+  <a class="placehold modal-link" title="<?=$this->transEsc('request_place_text')?>" href="<?=$this->recordLink()->getRequestUrl($holdingTitleHold)?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc('title_hold_place')?></a>
 <? endif; ?>
 <? if (!empty($urls) || $openUrl): ?>
   <h3><?=$this->transEsc("Internet")?></h3>
@@ -132,6 +132,22 @@
             <link property="itemOffered" href="#record" />
         </td>
       </tr>
+    <? elseif (isset($row['isOverDrive']) && $row['isOverDrive']): ?>
+      <? if ($row['copiesOwned'] > 0 && $row['copiesAvailable'] > 0): ?>
+        <span class="text-success"><i class="fa fa-check-circle"></i>&nbsp;Available from OverDrive</span><br>
+        <span class="text-success"><?=$this->escapeHtmlAttr($row['copiesOwned'])?> total copies, <?=$this->escapeHtmlAttr($row['copiesAvailable'])?> available</span>
+      <? elseif ($row['copiesOwned'] > 0): ?>
+        <span class="text-danger"><i class="fa fa-exclamation-triangle"></i>&nbsp;Checked out</span><br>
+        <? if ($row['numberOfHolds'] == 0): ?>
+          <span class="text-danger"><?=$this->escapeHtmlAttr($row['copiesOwned'])?> total cop<?=(($row['copiesOwned'] == 1) ? "y" : "ies")?></span><br>
+        <? elseif ($row['numberOfHolds'] == 1): ?>
+          <span class="text-danger">1 person on waitlist for <?=$this->escapeHtmlAttr($row['copiesOwned'])?> total cop<?=(($row['copiesOwned'] == 1) ? "y" : "ies")?></span><br>
+        <? else: ?>
+          <span class="text-danger"><?=$this->escapeHtmlAttr($row['numberOfHolds'])?> people on waitlist for <?=$this->escapeHtmlAttr($row['copiesOwned'])?> total cop<?=(($row['copiesOwned'] == 1) ? "y" : "ies")?></span><br>
+        <? endif; ?>
+        <br>
+        <a class="placehold modal-link" title="<?=$this->transEsc('request_place_text')?>" href="<?=$this->recordLink()->getRequestUrl($holdingTitleHold)?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc('title_hold_place')?></a>
+      <? endif; ?>
     <? endif; ?>
   <? endforeach; ?>
   <? if (!empty($holding['purchase_history'])): ?>

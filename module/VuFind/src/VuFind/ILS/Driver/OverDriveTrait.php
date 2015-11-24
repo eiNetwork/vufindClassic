@@ -51,6 +51,9 @@ trait OverDriveTrait {
         'video-streaming' => 'Streaming Video'
     );
 
+    private $tokenData;
+    private $patronTokenData;
+
     public function getOverDriveLendingOptions($userinfo){
         // overdrive info
         $lendingOptions = array("renewalInDays" => array());
@@ -95,6 +98,7 @@ trait OverDriveTrait {
      * @param EContentRecord $record
      * @return string
      */
+/*
     public function getCoverUrl($record){
         $overDriveId = $record->getOverDriveId();
         //Get metadata for the record
@@ -105,30 +109,33 @@ trait OverDriveTrait {
             return "";
         }
     }
+*/
 
     private function _connectToAPI($forceNewConnection = false){
-        $ch = curl_init("https://oauth.overdrive.com/token");
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
-        curl_setopt($ch, CURLOPT_USERPWD, $this->config['OverDrive']['clientKey'] . ":" . $this->config['OverDrive']['clientSecret']);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $return = curl_exec($ch);
-        curl_close($ch);
-        $tokenData = json_decode($return);
-        return $tokenData;
+        if( $forceNewConnection || $this->tokenData == null || time() >= $this->tokenData->expirationTime ) {
+            $ch = curl_init("https://oauth.overdrive.com/token");
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
+            curl_setopt($ch, CURLOPT_USERPWD, $this->config['OverDrive']['clientKey'] . ":" . $this->config['OverDrive']['clientSecret']);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+            $return = curl_exec($ch);
+            curl_close($ch);
+            $this->tokenData = json_decode($return);
+
+            $this->tokenData->expirationTime = time() + $this->tokenData->expires_in;
+        }
+        return $this->tokenData;
     }
 
     private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
-        $patronTokenData = [];
-        $tokenData = $this->_connectToAPI($forceNewConnection);
-        if ($tokenData){
+        if( $forceNewConnection || $this->patronTokenData == null || time() >= $this->patronTokenData->expirationTime ) {
             $ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
             $websiteId = $this->config['OverDrive']['patronWebsiteId'];
             //$websiteId = 100300;
@@ -161,23 +168,22 @@ trait OverDriveTrait {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
             $return = curl_exec($ch);
             $curlInfo = curl_getinfo($ch);
             curl_close($ch);
-            $patronTokenData = json_decode($return);
+            $this->patronTokenData = json_decode($return);
+
+            $this->patronTokenData->expirationTime = time() + $this->patronTokenData->expires_in;
         }
-        return $patronTokenData;
+        return $this->patronTokenData;
     }
 
     private function _callUrl($url){
-        $tokenData = $this->_connectToAPI();
-        //TODO: Remove || true needed for mock environment
-        //if ($tokenData || true){
+        if ( $this->_connectToAPI() ){
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$this->tokenData->token_type} {$this->tokenData->access_token}", "User-Agent: VuFind-Plus"));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -193,29 +199,22 @@ trait OverDriveTrait {
                     return $returnVal;
                 }
             }
-        //}
+        }
         return null;
     }
 
     private function _callPatronUrl($patronBarcode, $patronPin, $url, $params = null, $isPut = false){
 
-        $tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
-
-        if ($tokenData){
+        if ($this->_connectToPatronAPI($patronBarcode, $patronPin, false)){
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            if (isset($tokenData->token_type) && isset($tokenData->access_token)){
-                $authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
-                $headers = array(
-                    "Authorization: $authorizationData",
-                    "User-Agent: VuFind-Plus",
-                    "Host: " . str_replace('http://', '', $this->config['OverDrive']['patronApiUrl'])
-                );
-            }else{
-                //print_r($tokenData);
-            }
-
+            $authorizationData = $this->patronTokenData->token_type . ' ' . $this->patronTokenData->access_token;
+            $headers = array(
+                "Authorization: $authorizationData",
+                "User-Agent: VuFind-Plus",
+                "Host: " . str_replace('http://', '', $this->config['OverDrive']['patronApiUrl'])
+            );
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -257,6 +256,7 @@ trait OverDriveTrait {
         return false;
     }
 
+/*
     private function _callPatronDeleteUrl($patronBarcode, $patronPin, $url){
 
         $tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
@@ -304,17 +304,23 @@ trait OverDriveTrait {
         }
         return false;
     }
+*/
 
+/*
     public function getLibraryAccountInformation(){
         $libraryId = $this->config['OverDrive']['accountId'];
         return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId");
     }
+*/
 
+/*
     public function getAdvantageAccountInformation(){
         $libraryId = $this->config['OverDrive']['accountId'];
         return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
     }
+*/
 
+/*
     public function getProductsInAccount($productsUrl = null, $start = 0, $limit = 25){
         if ($productsUrl == null){
             $libraryId = $this->config['OverDrive']['accountId'];
@@ -323,7 +329,9 @@ trait OverDriveTrait {
         $productsUrl .= "?offeset=$start&limit=$limit";
         return $this->_callUrl($productsUrl);
     }
+*/
 
+/*
     public function getProductMetadata($overDriveId, $productsKey = null){
         if ($productsKey == null){
             $productsKey = $this->config['OverDrive']['productsKey'];
@@ -332,44 +340,20 @@ trait OverDriveTrait {
         $metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
         return $this->_callUrl($metadataUrl);
     }
+*/
 
     public function getProductAvailability($overDriveId, $productsKey = null){
         if ($productsKey == null){
             $productsKey = $this->config['OverDrive']['productsKey'];
         }
-        $availabilityUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
-        //print_r($availabilityUrl);
+        $baseUrl = $this->config['OverDrive']['apiUrl'];
+        $availabilityUrl = "$baseUrl/v1/collections/$productsKey/products/$overDriveId/availability";
         return $this->_callUrl($availabilityUrl);
     }
 
-    private function _parseLendingOptions($lendingPeriods){
-        $lendingOptions = array();
-        //print_r($lendingPeriods);
-        if (preg_match('/<script>.*?var hazVariableLending.*?<\/script>.*?<noscript>(.*?)<\/noscript>/si', $lendingPeriods, $matches)){
-            preg_match_all('/<li>\\s?\\d+\\s-\\s(.*?)<select name="(.*?)">(.*?)<\/select><\/li>/si', $matches[1], $lendingPeriodInfo, PREG_SET_ORDER);
-            for ($i = 0; $i < count($lendingPeriodInfo); $i++){
-                $lendingOption = array();
-                $lendingOption['name'] = $lendingPeriodInfo[$i][1];
-                $lendingOption['id'] = $lendingPeriodInfo[$i][2];
-                $options = $lendingPeriodInfo[$i][3];
-                $lendingOption['options']= array();
-                preg_match_all('/<option value="(.*?)".*?(selected="selected")?>(.*?)<\/option>/si', $options, $optionInfo, PREG_SET_ORDER);
-                for ($j = 0; $j < count($optionInfo); $j++){
-                    $option = array();
-                    $option['value'] = $optionInfo[$j][1];
-                    $option['selected'] = strlen($optionInfo[$j][2]) > 0;
-                    $option['name'] = $optionInfo[$j][3];
-                    $lendingOption['options'][] = $option;
-                }
-                $lendingOptions[] = $lendingOption;
-            }
-        }
-        //print_r($lendingOptions);
-        return $lendingOptions;
-    }
-
+/*
     private $checkouts = array();
-
+*/
     /**
      * Loads information about items that the user has checked out in OverDrive
      *
@@ -378,8 +362,8 @@ trait OverDriveTrait {
      *
      * @return array
      */
-    public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
 /*
+    public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
         if (isset($this->checkouts[$user->id])){
             return $this->checkouts[$user->id];
         }
@@ -494,18 +478,19 @@ trait OverDriveTrait {
         return array(
             'items' => $checkedOutTitles
         );
-*/
     }
+*/
 
+/*
     private $holds = array();
-
+*/
     /**
      * @param User $user
      * @param null $overDriveInfo
      * @return array
      */
-    public function getOverDriveHolds($user, $overDriveInfo = null){
 /*
+    public function getOverDriveHolds($user, $overDriveInfo = null){
         //Cache holds for the user just for this call.
         if (isset($this->holds[$user->id])){
             return $this->holds[$user->id];
@@ -558,9 +543,8 @@ trait OverDriveTrait {
         }
         $this->holds[$user->id] = $holds;
         return $holds;
-*/
     }
-
+*/
     /**
      * Returns a summary of information about the user's account in OverDrive.
      *
@@ -568,8 +552,9 @@ trait OverDriveTrait {
      *
      * @return array
      */
+/*
     public function getOverDriveSummary($user){
-        /** @var memcache $memcache */
+        // @var memcache $memcache
         global $memcache;
         global $timer;
         global $logger;
@@ -596,14 +581,16 @@ trait OverDriveTrait {
 
         return $summary;
     }
+*/
 
+/*
     public function getLendingPeriods($user){
         //TODO: Replace this with an API when available
         require_once ROOT_DIR . '/Drivers/OverDriveDriver2.php';
         $overDriveDriver2 = new OverDriveDriver2();
         return $overDriveDriver2->getLendingPeriods($user);
     }
-
+*/
     /**
      * Places a hold on an item within OverDrive
      *
@@ -614,19 +601,15 @@ trait OverDriveTrait {
      * @return array (result, message)
      */
     public function placeOverDriveHold($overDriveId, $user){
-        global $memcache;
-
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
         $params = array(
             'reserveId' => $overDriveId,
-            'emailAddress' => $user->email
+            'emailAddress' => $user["email"]
         );
-        $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url, $params);
-
+        $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, $params);
         $holdResult = array();
         $holdResult['result'] = false;
         $holdResult['message'] = '';
-
         if (!empty($response)){
 
             if (isset($response->holdListPosition)){
@@ -634,11 +617,9 @@ trait OverDriveTrait {
                 //$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
                 $holdResult['message'] = 'Your hold was placed successfully.';
             }else{
-                $holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.  ' . $response->message;
+                $holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.'; // . $response->message;
             }
         }
-
-        $memcache->delete('overdrive_summary_' . $user->id);
 
         return $holdResult;
     }
@@ -649,6 +630,7 @@ trait OverDriveTrait {
      * @param string $format
      * @return array
      */
+/*
     public function cancelOverDriveHold($overDriveId, $user){
         global $memcache;
 
@@ -667,6 +649,7 @@ trait OverDriveTrait {
         $memcache->delete('overdrive_summary_' . $user->id);
         return $cancelHoldResult;
     }
+*/
 
     /**
      *
@@ -679,6 +662,7 @@ trait OverDriveTrait {
      *
      * @return array results (result, message)
      */
+/*
     public function checkoutOverDriveItem($overDriveId, $user){
 
         global $memcache;
@@ -709,7 +693,9 @@ trait OverDriveTrait {
         $memcache->delete('overdrive_summary_' . $user->id);
         return $result;
     }
+*/
 
+/*
     public function getLoanPeriodsForFormat($formatId){
         //TODO: API for this?
         if ($formatId == 35){
@@ -718,7 +704,9 @@ trait OverDriveTrait {
             return array(7, 14, 21);
         }
     }
+*/
 
+/*
     public function returnOverDriveItem($overDriveId, $transactionId, $user){
         global $memcache;
 
@@ -738,7 +726,9 @@ trait OverDriveTrait {
         $memcache->delete('overdrive_summary_' . $user->id);
         return $cancelHoldResult;
     }
+*/
 
+/*
     public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
         global $memcache;
 
@@ -769,14 +759,18 @@ trait OverDriveTrait {
 
         return $result;
     }
+*/
 
+/*
     public function updateLendingOptions(){
         //TODO: Replace this with an API when available
         require_once ROOT_DIR . '/Drivers/OverDriveDriver2.php';
         $overDriveDriver2 = new OverDriveDriver2();
         return $overDriveDriver2->updateLendingOptions();
     }
+*/
 
+/*
     public function getDownloadLink($overDriveId, $format, $user){
         $url = $this->config['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 
@@ -808,5 +802,9 @@ trait OverDriveTrait {
         }
 
         return $result;
+    }
+*/
+    public function getOverdriveHolding($id, array $patron = null)
+    {
     }
 }

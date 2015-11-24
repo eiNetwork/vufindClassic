@@ -100,7 +100,7 @@ class Sierra2 extends Sierra implements
             }
 
             if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error<br>' . $url . '<br>' . $body);
+                throw new ILSException('HTTP error<br>' . $url . '<br>' . $body . "<br>" . $result->toString());
             }
 
             return $result->getBody();
@@ -398,7 +398,8 @@ class Sierra2 extends Sierra implements
      */
     public function placeHold($details)
     {
-        $body = array('recordType' => substr($details["id"], 1, 1), 
+        $body = array('id' => $details["id"], 
+                      'recordType' => substr($details["id"], 1, 1), 
                       'recordNumber' => (int)substr($details["id"], 2, -1), 
                       'pickupLocation' => $details['pickUpLocation'], 
                       'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));

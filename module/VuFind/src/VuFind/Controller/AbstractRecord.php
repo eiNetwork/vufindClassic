@@ -339,6 +339,34 @@ class AbstractRecord extends AbstractBase
         return $view;
     }
 
+
+    /**
+     * Other formats action - Allows the other formats template to appear
+     *
+     * @return mixed
+     */
+    public function otherformatsAction()
+    {
+        // Retrieve the record driver:
+        $driver = $this->loadRecord();
+
+        // get the other formats from the session
+        $container = new SessionContainer('OtherFormats');
+        $formatDict = ((isset($container->dictionary) && isset($container->dictionary[$driver->getUniqueId()])) 
+                      ? $container->dictionary[$driver->getUniqueId()] : array());
+        
+
+        $view = $this->createViewModel(
+            [
+                'id' => $driver->getUniqueId(),
+                'formats' => $formatDict
+            ]
+        );
+
+        $view->setTemplate('record/otherformats');
+        return $view;
+    }
+
     /**
      * Email action - Allows the email form to appear.
      *

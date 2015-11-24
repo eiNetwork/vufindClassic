@@ -104,7 +104,8 @@
       <? endif; ?>
 
       <div class="callnumAndLocation ajax-availability hidden">
-        <? if ($this->driver->supportsAjaxStatus()): ?>
+        <? if( substr($this->driver->getUniqueID(), 0, 14) == "econtentRecord"): ?>
+        <? elseif ($this->driver->supportsAjaxStatus()): ?>
           <strong class="hideIfDetailed"><?=$this->transEsc('Call Number')?>:</strong>
           <span class="callnumber ajax-availability hidden">
             <?=$this->transEsc('Loading')?>...<br/>
@@ -176,6 +177,31 @@
         <div class="savedLists alert alert-info hidden">
           <strong><?=$this->transEsc("Saved in")?>:</strong>
         </div>
+      <? endif; ?>
+
+      <? if ($this->driver->getExtraDetail('otherFormats')): ?>
+        <? //$otherFormatNamespace = new Container('OtherFormats'); ?>
+        <? //$formatObject = (isset($otherFormatNamespace->dictionary) ? $otherFormatNamespace->dictionary : array()); ?>
+        <? //$formatObject[$this->driver->getUniqueId()] = $this->driver->getExtraDetail('otherFormats'); ?>
+        <? //$otherFormatNamespace->dictionary = $formatObject; ?>
+        <a href="<?= $this->recordLink()->getActionUrl($this->driver, 'OtherFormats') ?>" class="otherformats-record modal-link" id="<?= $this->driver->getUniqueId() ?>" title="<?=$this->transEsc('Show other formats')?>"><?=$this->transEsc('Show other formats')?></a><br/>
+      <? endif; ?>
+
+      <? if ((1 == 2) && ($this->driver->getExtraDetail('otherFormats'))): ?>
+        <? $ids = ""; foreach($this->driver->getExtraDetail('otherFormats') as $format): ?>
+          <? $ids .= (($ids != "") ? "," : "") . $format['id']; ?>
+        <? endforeach; ?>
+        <a href="<?= ($this->recordLink()->getActionUrl($this->driver, 'OtherFormats') . "?ids=" . $ids) ?>" class="otherformats-record modal-link" id="<?=$this->driver->getUniqueId() ?>" title="<?=$this->transEsc('Show other formats')?>"><?=$this->transEsc('Show other formats')?></a><br/>
+      <? endif; ?>
+
+      <? if ((1 == 2) && ($this->driver->getExtraDetail('otherFormats'))): ?>
+        <form method="post" action="<?= $this->recordLink()->getActionUrl($this->driver, 'OtherFormats') ?>" id="otherFormats<?=$this->driver->getUniqueId() ?>">
+          <? $ids = ""; foreach($this->driver->getExtraDetail('otherFormats') as $format): ?>
+            <? $ids .= (($ids != "") ? "," : "") . $format['id']; ?>
+          <? endforeach; ?>
+          <input type="hidden" name="otherFormats" value="<?= $ids ?>">
+        </form>
+        <a href="<?= $this->recordLink()->getActionUrl($this->driver, 'OtherFormats') ?>" class="otherformats-record modal-link" onclick="$('#otherFormats<?=$this->driver->getUniqueId() ?>').submit(); return false;" title="<?=$this->transEsc('Show other formats')?>"><?=$this->transEsc('Show other formats')?></a><br/>
       <? endif; ?>
 
       <? /* Hierarchy tree link */ ?>

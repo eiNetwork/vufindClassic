@@ -212,6 +212,13 @@ $(document).ready(function(){
     var params = extractClassParams(this);
     return Lightbox.get(params['controller'], 'Save', {id:id});
   });
+/**
+  // Other formats lightbox
+  $('#otherformats-record').click(function() {
+    var params = extractClassParams(this);
+    return Lightbox.get(params['controller'], 'Other Formats', {id:id});
+  });
+/**/
   // SMS lightbox
   $('#sms-record').click(function() {
     var params = extractClassParams(this);

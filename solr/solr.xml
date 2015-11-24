@@ -2,7 +2,7 @@
 <solr persistent="true" sharedLib="lib">
   <cores adminPath="/admin/cores">
     <core loadOnStartup="true" instanceDir="authority/" transient="false" name="authority"/>
-    <core schema="schema.xml" loadOnStartup="true" instanceDir="biblio2/" transient="false" name="biblio2" config="solrconfig.xml" dataDir="../biblio2"/>
-    <core loadOnStartup="true" instanceDir="biblio/" transient="false" name="biblio" dataDir="../biblio"/>
+    <core schema="schema.xml" loadOnStartup="true" instanceDir="biblio2/" transient="false" name="biblio" config="solrconfig.xml" dataDir="../biblio2"/>
+    <core loadOnStartup="true" instanceDir="biblio/" transient="false" name="biblio2" dataDir="../biblio"/>
   </cores>
 </solr>

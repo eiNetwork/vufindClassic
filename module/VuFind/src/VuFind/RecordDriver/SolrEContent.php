@@ -76,7 +76,6 @@ class SolrEContent extends SolrDefault
     {
         // Call the parent's set method...
         parent::setRawData($data);
-
 /*
         // Also process the MARC record:
         $marc = trim($data['fullrecord']);
@@ -1100,7 +1099,6 @@ class SolrEContent extends SolrDefault
      *
      * @return void
      */
-/*
     public function attachILS(\VuFind\ILS\Connection $ils,
         \VuFind\ILS\Logic\Holds $holdLogic,
         \VuFind\ILS\Logic\TitleHolds $titleHoldLogic
@@ -1109,7 +1107,6 @@ class SolrEContent extends SolrDefault
         $this->holdLogic = $holdLogic;
         $this->titleHoldLogic = $titleHoldLogic;
     }
-*/
 
     /**
      * Do we have an attached ILS connection?
@@ -1160,33 +1157,26 @@ class SolrEContent extends SolrDefault
      *
      * @return mixed A url if a hold is possible, boolean false if not
      */
-/*
     public function getRealTimeTitleHold()
     {
         if ($this->hasILS()) {
-            $biblioLevel = strtolower($this->getBibliographicLevel());
-            if ("monograph" == $biblioLevel || strstr("part", $biblioLevel)) {
-                if ($this->ils->getTitleHoldsMode() != "disabled") {
-                    return $this->titleHoldLogic->getHold($this->getUniqueID());
-                }
+            if ($this->ils->getTitleHoldsMode() != "disabled") {
+                return $this->titleHoldLogic->getHold($this->getUniqueID());
             }
         }
 
         return false;
     }
-*/
 
     /**
      * Returns true if the record supports real-time AJAX status lookups.
      *
      * @return bool
      */
-/*
     public function supportsAjaxStatus()
     {
         return true;
     }
-*/
 
     /**
      * Get access to the raw File_MARC object.
@@ -1222,5 +1212,36 @@ class SolrEContent extends SolrDefault
     public function getConsortialIDs()
     {
         return []; //$this->getFieldArray('035', 'a', true);
+    }
+
+    /**
+     * Returns one of three things: a full URL to a thumbnail preview of the record
+     * if an image is available in an external system; an array of parameters to
+     * send to VuFind's internal cover generator if no fixed URL exists; or false
+     * if no thumbnail can be generated.
+     *
+     * @param string $size Size of thumbnail (small, medium or large -- small is
+     * default).
+     *
+     * @return string|array|bool
+     */
+    public function getThumbnail($size = 'small')
+    {
+        if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
+            return $this->fields['thumbnail'];
+        } else {
+            return parent::getThumbnail($size);
+        }
+    }
+
+    /**
+     * Action for dealing with holds.
+     *
+     * @return mixed
+     */
+    public function holdAction()
+    {
+        echo "Toodles";
+        return parent::holdAction();
     }
 }

@@ -492,4 +492,11 @@ $(document).ready(function() {
     var parts = this.href.split('/');
     return Lightbox.get(parts[parts.length-3],'Save',{id:$(this).attr('id')});
   });
+/**/
+  // Other format record links
+  $('.otherformats-record').click(function() {
+    var parts = this.href.split('/');
+    return Lightbox.get(parts[parts.length-3],'Other Formats',{id:$(this).attr('id')});
+  });
+/**/
 });

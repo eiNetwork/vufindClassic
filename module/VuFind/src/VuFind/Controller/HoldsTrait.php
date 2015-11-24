@@ -91,11 +91,17 @@ trait HoldsTrait
             return $this->blockedholdAction();
         }
 
-        // Send various values to the view so we can build the form:
-        if( strpos($gatheredDetails['id'], ".") < 1 )
+        // cut off overdrive hold requests
+        if( $overDriveId = $catalog->getOverDriveID($gatheredDetails['id']) )
         {
-            $gatheredDetails['id'] = "EINetwork." . $gatheredDetails['id'];
+            $results = $catalog->placeOverDriveHold($overDriveId, $patron);
+            $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
+            $view = $this->createViewModel();
+            $view->setTemplate('blank');
+            return $view;
         }
+
+        // Send various values to the view so we can build the form:
         $pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
         $requestGroups = $catalog->checkCapability(
             'getRequestGroups', [$driver->getUniqueID(), $patron]

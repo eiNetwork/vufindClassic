@@ -89,7 +89,7 @@ trait OverDriveTrait {
                                 "lendingPeriodDays" => $lendingInfo["days"]);
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me';
-        $this->_callPatronUrl($lendingInfo['cat_username'], $lendingInfo['cat_password'], $url, $lendingOptions, true);
+        $this->_callPatronUrl($lendingInfo['cat_username'], $lendingInfo['cat_password'], $url, $lendingOptions, 'PUT');
     }
 
     /**
@@ -172,7 +172,6 @@ trait OverDriveTrait {
             $curlInfo = curl_getinfo($ch);
             curl_close($ch);
             $this->patronTokenData = json_decode($return);
-
             $this->patronTokenData->expirationTime = time() + $this->patronTokenData->expires_in;
         }
         return $this->patronTokenData;
@@ -203,7 +202,7 @@ trait OverDriveTrait {
         return null;
     }
 
-    private function _callPatronUrl($patronBarcode, $patronPin, $url, $params = null, $isPut = false){
+    private function _callPatronUrl($patronBarcode, $patronPin, $url, $params = null, $requestType = null){
 
         if ($this->_connectToPatronAPI($patronBarcode, $patronPin, false)){
             $ch = curl_init($url);
@@ -220,8 +219,8 @@ trait OverDriveTrait {
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             if ($params != null){
-                if( $isPut ) {
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+                if( $requestType != null ) {
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestType);
                 }
                 curl_setopt($ch, CURLOPT_POST, 1);
                 //Convert post fields to json
@@ -243,48 +242,6 @@ trait OverDriveTrait {
 
             $return = curl_exec($ch);
             $curlInfo = curl_getinfo($ch);
-            curl_close($ch);
-            $returnVal = json_decode($return);
-
-            if ($returnVal != null){
-
-                if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
-                    return $returnVal;
-                }
-            }
-        }
-        return false;
-    }
-
-/*
-    private function _callPatronDeleteUrl($patronBarcode, $patronPin, $url){
-
-        $tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
-        //TODO: Remove || true when oauth works
-        if ($tokenData || true){
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            if ($tokenData){
-                $authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
-                $headers = array(
-                    "Authorization: $authorizationData",
-                    "User-Agent: VuFind-Plus",
-                    "Host: " . str_replace('http://', '', $this->config['OverDrive']['patronApiUrl'])
-                );
-            }else{
-                $headers = array("User-Agent: VuFind-Plus", "Host: " . str_replace('http://', '', $this->config['OverDrive']['patronApiUrl']));
-            }
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-            $return = curl_exec($ch);
-            $returnInfo = curl_getinfo($ch);
             if ($returnInfo['http_code'] == 204){
                 $result = true;
             }else{
@@ -292,7 +249,7 @@ trait OverDriveTrait {
             }
             curl_close($ch);
             $returnVal = json_decode($return);
-            //print_r($returnVal);
+
             if ($returnVal != null){
 
                 if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
@@ -304,7 +261,6 @@ trait OverDriveTrait {
         }
         return false;
     }
-*/
 
 /*
     public function getLibraryAccountInformation(){
@@ -481,27 +437,15 @@ trait OverDriveTrait {
     }
 */
 
-/*
-    private $holds = array();
-*/
     /**
      * @param User $user
      * @param null $overDriveInfo
      * @return array
      */
-/*
-    public function getOverDriveHolds($user, $overDriveInfo = null){
-        //Cache holds for the user just for this call.
-        if (isset($this->holds[$user->id])){
-            return $this->holds[$user->id];
-        }
+    public function getOverDriveHolds($user){
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
         $holds = array();
-        $holds['holds'] = array(
-            'available' => array(),
-            'unavailable' => array()
-        );
         if (isset($response->holds)){
             foreach ($response->holds as $curTitle){
                 $hold = array();
@@ -513,38 +457,17 @@ trait OverDriveTrait {
                 if ($hold['available']){
                     $hold['expirationDate'] = strtotime($curTitle->holdExpires);
                 }
+                $availability = $this->getProductAvailability($curTitle->reserveId);
+                $count = ceil($hold['holdQueuePosition'] / $availability->copiesOwned);
+                $hold['position'] = $count . (($count == 1) ? " person" : " people") . " ahead of you (hold #" . 
+                                    $hold['holdQueuePosition'] . " on " . $availability->copiesOwned . " copies)";
 
-                //Figure out which eContent record this is for.
-                $eContentRecord = new EContentRecord();
-                $eContentRecord->externalId = $hold['overDriveId'];
-                $eContentRecord->source = 'OverDrive';
-                $eContentRecord->status = 'active';
-                if ($eContentRecord->find(true)){
-                    $hold['recordId'] = $eContentRecord->id;
-                    $hold['title'] = $eContentRecord->title;
-                    $hold['author'] = $eContentRecord->author;
-                    $hold['imageUrl'] = $eContentRecord->cover;
-
-                    //Get Rating
-                    require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-                    $econtentRating = new EContentRating();
-                    $econtentRating->recordId = $eContentRecord->id;
-                    $hold['ratingData'] = $econtentRating->getRatingData($user, false);
-                }else{
-                    $hold['recordId'] = -1;
-                }
-
-                if ($hold['available']){
-                    $holds['holds']['available'][] = $hold;
-                }else{
-                    $holds['holds']['unavailable'][] = $hold;
-                }
+                $holds[count($holds)] = $hold;
             }
         }
-        $this->holds[$user->id] = $holds;
         return $holds;
     }
-*/
+
     /**
      * Returns a summary of information about the user's account in OverDrive.
      *

@@ -168,7 +168,8 @@ class Factory
         $driver->attachILS(
             $sm->getServiceLocator()->get('VuFind\ILSConnection'),
             $sm->getServiceLocator()->get('VuFind\ILSHoldLogic'),
-            $sm->getServiceLocator()->get('VuFind\ILSTitleHoldLogic')
+            $sm->getServiceLocator()->get('VuFind\ILSTitleHoldLogic'),
+            $sm->getServiceLocator()->get('VuFind\ILSTitleCheckoutLogic')
         );
         $driver->attachSearchService($sm->getServiceLocator()->get('VuFind\Search'));
         return $driver;
@@ -191,7 +192,8 @@ class Factory
         $driver->attachILS(
             $sm->getServiceLocator()->get('VuFind\ILSConnection'),
             $sm->getServiceLocator()->get('VuFind\ILSHoldLogic'),
-            $sm->getServiceLocator()->get('VuFind\ILSTitleHoldLogic')
+            $sm->getServiceLocator()->get('VuFind\ILSTitleHoldLogic'),
+            $sm->getServiceLocator()->get('VuFind\ILSTitleCheckoutLogic')
         );
         $driver->attachSearchService($sm->getServiceLocator()->get('VuFind\Search'));
         return $driver;

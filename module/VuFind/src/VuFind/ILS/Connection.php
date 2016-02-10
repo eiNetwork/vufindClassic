@@ -219,7 +219,6 @@ class Connection implements TranslatorAwareInterface
         $functionConfig = $this->checkCapability(
             'getConfig', [$function, $params]
         ) ? $this->getDriver()->getConfig($function, $params) : false;
-
         // See if we have a corresponding check method to analyze the response:
         $checkMethod = "checkMethod" . $function;
         if (!method_exists($this, $checkMethod)) {
@@ -276,6 +275,33 @@ class Connection implements TranslatorAwareInterface
             if ($this->checkCapability('getHoldLink', [$id, []])) {
                 $response = ['function' => "getHoldLink"];
             }
+        }
+        return $response;
+    }
+
+    /**
+     * Check Checkout
+     *
+     * A support method for checkFunction(). This is responsible for checking
+     * the driver configuration to determine if the system supports checkout.
+     *
+     * @param array $functionConfig The Checkout configuration values
+     * @param array $params         An array of function-specific params (or null)
+     *
+     * @return mixed On success, an associative array with specific function keys
+     * and values either for placing holds via a form or a URL; on failure, false.
+     */
+    protected function checkMethodCheckout($functionConfig, $params)
+    {
+        $response = false;
+
+        // We pass an array containing $params to checkCapability since $params
+        // should contain 'id' and 'patron' keys; this isn't exactly the same as
+        // the full parameter expected by placeHold() but should contain the
+        // necessary details for determining eligibility.
+        $id = isset($params['id']) ? $params['id'] : null;
+        if ($this->checkCapability('checkout', [$id, []])) {
+            $response = ['function' => "checkout"];
         }
         return $response;
     }

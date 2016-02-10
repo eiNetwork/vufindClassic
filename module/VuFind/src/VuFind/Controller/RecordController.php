@@ -68,4 +68,29 @@ class RecordController extends AbstractRecord
         return (isset($config->Record->next_prev_navigation)
             && $config->Record->next_prev_navigation);
     }
+
+    /**
+     * Action for dealing with overdrive checkouts.
+     *
+     * @return mixed
+     */
+    public function checkoutAction()
+    {
+        // cut off overdrive hold requests
+        $driver = $this->loadRecord();
+        $catalog = $this->getILS();
+        if( $overDriveId = $catalog->getOverDriveID($driver->getUniqueID()) )
+        {
+            // Retrieve user object and force login if necessary:
+            if (!($user = $this->getUser())) {
+                return $this->forceLogin();
+            }
+
+            $results = $catalog->placeOverDriveHold($overDriveId, $patron);
+            $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
+            $view = $this->createViewModel();
+            $view->setTemplate('blank');
+            return $view;
+        }
+    }
 }

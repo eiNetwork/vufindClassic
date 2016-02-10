@@ -434,6 +434,21 @@ class Factory
     }
 
     /**
+     * Construct the ILS title checkout logic.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \VuFind\ILS\Logic\TitleHolds
+     */
+    public static function getILSTitleCheckoutLogic(ServiceManager $sm)
+    {
+        return new \VuFind\ILS\Logic\TitleCheckout(
+            $sm->get('VuFind\ILSAuthenticator'), $sm->get('VuFind\ILSConnection'),
+            $sm->get('VuFind\HMAC'), $sm->get('VuFind\Config')->get('config')
+        );
+    }
+
+    /**
      * Construct the logger.
      *
      * @param ServiceManager $sm Service manager.

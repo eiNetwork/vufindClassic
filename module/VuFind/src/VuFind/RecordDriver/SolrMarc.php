@@ -70,6 +70,13 @@ class SolrMarc extends SolrDefault
     protected $titleHoldLogic;
 
     /**
+     * Title checkout logic
+     *
+     * @var \VuFind\ILS\Logic\TitleCheckout
+     */
+    protected $titleCheckoutLogic;
+
+    /**
      * Set raw data to initialize the object.
      *
      * @param mixed $data Raw data representing the record; Record Model
@@ -1027,19 +1034,22 @@ class SolrMarc extends SolrDefault
     /**
      * Attach an ILS connection and related logic to the driver
      *
-     * @param \VuFind\ILS\Connection       $ils            ILS connection
-     * @param \VuFind\ILS\Logic\Holds      $holdLogic      Hold logic handler
-     * @param \VuFind\ILS\Logic\TitleHolds $titleHoldLogic Title hold logic handler
+     * @param \VuFind\ILS\Connection          $ils                ILS connection
+     * @param \VuFind\ILS\Logic\Holds         $holdLogic          Hold logic handler
+     * @param \VuFind\ILS\Logic\TitleHolds    $titleHoldLogic     Title hold logic handler
+     * @param \VuFind\ILS\Logic\TitleCheckout $titleCheckoutLogic Title checkout logic handler
      *
      * @return void
      */
     public function attachILS(\VuFind\ILS\Connection $ils,
         \VuFind\ILS\Logic\Holds $holdLogic,
-        \VuFind\ILS\Logic\TitleHolds $titleHoldLogic
+        \VuFind\ILS\Logic\TitleHolds $titleHoldLogic,
+        \VuFind\ILS\Logic\TitleCheckout $titleCheckoutLogic
     ) {
         $this->ils = $ils;
         $this->holdLogic = $holdLogic;
         $this->titleHoldLogic = $titleHoldLogic;
+        $this->titleCheckoutLogic = $titleCheckoutLogic;
     }
 
     /**

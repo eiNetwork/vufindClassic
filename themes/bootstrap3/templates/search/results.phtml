@@ -7,6 +7,7 @@
       $this->headTitle($this->translate('Search Results') . (empty($lookfor) ? '' : " - {$lookfor}"));
   }
 
+/**
   // Set up search box:
   $this->layout()->searchbox = $this->context($this)->renderInContext(
       'search/searchbox.phtml',
@@ -22,12 +23,13 @@
         'selectedShards' => $this->params->getSelectedShards()
       )
   );
+/**/
 
   // Set up breadcrumbs:
   if (isset($this->overrideTitle)) {
-    $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';
+//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';
   } else {
-    $this->layout()->breadcrumbs .= '<li class="active">' . $this->transEsc('Search') . ': ' . $this->escapeHtml($lookfor) . '</li>';
+//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->transEsc('Search') . ': ' . $this->escapeHtml($lookfor) . '</li>';
   }
 
   // Enable cart if appropriate:

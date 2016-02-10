@@ -1093,19 +1093,22 @@ class SolrEContent extends SolrDefault
     /**
      * Attach an ILS connection and related logic to the driver
      *
-     * @param \VuFind\ILS\Connection       $ils            ILS connection
-     * @param \VuFind\ILS\Logic\Holds      $holdLogic      Hold logic handler
-     * @param \VuFind\ILS\Logic\TitleHolds $titleHoldLogic Title hold logic handler
+     * @param \VuFind\ILS\Connection          $ils                ILS connection
+     * @param \VuFind\ILS\Logic\Holds         $holdLogic          Hold logic handler
+     * @param \VuFind\ILS\Logic\TitleHolds    $titleHoldLogic     Title hold logic handler
+     * @param \VuFind\ILS\Logic\TitleCheckout $titleCheckoutLogic Title checkout logic handler
      *
      * @return void
      */
     public function attachILS(\VuFind\ILS\Connection $ils,
         \VuFind\ILS\Logic\Holds $holdLogic,
-        \VuFind\ILS\Logic\TitleHolds $titleHoldLogic
+        \VuFind\ILS\Logic\TitleHolds $titleHoldLogic,
+        \VuFind\ILS\Logic\TitleCheckout $titleCheckoutLogic
     ) {
         $this->ils = $ils;
         $this->holdLogic = $holdLogic;
         $this->titleHoldLogic = $titleHoldLogic;
+        $this->titleCheckoutLogic = $titleCheckoutLogic;
     }
 
     /**
@@ -1163,6 +1166,20 @@ class SolrEContent extends SolrDefault
             if ($this->ils->getTitleHoldsMode() != "disabled") {
                 return $this->titleHoldLogic->getHold($this->getUniqueID());
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get a link for checking out this title.
+     *
+     * @return mixed A url if checkout is possible, boolean false if not
+     */
+    public function getRealTimeCheckout()
+    {
+        if ($this->hasILS() && isset($this->titleCheckoutLogic)) {
+            return $this->titleCheckoutLogic->getCheckout($this->getUniqueID());
         }
 
         return false;

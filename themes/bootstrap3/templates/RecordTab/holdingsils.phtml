@@ -135,7 +135,13 @@
     <? elseif (isset($row['isOverDrive']) && $row['isOverDrive']): ?>
       <? if ($row['copiesOwned'] > 0 && $row['copiesAvailable'] > 0): ?>
         <span class="text-success"><i class="fa fa-check-circle"></i>&nbsp;Available from OverDrive</span><br>
-        <span class="text-success"><?=$this->escapeHtmlAttr($row['copiesOwned'])?> total copies, <?=$this->escapeHtmlAttr($row['copiesAvailable'])?> available</span>
+        <span class="text-success"><?=$this->escapeHtmlAttr($row['copiesOwned'])?> total copies, <?=$this->escapeHtmlAttr($row['copiesAvailable'])?> available</span><br><br>
+<!--
+        <form class="form-inline" id="checkoutFromOverDrive" method="post" name="bulkActionForm" action="">
+        <ul class="nav nav-pills" style="margin:0;"><li><a class="modal-link correct" href="#" onclick="$('#checkoutFromOverDrive').submit();"><i class="fa-sign-in"></i>&nbsp;Checkout Now</a></li></ul>
+-->
+        <? $checkoutLink = $this->driver->tryMethod('getRealTimeCheckout'); ?>
+        <ul class="nav nav-pills" style="margin:0;"><li><a class="modal-link" href="<?=$this->recordLink()->getRequestUrl($checkoutLink)/* "/vufind/Record/" . $row['id'] . "/Checkout"*/ ?>"><i class="fa-sign-in"></i>&nbsp;Checkout Now</a></li></ul>
       <? elseif ($row['copiesOwned'] > 0): ?>
         <span class="text-danger"><i class="fa fa-exclamation-triangle"></i>&nbsp;Checked out</span><br>
         <? if ($row['numberOfHolds'] == 0): ?>
@@ -146,7 +152,7 @@
           <span class="text-danger"><?=$this->escapeHtmlAttr($row['numberOfHolds'])?> people on waitlist for <?=$this->escapeHtmlAttr($row['copiesOwned'])?> total cop<?=(($row['copiesOwned'] == 1) ? "y" : "ies")?></span><br>
         <? endif; ?>
         <br>
-        <a class="placehold modal-link" title="<?=$this->transEsc('request_place_text')?>" href="<?=$this->recordLink()->getRequestUrl($holdingTitleHold)?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc('title_hold_place')?></a>
+        <ul class="nav nav-pills" style="margin:0;"><li><a class="placehold modal-link" title="<?=$this->transEsc('request_place_text')?>" href="<?=$this->recordLink()->getRequestUrl($holdingTitleHold)?>"><i class="fa fa-flag"></i>&nbsp;<?=$this->transEsc('title_hold_place')?></a></li></ul>
       <? endif; ?>
     <? endif; ?>
   <? endforeach; ?>

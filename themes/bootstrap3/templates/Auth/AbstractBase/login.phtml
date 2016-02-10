@@ -4,12 +4,18 @@
   <form method="post" class="form-horizontal" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm">
     <?=$this->auth()->getLoginFields()?>
     <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
+    <input type="hidden" name="authorization_code" id="authorization_code" value="">
     <div class="form-group">
       <div class="col-sm-offset-3 col-sm-9">
         <? if ($account->supportsCreation()): ?>
           <a class="btn btn-link createAccountLink" href="<?=$this->url('myresearch-account') ?>?auth_method=<?=$account->getAuthMethod()?>"><?=$this->transEsc('Create New Account')?></a>
         <? endif; ?>
+<!-- BP => Authorization Code Grant
+        <input class="btn btn-primary" type="button" name="processLogin" value="<?=$this->transEsc('Login')?>" onclick="TryHotwireLogin();">
+<!-- -->
+<!-- BP => Client Credential Grant -->
         <input class="btn btn-primary" type="submit" name="processLogin" value="<?=$this->transEsc('Login')?>">
+<!-- -->
         <? if ($account->supportsRecovery()): ?>
           <br/>
           <a class="btn btn-link" href="<?=$this->url('myresearch-recover') ?>?auth_method=<?=$account->getAuthMethod()?>"><?=$this->transEsc('Forgot Password')?></a>
@@ -20,3 +26,39 @@
 <? else: ?>
   <a href="<?=$this->escapeHtmlAttr($sessionInitiator)?>"><?=$this->transEsc("Institutional Login")?></a>
 <? endif; ?>
+<!-- BP => Authorization Code Grant
+  <script type='text/javascript'>
+    var loginState;
+    function TryHotwireLogin() {
+      loginState = new Date().getTime();
+
+      // Opera/Mozilla/Webkit
+      if( window.addEventListener ) {
+        window.addEventListener("message", ReceiveLoginMessage, false);
+      // Internet Explorer
+      } else if( window.attachEvent ) {
+        window.attachEvent('onmessage', ReceiveLoginMessage);
+      }
+
+      document.getElementById('loginFrame').src = "https://sierra-testapp.einetwork.net/iii/sierra-api/authorize?client_id=QGl%2BoKBAJxgbX2rS3FpCSYRMLolL" + 
+                                                  "&redirect_uri=https://librarycatalog.einetwork.net/requestHandler.php&state=" + loginState.toString() + 
+                                                  "&response_type=code&barcode=" + encodeURI(document.getElementById('login_username').value) + 
+                                                  "&pin=" + encodeURI(document.getElementById('login_password').value);
+    }
+
+    function ReceiveLoginMessage(event) {
+      var outcome = event.data.substring(0, event.data.indexOf("<br>"));
+      var code = event.data.substring(event.data.indexOf("<br>") + 4, event.data.lastIndexOf("<br>"));
+      var state = event.data.substr(event.data.lastIndexOf("<br>") + 4);
+      
+      if( outcome == "LOGINSUCCESS" && event.origin == "https://librarycatalog.einetwork.net" && state == loginState ) {
+        document.getElementById('login_password').value = "LOGINSUCCESS";
+        document.getElementById('authorization_code').value = code;
+        document.getElementById('loginForm').submit();
+      } else {
+        document.getElementById('login_password').value = "FAILURE";
+        document.getElementById('loginForm').submit();
+      }
+    }
+  </script>
+<!-- -->

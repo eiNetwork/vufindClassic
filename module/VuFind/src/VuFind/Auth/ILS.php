@@ -106,6 +106,9 @@ class ILS extends AbstractBase
     {
         $username = trim($request->getPost()->get('username'));
         $password = trim($request->getPost()->get('password'));
+        if( $request->getPost()->get('authorization_code') != null ) {
+            $password .= trim($request->getPost()->get('authorization_code'));
+        }
         if ($username == '' || $password == '') {
             throw new AuthException('authentication_error_blank');
         }

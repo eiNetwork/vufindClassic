@@ -13,3 +13,4 @@ import/*
 *.csv
 logs/*
 solr/*
+*.BACKUP

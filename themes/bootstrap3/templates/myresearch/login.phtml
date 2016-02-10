@@ -22,10 +22,12 @@
 <? endif; ?>
 
 <p class="lead lightbox-header"><?=$this->transEsc('Login')?></p>
+<span id="loginFlashMessages">
 <?=$this->flashmessages()?>
+</span>
 
 <? if ($hideLogin): ?>
-  <div class="alert alert-danger"><?=$this->transEsc('login_disabled')?></div>
+  <div class="alert alert-danger" id="loginErrorMessage"><?=$this->transEsc('login_disabled')?></div>
 <? else: ?>
   <?=$this->auth()->getLogin()?>
 <? endif; ?>

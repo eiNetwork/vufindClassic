@@ -28,6 +28,7 @@ class EINetwork extends Sierra2 implements
      */
     public function patronLogin($username, $password)
     {
+/** BP => Client Credentials Grant **/
         // TODO: if username is a barcode, test to make sure it fits proper format
         if ($this->config['PATRONAPI']['enabled'] == 'true') {
             // use patronAPI to authenticate customer
@@ -103,6 +104,17 @@ class EINetwork extends Sierra2 implements
             // TODO: use screen scrape
             return null;
         }
+/** BP => Authorization Code Grant **
+        if( substr($password, 0, 12) == "LOGINSUCCESS" ) {
+            $this->authorizationCode = substr($password, 12);
+
+            // get their profile data
+            $profileData = $this->getMyProfile(array('barcode' => $username));
+            echo "##" . json_encode($profileData) . "##<br>";
+            return $profileData;
+        }
+        return null;
+/** **/
     }
 
     /**
@@ -471,7 +483,7 @@ echo $patronUpdateParams . "<br>";
      *
      * @param  string $id a Solr ID value
      * 
-     * @return mixed  OverDrive ID if the Solr ID aps to an OverDrive item, false if not
+     * @return mixed  OverDrive ID if the Solr ID maps to an OverDrive item, false if not
      */
     public function getOverDriveID($id) {
         // make sure it's an econtent item
@@ -494,5 +506,91 @@ echo $patronUpdateParams . "<br>";
 
         // not OverDrive
         return false;
+    }
+
+    /**
+     * Convenience function to get the Solr Record corresponding to a given externalId
+     *
+     * @param  string $id an externalId value
+     * 
+     * @return mixed  A Solr record if the externalId maps to a Solr item, false if not
+     */
+    public function getSolrRecordFromExternalId($id) {
+        // grab a bit more information from Solr
+        $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv";
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        $sresult = curl_exec($curl_connection);
+        $values = explode("\n", $sresult);
+
+        // is it a Solr item?
+        if( count($values) > 2 ) {
+            $item = array();
+            $fieldNames = explode(",", $values[0]);
+
+            // we have to do some hocus pocus here since the values can also include the  delimiter
+            $fieldValues = explode("\"", $values[1]);
+            for($i = count($fieldValues) - 1; $i>=0; $i-=2) {
+                // chop off the initial comma for anything that is after a double quote
+                $startPos = ($i==0) ? 0 : 1;
+                // chop off the ending comma if it's not the last one
+                $length = strlen($fieldValues[$i]) - $startPos - ((substr($fieldValues[$i], -1) == ",") ? 1 : 0);
+                $fieldValues[$i] = substr($fieldValues[$i], $startPos, $length);
+                // skip empties
+                $replacement = ($fieldValues[$i] == "") ? [] : explode(",",$fieldValues[$i]);
+                array_splice($fieldValues, $i, 1, $replacement);
+            }
+
+            for($i=0; $i<count($fieldNames); $i++) {
+                $item[$fieldNames[$i]] = $fieldValues[$i];
+            }
+            return $item;
+        }
+
+        // not in Solr
+        return false;
+    }
+
+    /**
+     * Get My Holds
+     *
+     * This is responsible for returning a patron's holds.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function getMyHolds($patron) {
+        $sierraHolds = parent::getMyHolds($patron);
+        $overDriveHolds = $this->getOverDriveHolds((object)$patron);
+        foreach($overDriveHolds as $hold) {
+            $solrInfo = $this->getSolrRecordFromExternalId($hold["overDriveId"]);
+            if($solrInfo) {
+                foreach($solrInfo as $key => $value) {
+                    $hold[$key] = $value;
+                }
+                $sierraHolds[] = $hold;
+            }
+        }
+        return $sierraHolds;
+    }
+
+    /**
+     * Checkout
+     *
+     * This is responsible for checking out an item
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function checkout($patron) {
+        return true;
     }
 }

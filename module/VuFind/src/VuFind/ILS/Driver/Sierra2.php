@@ -48,6 +48,8 @@ class Sierra2 extends Sierra implements
 {
     use \VuFindHttp\HttpServiceAwareTrait;
 
+    protected $authorizationCode = null;
+
     /**
      * Make an HTTP request
      *
@@ -108,7 +110,7 @@ class Sierra2 extends Sierra implements
     }
 
     /**
-     * Ensure we have a connection to the Sierra API
+     * Ensure we have a connection to the Sierra API.
      *
      * @param boolean $renewConnection whether or not to force a refresh of our connection
      *
@@ -130,6 +132,11 @@ class Sierra2 extends Sierra implements
         $client->setHeaders(
                 array('Accept' => 'application/json; charset=UTF-8',
                       'Authorization' => ('Basic ' . base64_encode($this->config['SIERRAAPI']['apiKey'] . ':' . $this->config['SIERRAAPI']['apiSecret']))));
+        if( $this->authorizationCode != null ) {
+            $client->setRawBody( json_encode( array('grant_type' => 'authorization_code', 
+                                                    'code' => $this->authorizationCode, 
+                                                    'redirect_uri' => $this->config['SIERRAAPI']['redirect_url']) ) );
+        }
         $result = $client->send();
         $result = json_decode($result->getBody(), true);
 
@@ -157,8 +164,14 @@ class Sierra2 extends Sierra implements
      */
     public function getMyProfile($patron)
     {
+/** BP => Client Credentials Grant **/
         $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . 
                                                       "?fields=names,addresses,fixedFields,phones,emails"), true );
+/** BP => Authorization Code Grant **
+        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/find?barcode=" . $patron['barcode'] . 
+                                                      "&fields=names,addresses,fixedFields,phones,emails"), true );
+//        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/2865172"), true );
+/** **/
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
             $patron['firstname'] = $names[1];

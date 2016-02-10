@@ -1,0 +1,116 @@
+<div id="modalLogin" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-noBorderAlternate close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+        <h4 id="modalTitle" class="modal-title">Log In or Register</h4>
+      </div>
+      <div class="modal-body" style="text-align:center">
+        <button id="loginModalLogin" class="btn-alternate active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
+        <button id="loginModalRegister" class="btn-alternate" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
+        <div id="loginModalLoginBody">
+          <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
+            <? $account = $this->auth()->getManager(); ?>
+            <div class="textBoxContainer">
+              <input type="text" name="username" id="login_username" value="<?=(isset($this->request) ? $this->escapeHtmlAttr($this->request->get('username')) : "Enter your Barcode")?>" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') this.value = ''" class="form-control textBox"/>
+              <i class="fa fa-exclamation-circle formErrorIcon"></i>
+              <span id="login_usernameError" class="formError"></span>
+            </div><br>
+            <div class="textBoxContainer">
+              <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; }" class="form-control textBox"/>
+              <i class="fa fa-exclamation-circle formErrorIcon"></i>
+              <span id="login_passwordError" class="formError"></span>
+            </div>
+            <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
+            <input type="hidden" name="authorization_code" id="authorization_code" value="">
+            <input type="hidden" name="authorization_code" id="authorization_code" value="">
+          </form>
+        </div>
+        <div id="loginModalRegisterBody" style="color:#3f51b5;display:none">REGISTER</div>
+      </div>
+      <div class="modal-footer">
+        <div id="loginModalError" class="errorAlert" style="display:none">
+          <i class="fa fa-exclamation-triangle"></i>
+          <span id="loginModalErrorText"></span>
+          <button type="button" class="btn-noBorderAlternate closeWhite" aria-hidden="true" onclick="document.getElementById('loginModalError').style.display = 'none'"><i class="fa fa-close"></i></button>
+        </div>
+        <div id="loginModalLoginFooter">
+          <button class="btn-alternate" data-toggle="modal" data-target="#modalLogin" onclick="document.getElementById('loginModalError').style.display = 'none'">Cancel</button>
+          <button class="btn-default" onclick="SubmitLogIn()">Log In</button>
+        </div>
+        <div id="loginModalRegisterFooter" style="display:none">
+          <button class="btn-alternate" data-toggle="modal" data-target="#modalLogin" onclick="document.getElementById('loginModalError').style.display = 'none'">Cancel</button>
+          <button class="btn-default" onclick="document.getElementById('loginForm').submit()">Register</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  // the form starts displaying the login screen
+  var loginToggle = "loginModalLogin";
+  // flip the modal to the desired function (log in OR register)
+  function ToggleLoginModal(target) {
+    document.getElementById(loginToggle).classList.remove('active');
+    document.getElementById(loginToggle + "Body").style.display = "none";
+    document.getElementById(loginToggle + "Footer").style.display = "none";
+    loginToggle = target.id
+    document.getElementById(loginToggle).classList.add('active');
+    document.getElementById(loginToggle + "Body").style.display = "block";
+    document.getElementById(loginToggle + "Footer").style.display = "block";
+  }
+
+  // make the switcher buttons more responsive
+  function HighlightLoginModal(targetID, turnOn) {
+    if( targetID != loginToggle ) {
+      if( turnOn ) {
+        document.getElementById(loginToggle).classList.remove('active');
+      } else {
+        document.getElementById(loginToggle).classList.add('active');
+      }
+    }
+  }
+
+  // process an attempted login
+  function SubmitLogIn() {
+    document.getElementById("loginFrame").onload = function() { 
+      var frame = document.getElementById("loginFrame");
+      frame.onload = null;
+
+      var messages = frame.contentDocument.getElementById("loginFlashMessages");
+      // success, reload this page
+      if( messages == null || messages.children.length == 0 ) {
+        location.reload(true);
+      // failure, find the error message and display it in the modal
+      } else {
+        document.getElementById("loginModalErrorText").innerHTML = messages.children[0].innerHTML;
+        document.getElementById("loginModalError").style.display = "block";
+      }
+    };
+
+    // make sure they've given us all the relevant info
+    var barcode = document.getElementById("login_username");
+    var pword = document.getElementById("login_password");
+    if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
+      document.getElementById("login_usernameError").style.display = "block";
+      document.getElementById("login_usernameError").innerHTML = "Please enter your barcode above.";
+      barcode.classList.add("textBoxError");
+      barcode.nextElementSibling.style.display = "block";
+    } else if( pword.value == "" || pword.value == "Enter your PIN" ) {
+      document.getElementById("login_passwordError").style.display = "block";
+      document.getElementById("login_passwordError").innerHTML = "Please enter your PIN above.";
+      pword.classList.add("textBoxError");
+      pword.nextElementSibling.style.display = "block";
+    } else {
+      document.getElementById("loginForm").submit();
+    }
+  }
+
+  // clean out the error problems
+  function ClearFormError(element) {
+    element.classList.remove("textBoxError");
+    document.getElementById(element.id + "Error").style.display = "none";
+    element.nextElementSibling.style.display = "none";
+  }
+</script>

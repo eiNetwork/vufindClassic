@@ -12,12 +12,12 @@
           <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
             <? $account = $this->auth()->getManager(); ?>
             <div class="textBoxContainer">
-              <input type="text" name="username" id="login_username" value="<?=(isset($this->request) ? $this->escapeHtmlAttr($this->request->get('username')) : "Enter your Barcode")?>" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') this.value = ''" class="form-control textBox"/>
+              <input type="text" name="username" id="login_username" value="<?=(isset($this->request) ? $this->escapeHtmlAttr($this->request->get('username')) : "Enter your Barcode")?>" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#000000';}" class="form-control textBox"/>
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span id="login_usernameError" class="formError"></span>
             </div><br>
             <div class="textBoxContainer">
-              <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; }" class="form-control textBox"/>
+              <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; this.style.color='#000000';}" class="form-control textBox"/>
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span id="login_passwordError" class="formError"></span>
             </div>
@@ -95,12 +95,20 @@
     if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
       document.getElementById("login_usernameError").style.display = "block";
       document.getElementById("login_usernameError").innerHTML = "Please enter your barcode above.";
-      barcode.classList.add("textBoxError");
+      if( "classList" in barcode ) {
+        barcode.classList.add("textBoxError");
+      } else {
+        barcode.className += " textBoxError";
+      }
       barcode.nextElementSibling.style.display = "block";
     } else if( pword.value == "" || pword.value == "Enter your PIN" ) {
       document.getElementById("login_passwordError").style.display = "block";
       document.getElementById("login_passwordError").innerHTML = "Please enter your PIN above.";
-      pword.classList.add("textBoxError");
+      if( "classList" in pword ) {
+        pword.classList.add("textBoxError");
+      } else {
+        pword.className += " textBoxError";
+      }
       pword.nextElementSibling.style.display = "block";
     } else {
       document.getElementById("loginForm").submit();
@@ -109,8 +117,20 @@
 
   // clean out the error problems
   function ClearFormError(element) {
-    element.classList.remove("textBoxError");
+    if( "classList" in element ) {
+      element.classList.remove("textBoxError");
+    } else {
+      element.className = element.className.replace("textBoxError", "");
+    }
     document.getElementById(element.id + "Error").style.display = "none";
     element.nextElementSibling.style.display = "none";
   }
+
+  // submit the login on enter press
+  $("#loginForm input").keypress(function(event) {
+    if (event.which == 13) {
+      event.preventDefault();
+      SubmitLogIn();
+    }
+  });
 </script>

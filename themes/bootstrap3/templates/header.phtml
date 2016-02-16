@@ -8,25 +8,25 @@
 <div class="navbar-header row">
   <div class="EIN-col-m-12">
     <div style="float:left;margin-right:20px">
-      <button class="btn-noBorderAlternate"><a href="<?=$this->url('home')?>">Library Catalog</a></button>
+      <a href="<?=$this->url('home')?>"><button class="btn-noBorderAlternate">Library Catalog</button></a>
     </div>
     <div class="floatR">
-      <div class="dropdown EIN-col-0">
+      <div class="dropdown EIN-hide">
         <button type="button" class="dropdown-toggle btn-noBorderAlternate" data-toggle="dropdown" href="#navDropdown">
           <span class="sr-only">Toggle navigation</span>
           <i class="fa fa-bars"></i>
         </button>
       </div>
-      <button class="EIN-col-m-0 EIN-col-t-0 btn-noBorderAlternate"><span class="headerLink">Help</span></button>
-      <button class="EIN-col-m-0 EIN-col-t-0 btn-noBorderAlternate"><span class="headerLink">Locations</span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Help</span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Locations</span></button>
 <? if ($account->isLoggedIn()): ?>
-      <button class="EIN-col-m-0 EIN-col-t-0 btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px"></i></span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px"></i></span></button>
 <? else: ?>
-      <button class="EIN-col-m-0 EIN-col-t-0 btn-noBorderAlternate" data-toggle="modal" data-target="#modalLogin"><span class="headerLink">Log In or Register</span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="modal" data-target="#modalLogin"><span class="headerLink">Log In or Register</span></button>
 <? endif; ?>
     </div>
 <? if ($this->layout()->searchbox !== false): ?>
-    <span class="expand"><div class="EIN-col-m-0 EIN-col-t-12" style="border-left:1px solid #ededed;border-right:1px solid #ededed;padding-right:2px">
+    <span class="expand"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #ededed;border-right:1px solid #ededed;padding-right:2px">
       <?=$this->layout()->searchbox ?>
     </div></span>
 <? endif; ?>
@@ -34,91 +34,39 @@
   <div class="EIN-col-m-12">
     <hr>
     <div class="EIN-col-m-12 dropdown" id="navDropdown">
-      <ul role="navigation" class="dropdown-menu whiteDropdown">
+      <ul role="navigation" class="dropdown-menu whiteDropdown<?= ($account->isLoggedIn() ? "" : " EIN-hide")?>">
 <? if( $account->isLoggedIn()): ?>
         <li class="loggedInName"><?= $displayName ?></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Message Center<span class="badge">2</span></button></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Lists</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Book Cart</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Holds</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Checked Out</button></li>
+        <li><a href="/vufind/MyResearch/BookCart"><button class="btn-dropdown btn-whiteDropdown">Book Cart</button></a></li>
+        <li><a href="/vufind/MyResearch/Holds"><button class="btn-dropdown btn-whiteDropdown">Holds</button></a></li>
+        <li><a href="/vufind/MyResearch/CheckedOut"><button class="btn-dropdown btn-whiteDropdown">Checked Out</button></a></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Reading History</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Profile</button></li>
+        <li><a href="/vufind/MyResearch/Profile"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
         <hr class="stretchHR">
-        <li><button class="btn-dropdown btn-whiteDropdown EIN-col-0">Help</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown EIN-col-0">Locations</button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown"><a href="/vufind/MyResearch/Logout"><i class="fa fa-sign-out"></i>Log Out</a></button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Locations</button></li>
+        <li><a href="/vufind/MyResearch/Logout"><button class="btn-dropdown btn-whiteDropdown"><i class="fa fa-sign-out"></i>Log Out</button></a></li>
 <? else: ?>
+        <li><button class="btn-dropdown btn-whiteDropdown">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Locations</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown" data-toggle="modal" data-target="#modalLogin">Log In or Register</button></li>
 <? endif; ?>
       </ul>
     </div>
+    <div class="EIN-col-m-12 dropdown" id="searchBoxDropdown">
+      <ul role="navigation" class="dropdown-menu searchDropdown">
+        <li><button class="btn-dropdown btn-searchDropdown">Saved Searches</button></li>
+        <li><button class="btn-dropdown btn-searchDropdown">Advanced Search</button></li>
+      </ul>
+    </div>
   </div>
-  <div class="EIN-col-m-12 EIN-col-t-0 EIN-col-0">
+  <div class="EIN-col-m-12 EIN-hide-t EIN-hide">
 <? if ($this->layout()->searchbox !== false): ?>
     <?=$this->layout()->searchbox ?>
     <hr>
 <? endif; ?>
   </div>
-<? if (!isset($this->layout()->renderingError)): ?>
-<!--
-  <div class="collapse navbar-collapse" id="header-collapse">
-    <ul role="navigation" class="nav navbar-nav navbar-right">
-      <? if ($this->feedback()->tabEnabled()): ?>
-        <li>
-          <a id="feedbackLink" class="modal-link" href="<?=$this->url('feedback-home') ?>"><i class="fa fa-envelope"></i> <?=$this->transEsc("Feedback")?></a>
-        </li>
-      <? endif; ?>
-      <? $cart = ($account->isLoggedIn()) ? $this->auth()->isLoggedIn()->getBookCart() : null; ?>
-        <li id="cartSummary" class="logoutOptions">
-          <a title="<?=$this->transEsc('View Book Cart')?>" href="<?=$this->url('myresearch-bookcart')?>"><i class="fa fa-shopping-cart"></i> <strong><?=($cart!=null)?$cart->cnt:0?></strong> <?=$this->transEsc('items')?></a>
-        </li>
-      <? if (is_object($account) && $account->loginEnabled()): // hide login/logout if unavailable ?>
-        <li class="logoutOptions<? if(!$account->isLoggedIn()): ?> hidden<? endif ?>">
-          <a href="<?=$this->url('myresearch-home', array(), array('query' => array('redirect' => 0)))?>" class="modal-link" title="<?=$this->transEsc("Your Account")?>"><i class="fa fa-home"></i> <?=$this->transEsc("Your Account")?></a>
-        </li>
-        <li class="logoutOptions<? if(!$account->isLoggedIn()): ?> hidden<? endif ?>">
-          <a href="<?=$this->url('myresearch-logout')?>" class="modal-link" title="<?=$this->transEsc("Log Out")?>"><i class="fa fa-sign-out"></i> <?=$this->transEsc("Log Out")?></a>
-        </li>
-        <li id="loginOptions"<? if($account->isLoggedIn()): ?> class="hidden"<? endif ?>>
-          <? if ($sessionInitiator = $account->getSessionInitiator($this->serverUrl($this->url('myresearch-home')))): ?>
-            <a href="<?=$this->escapeHtmlAttr($sessionInitiator)?>"><i class="fa fa-sign-in"></i> <?=$this->transEsc("Institutional Login")?></a>
-          <? else: ?>
-            <a href="<?=$this->url('myresearch-userlogin')?>" title="<?=$this->transEsc("Login")?>"><i class="fa fa-sign-in"></i> <?=$this->transEsc("Login")?></a>
-          <? endif; ?>
-        </li>
-      <? endif; ?>
-
-      <? if (isset($this->layout()->themeOptions) && count($this->layout()->themeOptions) > 1): ?>
-        <li class="dropdown">
-          <form method="post" name="themeForm" action="" id="themeForm">
-            <input type="hidden" name="ui"/>
-          </form>
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?=$this->transEsc("Theme")?> <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-            <? foreach ($this->layout()->themeOptions as $current): ?>
-              <li<?=$current['selected'] ? ' class="active"' : ''?>><a href="#" onClick="document.themeForm.ui.value='<?=$this->escapeHtmlAttr($current['name'])?>';document.themeForm.submit()"><?=$this->transEsc($current['desc'])?></a></li>
-            <? endforeach; ?>
-          </ul>
-        </li>
-      <? endif; ?>
-
-      <? if (isset($this->layout()->allLangs) && count($this->layout()->allLangs) > 1): ?>
-        <li class="dropdown">
-          <form method="post" name="langForm" action="" id="langForm">
-            <input type="hidden" name="mylang"/>
-          </form>
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><?=$this->transEsc("Language")?> <b class="caret"></b></a>
-          <ul class="dropdown-menu">
-          <? foreach ($this->layout()->allLangs as $langCode => $langName): ?>
-            <li<?=$this->layout()->userLang == $langCode ? ' class="active"' : ''?>><a href="#" onClick="document.langForm.mylang.value='<?=$langCode?>';document.langForm.submit()"><?=$this->displayLanguageOption($langName)?></a></li>
-          <? endforeach; ?>
-          </ul>
-        </li>
-      <? endif; ?>
-    </ul>
-  </div>
--->
 </div>
-<? endif; ?>

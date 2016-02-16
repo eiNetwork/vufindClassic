@@ -285,10 +285,9 @@ class SearchController extends AbstractSearch
     {
         return $this->createViewModel(
             [
-                'results' => $this->getHomePageFacets(),
-                'hierarchicalFacets' => $this->getHierarchicalFacets(),
-                'hierarchicalFacetSortOptions'
-                    => $this->getHierarchicalFacetSortSettings()
+                'DVDResults' => $this->getNewItemsByFormatAction(["DVD"]),
+                'eBoookResults' => $this->getNewItemsByFormatAction(["OverDrive Read", "Adobe EPUB ebook", "Kindle Book", "Adobe PDF eBook", "Ebook Download"]),
+                'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"])
             ]
         );
     }
@@ -311,6 +310,67 @@ class SearchController extends AbstractSearch
                 'ranges' => $this->newItems()->getRanges()
             ]
         );
+    }
+
+    /**
+     * New item result list
+     *
+     * @return mixed
+     */
+    public function getNewItemsByFormatAction($format)
+    {
+        // Retrieve new item list:
+        $range = 300;
+        $dept = null;
+
+        // Validate the range parameter -- it should not exceed the greatest
+        // configured value:
+        $maxAge = $this->newItems()->getMaxAge();
+
+        // use the formats they passed in
+        $formatStr = "";
+        foreach ($format as $type) {
+            $formatStr .= (($formatStr == "") ? "" : " OR ") . 'format:"' . $type . '"';
+        }
+        $hiddenFilters = [$formatStr];
+        
+        // Depending on whether we're in ILS or Solr mode, we need to do some
+        // different processing here to retrieve the correct items:
+        if ($this->newItems()->getMethod() == 'ils') {
+            // Use standard search action with override parameter to show results:
+            $bibIDs = $this->newItems()->getBibIDsFromCatalog(
+                $this->getILS(),
+                $this->getResultsManager()->get('Solr')->getParams(),
+                $range, $dept, $this->flashMessenger()
+            );
+            $this->getRequest()->getQuery()->set('overrideIds', $bibIDs);
+        } else {
+            // Use a Solr filter to show results:
+            $hiddenFilters[] = $this->newItems()->getSolrFilter($range);
+        }
+
+        // If we found hidden filters above, apply them now:
+        if (!empty($hiddenFilters)) {
+            $this->getRequest()->getQuery()->set('hiddenFilters', $hiddenFilters);
+        }
+
+        // Don't save to history -- history page doesn't handle correctly:
+        $this->saveToHistory = false;
+
+        // Call rather than forward, so we can use custom template
+        $view = $this->resultsAction();
+
+        // Customize the URL helper to make sure it builds proper new item URLs
+        // (check it's set first -- RSS feed will return a response model rather
+        // than a view model):
+        if (isset($view->results)) {
+            $url = $view->results->getUrlQuery();
+            $url->setDefaultParameter('range', $range);
+            $url->setDefaultParameter('department', $dept);
+            $url->setSuppressQuery(true);
+        }
+
+        return $view;
     }
 
     /**

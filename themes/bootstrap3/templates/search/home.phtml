@@ -28,83 +28,89 @@
       <p><a href="mailto:<?=$supportEmail?>"><?=$supportEmail?></a></p>
     </div>
   <? endif; ?>
-  <div class="well well-lg clearfix">
-    <?=$this->render("search/searchbox.phtml")?>
-  </div>
+  <?=$this->render("search/splashsearchbox.phtml")?>
 </div>
+<script type="text/javascript">
+  function MoveSliderLeft(slider) {
+    var leftBtn = slider.children[0].children[0];
+    var rightBtn = slider.children[1].children[0];
+    var scrollWindow = slider.children[2];
+    var scrollRow = scrollWindow.children[0];
+    if( parseFloat(scrollRow.style.left) < 0 ) {
+      scrollRow.style.left = (parseFloat(scrollRow.style.left) + 99) + "%";
+      leftBtn.disabled = (parseFloat(scrollRow.style.left) >= 0);
+      rightBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
+    }
+  }
 
-<? $facetList = is_object($this->results) ? $this->results->getFacetList() : array(); ?>
-<? if (isset($facetList) && is_array($facetList)): ?>
-  <div class="row">
-    <? foreach ($facetList as $field => $details): ?>
-      <? if (isset($this->hierarchicalFacets) && in_array($field, $this->hierarchicalFacets)): ?>
-        <? $this->headScript()->appendFile('vendor/jsTree/jstree.min.js'); ?>
-        <? $this->headScript()->appendFile('facets.js'); ?>
-        <? $sort = isset($this->hierarchicalFacetSortOptions[$field]) ? $this->hierarchicalFacetSortOptions[$field] : ''; ?>
-        <?
-        $script = <<<JS
-$(document).ready(function() {
-  initFacetTree($('#facet_{$this->escapeHtml($field)}'), false);
-});
-JS;
-        ?>
-        <?=$this->inlineScript(\Zend\View\Helper\HeadScript::SCRIPT, $script, 'SET'); ?>
-        <div class="facet <?=$field=='callnumber-first' ? 'col-sm-6' : 'col-sm-3' ?>">
-          <p class="lead"><?=$this->transEsc('home_browse') . ' ' . $this->transEsc($details['label'])?></p>
-          <div id="facet_<?=$this->escapeHtml($field)?>" class="jstree-facet"
-              data-facet="<?=$this->escapeHtml($field)?>"
-              data-path="<?=$this->url($basicSearch)?>"
-              data-exclude="0"
-              data-operator="AND"
-              data-exclude-title="<?=$this->transEsc('exclude_facet')?>"
-              data-sort="all">
-          </div>
-        </div>
-        <noscript>
-      <? endif; ?>
-      <? $sortedList = $this->sortFacetList($this->results, $field, $details['list'], $basicSearch); ?>
-      <div class="<?=$field=='callnumber-first' ? 'col-sm-6' : 'col-sm-3' ?>">
-        <p class="lead"><?=$this->transEsc('home_browse') . ' ' . $this->transEsc($details['label'])?></p>
-        <div class="row">
-          <ul class="list-unstyled <?=$field == "callnumber-first" ? 'col-sm-6' : 'col-sm-12' ?>">
-          <? /* Special case: two columns for LC call numbers... */ ?>
-          <? if ($field == "callnumber-first"): ?>
-            <? $i = 0; foreach ($sortedList as $url => $value): ?>
-              <? if (!empty($value)): ?>
-                <li><a href="<?=$url?>"><?=$this->escapeHtml($value)?></a></li>
-              <? else: $i--; ?>
-              <? endif; ?>
-              <? if (++$i == 10): ?>
-                </ul><ul class="list-unstyled col-sm-6">
-              <? endif; ?>
-            <? endforeach; ?>
-          <? /* Special case: collections */ ?>
-          <? elseif ($field == 'hierarchy_top_title'): ?>
-            <? $i = 0; foreach ($sortedList as $url => $value): ?>
-              <? if (++$i > 10): ?>
-                <li><a href="<?=$this->url('collections-home')?>"><strong><?=$this->transEsc("More options")?>...</strong></a></li>
-                <? break; ?>
-              <? else: ?>
-                <li><a href="<?=$this->url('collections-bytitle')?>?title=<?=urlencode($value)?>"><?=$this->escapeHtml($value)?></a></li>
-              <? endif; ?>
-            <? endforeach; ?>
-          <? else: ?>
-            <? $i = 0; foreach ($sortedList as $url => $value): ?>
-              <? if (++$i > 10): ?>
-                <li><a href="<?=$this->url($advSearch)?>"><strong><?=$this->transEsc("More options")?>...</strong></a></li>
-                <? break; ?>
-              <? elseif (!empty($value)): ?>
-                <li><a href="<?=$url?>"><?=$this->escapeHtml($value)?></a></li>
-              <? else: $i--; ?>
-              <? endif; ?>
-            <? endforeach; ?>
-          <? endif; ?>
-          </ul>
-        </div>
+  function MoveSliderRight(slider) {
+    var leftBtn = slider.children[0].children[0];
+    var rightBtn = slider.children[1].children[0];
+    var scrollWindow = slider.children[2];
+    var scrollRow = scrollWindow.children[0];
+    if( scrollRow.style.left == "" ) {
+      scrollRow.style.left = "0%";
+    }
+    if( (scrollWindow.offsetWidth - scrollRow.offsetLeft) < scrollRow.scrollWidth ) {
+      scrollRow.style.left = (parseFloat(scrollRow.style.left) - 99) + "%";
+      leftBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
+      rightBtn.disabled = ((scrollWindow.offsetWidth - scrollRow.offsetLeft) >= scrollRow.scrollWidth);
+    }
+  }
+</script>
+<div class="splashNewest">
+  <? if(is_object($this->DVDResults)): ?>
+    <h1 class="newestHeader">Newest DVDs</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
       </div>
-      <? if (isset($this->hierarchicalFacets) && in_array($field, $this->hierarchicalFacets)): ?>
-        </noscript>
-      <? endif; ?>
-    <? endforeach; ?>
-  </div>
-<? endif; ?>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->DVDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($this->DVDResults->results->getResults() as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+  <? if(is_object($this->eBookResults)): ?>
+    <h1 class="newestHeader">Newest eBooks</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+      </div>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->eBookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($this->eBookResults->results->getResults() as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+  <? if(is_object($this->CDResults)): ?>
+    <h1 class="newestHeader">Newest Music CDs</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+      </div>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->CDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($this->CDResults->results->getResults() as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+</div>

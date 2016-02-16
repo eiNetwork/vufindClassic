@@ -124,12 +124,44 @@
       <div class="container">
         <?=$this->layout()->content ?>
       </div>
+      <span id="returnToTop" class="returnToTop" onclick="$(window).scrollTop(0)"><i class="fa fa-long-arrow-up"></i></span>
+      <script type="text/javascript">
+        var returnOffset = 150;
+        var mostRecentSearchBtn = null;
+
+        jQuery(document).ready(function() {
+          moveButtons();
+          $(window).scroll(moveButtons);
+          $(window).resize(moveButtons);
+        });
+
+        function moveButtons() {
+          // return to top
+          $('#returnToTop').css("margin-left", (($('#pageFooter').width() / 2) - 50) + "px");
+          if( document.body.clientHeight < $(this).height() * 2) {
+            $('#returnToTop').css("bottom", (0 - returnOffset) + "px");
+          } else if($(this).scrollTop() < returnOffset) {
+            $('#returnToTop').css("bottom", ($(this).scrollTop() - returnOffset) + "px");
+          } else if($(this).scrollTop() > (document.body.clientHeight - $(this).height() - $('#pageFooter').height() + 20))  {
+            $('#returnToTop').css("bottom", ($(this).scrollTop() - document.body.clientHeight + $(this).height() + $('#pageFooter').height() - 20) + "px");
+          } else  {
+            $('#returnToTop').css("bottom", "0px");
+          }
+
+          // search dropdown
+          if( mostRecentSearchBtn != null ) {
+            var newLeft = $(mostRecentSearchBtn).offset().left + $(mostRecentSearchBtn).width() - $('#searchBoxDropdown').children("ul").width();
+            var newTop = $(mostRecentSearchBtn).offset().top + $(mostRecentSearchBtn).height();
+            $('#searchBoxDropdown').offset({left:newLeft, top:newTop});
+          }
+        }
+      </script>
 <?php
   include "modals.phtml";
 ?>
     </div>
     <footer role="contentinfo" class="hidden-print">
-      <div class="container">
+      <div id="pageFooter" class="container" style="padding-top:0px;border-top:none">
         <?=$this->render('footer.phtml')?>
         <?=$this->layout()->poweredBy ?>
       </div>

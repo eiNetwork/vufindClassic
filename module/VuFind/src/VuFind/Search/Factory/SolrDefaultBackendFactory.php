@@ -96,6 +96,10 @@ class SolrDefaultBackendFactory extends AbstractSolrBackendFactory
      *
      * @return Connector
      */
+/* There's some weirdness here with multi-layered pagination resulting from Solr grouping.  If you turn this on, 
+   you'll only be able to navigate through the first page of results.  Also, grouping by title is not nearly as 
+   effective as we'd hoped.  Demian Katz suggests contacting Ere Maijala at the National Library of Finland
+   regarding the deduplication listener they have developed. -- BJP
     protected function createConnector()
     {
         $connector = parent::createConnector();
@@ -107,4 +111,5 @@ class SolrDefaultBackendFactory extends AbstractSolrBackendFactory
 
         return $connector;
     }
+*/
 }

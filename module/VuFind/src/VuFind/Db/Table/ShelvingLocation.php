@@ -1,6 +1,6 @@
 <?php
 /**
- * Table Definition for location
+ * Table Definition for shelving_location
  *
  * PHP version 5
  *
@@ -29,7 +29,7 @@
 namespace VuFind\Db\Table;
 
 /**
- * Table Definition for location
+ * Table Definition for shelving_location
  *
  * @category VuFind2
  * @package  Db_Table
@@ -38,38 +38,22 @@ namespace VuFind\Db\Table;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org   Main Site
  */
-class Location extends Gateway
+class ShelvingLocation extends Gateway
 {
     /**
      * Constructor
      */
     public function __construct()
     {
-        parent::__construct('location', 'VuFind\Db\Row\Location');
+        parent::__construct('shelving_location', 'VuFind\Db\Row\ShelvingLocation');
     }
 
     /**
-     * Retrieve a location object from the database based on locationId
-     *
-     * @param string $id locationId to use for retrieval.
-     *
-     * @return LocationRow
-     */
-    public function getByLocationId($id)
-    {
-        $callback = function ($select) use($id) {
-            $select->where('locationId = "' . $id . '"');
-        };
-        $row = $this->select($callback);
-        return $row->current();
-    }
-
-    /**
-     * Retrieve a location object from the database based on code
+     * Retrieve a shelving location object from the database based on code
      *
      * @param string $code Code to use for retrieval.
      *
-     * @return LocationRow
+     * @return ShelvingLocationRow
      */
     public function getByCode($code)
     {
@@ -78,19 +62,5 @@ class Location extends Gateway
         };
         $row = $this->select($callback);
         return $row->current();
-    }
-
-    /**
-     * Get location rows that can be used as pickups
-     *
-     * @return mixed
-     */
-    public function getPickupLocations()
-    {
-        $callback = function ($select) {
-            $select->where('validHoldPickupBranch=1')
-                ->order('displayName');
-        };
-        return $this->select($callback);
     }
 }

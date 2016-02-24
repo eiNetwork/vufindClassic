@@ -316,7 +316,75 @@ class EINetwork extends Sierra2 implements
                     "availability" => ($availability->collections[0]->copiesAvailable > 0)
                    ]];
         }
-        return parent::getHolding($id, $patron);
+        $results = parent::getHolding($id, $patron);
+
+        // add in the extra details we need
+        $results2 = [];
+        for($i=0; $i<count($results); $i++) {
+            // clean call number
+            $pieces = explode("|f", $results[$i]['callnumber']);
+            $results[$i]['callnumber'] = "";
+            foreach( $pieces as $piece ) {
+                $results[$i]['callnumber'] .= (($results[$i]['callnumber'] == "") ? "" : "<br>") . trim($piece);
+            }
+
+            // insert the display status
+            if( $results[$i]['status'] == '-' ) {
+                $results[$i]['displayStatus'] = ($results[$i]['duedate'] == null) ? "AVAILABLE" : "CHECKED OUT";
+            } else if( $results[$i]['status'] == 'n' ) {
+                $results[$i]['displayStatus'] = "BILLED";
+            } else if( $results[$i]['status'] == 'q' ) {
+                $results[$i]['displayStatus'] = "BINDERY";
+            } else if( $results[$i]['status'] == 'z' ) {
+                $results[$i]['displayStatus'] = "CLMS RETD";
+            } else if( $results[$i]['status'] == 'd' ) {
+                $results[$i]['displayStatus'] = "DAMAGED";
+            } else if( $results[$i]['status'] == 'p' ) {
+                $results[$i]['displayStatus'] = "DISPLAY";
+            } else if( $results[$i]['status'] == '%' ) {
+                $results[$i]['displayStatus'] = "ILL RETURNED";
+            } else if( $results[$i]['status'] == 'i' ) {
+                $results[$i]['displayStatus'] = "IN PROCESSING";
+            } else if( $results[$i]['status'] == 't' ) {
+                $results[$i]['displayStatus'] = "IN TRANSIT";
+            } else if( $results[$i]['status'] == 'f' ) {
+                $results[$i]['displayStatus'] = "LONG OVERDUE";
+            } else if( $results[$i]['status'] == '$' ) {
+                $results[$i]['displayStatus'] = "LOST AND PAID";
+            } else if( $results[$i]['status'] == 'm' ) {
+                $results[$i]['displayStatus'] = "MISSING";
+            } else if( $results[$i]['status'] == 'o' ) {
+                $results[$i]['displayStatus'] = "NONCIRCULATING";
+            } else if( $results[$i]['status'] == '!' ) {
+                $results[$i]['displayStatus'] = "ON HOLDSHELF";
+            } else if( $results[$i]['status'] == 'v' ) {
+                $results[$i]['displayStatus'] = "ONLINE";
+            } else if( $results[$i]['status'] == 'y' ) {
+                $results[$i]['displayStatus'] = "ONLINE REFERENCE";
+            } else if( $results[$i]['status'] == '^' ) {
+                $results[$i]['displayStatus'] = "RENOVATION";
+            } else if( $results[$i]['status'] == 'r' ) {
+                $results[$i]['displayStatus'] = "REPAIR";
+            } else if( $results[$i]['status'] == 'u' ) {
+                $results[$i]['displayStatus'] = "STAFF USE";
+            } else if( $results[$i]['status'] == '?' ) {
+                $results[$i]['displayStatus'] = "STORAGE";
+            } else if( $results[$i]['status'] == 'w' ) {
+                $results[$i]['displayStatus'] = "WITHDRAWN";
+            } else {
+                $results[$i]['displayStatus'] = "UNKNOWN";
+            }
+
+            // get shelving details
+            $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
+            $location = $this->getDBTable('location')->getByLocationId($shelfLoc->locationId);
+            $results[$i]['branchName'] = $location->displayName;
+            $results[$i]['shelvingLocation'] = $shelfLoc->shortName;
+
+            for($j=0; $j<count($results2) && $results[$i]['branchName'] > $results2[$j]['branchName']; $j++) {}
+            array_splice($results2, $j, 0, [$results[$i]]);
+        }
+        return $results2;
     }
 
     public function updateMyProfile($patron, $updatedInfo){

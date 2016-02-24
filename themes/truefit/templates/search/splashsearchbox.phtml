@@ -1,3 +1,5 @@
+<!--  <div class="well well-lg clearfix"> -->
+<div class="splashSearchOutline">
 <?
     // Set default value if necessary:
     if (!isset($this->searchClassId)) {
@@ -17,36 +19,14 @@
     $lastSort = $options->getLastSort();
     $lastLimit = $options->getLastLimit();
 ?>
-<? if ($this->searchType == 'advanced'): ?>
-  <div id="searchForm" class="navbar-form navbar-left">
-    <? $tabs = $this->render('search/searchTabs'); ?>
-    <? if (!empty($tabs)): ?><?=$tabs ?><div class="tab-content clearfix"><? endif; ?>
-      <p class="adv_search_terms"><?=$this->transEsc("Your search terms")?> : "<strong><?=$this->escapeHtml($this->lookfor)?></strong>"</p>
-      <p class="adv_search_links">
-        <a href="<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>"><?=$this->transEsc("Edit this Advanced Search")?></a> |
-        <a href="<?=$this->url($advSearch)?>"><?=$this->transEsc("Start a new Advanced Search")?></a> |
-        <a href="<?=$this->url($searchHome)?>"><?=$this->transEsc("Start a new Basic Search")?></a>
-      </p>
-    <? if (!empty($tabs)): ?></div><? endif; ?>
-  </div>
-<? else: ?>
-  <form role="search" class="navbar-form navbar-left" method="get" action="<?=$this->url($basicSearch)?>" name="searchForm" id="searchForm" autocomplete="off">
+  <form role="search" method="get" action="<?=$this->url($basicSearch)?>" name="splashSearchForm" id="LCsearchForm" autocomplete="off">
     <?= $this->render('search/searchTabs'); ?>
-    <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?>" id="searchForm_lookfor" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr($this->lookfor)?>"/>
-    <? if ($handlerCount > 1): ?>
-      <select class="form-control" id="searchForm_type" name="type" data-native-menu="false">
-        <? foreach ($handlers as $handler): ?>
-          <option value="<?=$this->escapeHtmlAttr($handler['value'])?>"<?=$handler['selected'] ? ' selected="selected"' : ''?>><?=$handler['indent'] ? '-- ' : ''?><?=$this->transEsc($handler['label'])?></option>
-        <? endforeach; ?>
-      </select>
-    <? elseif ($handlerCount == 1): ?>
-      <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
-    <? endif; ?>
-    <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i> <?=$this->transEsc("Find")?></button>
-    <? if ($advSearch): ?>
-      <a href="<?=$this->url($advSearch)?>" class="btn btn-link"><?=$this->transEsc("Advanced")?></a>
-    <? endif; ?>
-
+    <button class="btn btn-noBorderAlternate floatR splashBtnOffset" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();"><i class="fa fa-caret-down"></i></button>
+    <button type="submit" class="btn btn-noBorderAlternate floatR splashBtnOffset"><i class="fa fa-search"></i></button>
+    <span class="expand">
+      <input class="form-control splashSearchBox search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?>" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search For..." : $this->lookfor)?>" onfocus="if (this.value=='Search For...') {this.value = ''; this.style.color='#3d3d3d';}"/>
+    </span>
+    <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
     <? $shards = $options->getShards(); if ($options->showShardCheckboxes() && !empty($shards)): ?>
       <?
       $selectedShards = isset($this->selectedShards)
@@ -98,5 +78,15 @@
       }
     ?>
   </form>
-  <script type="text/javascript">$("#searchForm_lookfor").focus()</script>
-<? endif; ?>
+  <script type="text/javascript">
+    $("#searchForm_lookfor").focus();
+
+    // submit the login on enter press
+    $("#LCsearchForm input").keypress(function(event) {
+      if (event.which == 13) {
+        event.preventDefault();
+        $('#LCsearchForm').submit();
+      }
+    });
+  </script>
+</div>

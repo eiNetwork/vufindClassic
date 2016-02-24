@@ -1,0 +1,116 @@
+<?
+  // Set page title.
+  $this->headTitle($this->translate('Search Home'));
+
+  // Disable top search box -- this page has a special layout.
+  $this->layout()->searchbox = false;
+
+  // Set default value if necessary:
+  if (!isset($this->searchClassId)) {
+    $this->searchClassId = 'Solr';
+  }
+
+  // Load search actions and settings (if any):
+  $options = $this->searchOptions($this->searchClassId);
+  $basicSearch = $options->getSearchAction();
+  $advSearch = $options->getAdvancedSearchAction();
+
+  $this->layout()->breadcrumbs = false;
+?>
+
+<div class="searchHomeContent">
+  <? if ($this->ils()->getOfflineMode() == "ils-offline"): ?>
+    <div class="alert alert-warning">
+      <h2><?=$this->transEsc('ils_offline_title')?></h2>
+      <p><strong><?=$this->transEsc('ils_offline_status')?></strong></p>
+      <p><?=$this->transEsc('ils_offline_home_message')?></p>
+      <? $supportEmail = $this->escapeHtmlAttr($this->systemEmail()); ?>
+      <p><a href="mailto:<?=$supportEmail?>"><?=$supportEmail?></a></p>
+    </div>
+  <? endif; ?>
+  <?=$this->render("search/splashsearchbox.phtml")?>
+</div>
+<script type="text/javascript">
+  function MoveSliderLeft(slider) {
+    var leftBtn = slider.children[0].children[0];
+    var rightBtn = slider.children[1].children[0];
+    var scrollWindow = slider.children[2];
+    var scrollRow = scrollWindow.children[0];
+    if( parseFloat(scrollRow.style.left) < 0 ) {
+      scrollRow.style.left = (parseFloat(scrollRow.style.left) + 99) + "%";
+      leftBtn.disabled = (parseFloat(scrollRow.style.left) >= 0);
+      rightBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
+    }
+  }
+
+  function MoveSliderRight(slider) {
+    var leftBtn = slider.children[0].children[0];
+    var rightBtn = slider.children[1].children[0];
+    var scrollWindow = slider.children[2];
+    var scrollRow = scrollWindow.children[0];
+    if( scrollRow.style.left == "" ) {
+      scrollRow.style.left = "0%";
+    }
+    if( (scrollWindow.offsetWidth - scrollRow.offsetLeft) < scrollRow.scrollWidth ) {
+      scrollRow.style.left = (parseFloat(scrollRow.style.left) - 99) + "%";
+      leftBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
+      rightBtn.disabled = ((scrollWindow.offsetWidth - scrollRow.offsetLeft) >= scrollRow.scrollWidth);
+    }
+  }
+</script>
+<div class="splashNewest">
+  <? if(is_object($this->DVDResults) && count($DVDResults = $this->DVDResults->results->getResults()) > 0): ?>
+    <h1 class="newestHeader">Newest DVDs</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+      </div>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->DVDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($DVDResults as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+  <? if(is_object($this->eBookResults) && count($ebookResults = $this->eBookResults->results->getResults()) > 0): ?>
+    <h1 class="newestHeader">Newest eBooks</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+      </div>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->eBookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($ebookResults as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+  <? if(is_object($this->CDResults) && count($CDResults = $this->CDResults->results->getResults()) > 0): ?>
+    <h1 class="newestHeader">Newest Music CDs</h1>
+    <div class="sliderRoot">
+      <div class="sliderButtonLeft">
+        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+      </div>
+      <div class="sliderButtonRight">
+        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->CDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+      </div>
+      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
+        <? foreach ($CDResults as $entry): ?>
+          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
+            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+          </div></div></div></a><!--
+        <? endforeach ?>
+      --></div></div>
+    </div>
+  <? endif; ?>
+</div>

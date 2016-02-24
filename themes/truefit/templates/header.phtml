@@ -1,0 +1,72 @@
+<?
+  $account = $this->auth()->getManager();
+  if( $account->isLoggedIn() ) {
+    $displayName = $account->isLoggedIn()->firstname . " " . $account->isLoggedIn()->lastname;
+    $displayName = ucwords( strtolower( $displayName ) );
+  }
+?>
+<div class="navbar-header row">
+  <div class="EIN-col-m-12">
+    <div style="float:left;margin-right:20px">
+      <a href="<?=$this->url('home')?>"><button class="btn-noBorderAlternate">Library Catalog</button></a>
+    </div>
+    <div class="floatR">
+      <div class="dropdown EIN-hide">
+        <button type="button" class="dropdown-toggle btn-noBorderAlternate" data-toggle="dropdown" href="#navDropdown">
+          <span class="sr-only">Toggle navigation</span>
+          <i class="fa fa-bars"></i>
+        </button>
+      </div>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Help</span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Locations</span></button>
+<? if ($account->isLoggedIn()): ?>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px"></i></span></button>
+<? else: ?>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
+<? endif; ?>
+    </div>
+<? if ($this->layout()->searchbox !== false): ?>
+    <span class="expand"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #ededed;border-right:1px solid #ededed;padding-right:2px">
+      <?=$this->layout()->searchbox ?>
+    </div></span>
+<? endif; ?>
+  </div>
+  <div class="EIN-col-m-12">
+    <hr>
+    <div class="EIN-col-m-12 dropdown" id="navDropdown">
+      <ul role="navigation" class="dropdown-menu whiteDropdown<?= ($account->isLoggedIn() ? "" : " EIN-hide")?>">
+<? if( $account->isLoggedIn()): ?>
+        <li class="loggedInName"><?= $displayName ?></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Message Center<span class="badge">2</span></button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Lists</button></li>
+        <li><a href="/vufind/MyResearch/BookCart"><button class="btn-dropdown btn-whiteDropdown">Book Cart</button></a></li>
+        <li><a href="/vufind/MyResearch/Holds"><button class="btn-dropdown btn-whiteDropdown">Holds</button></a></li>
+        <li><a href="/vufind/MyResearch/CheckedOut"><button class="btn-dropdown btn-whiteDropdown">Checked Out</button></a></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Reading History</button></li>
+        <li><a href="/vufind/MyResearch/Profile"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
+        <hr class="stretchHR">
+        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Locations</button></li>
+        <li><a href="/vufind/MyResearch/Logout"><button class="btn-dropdown btn-whiteDropdown"><i class="fa fa-sign-out"></i>Log Out</button></a></li>
+<? else: ?>
+        <li><button class="btn-dropdown btn-whiteDropdown">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Locations</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown" onClick="Lightbox.get('MyResearch', 'Login')">Log In or Register</button></li>
+<? endif; ?>
+      </ul>
+    </div>
+    <div class="EIN-col-m-12 dropdown" id="searchBoxDropdown">
+      <ul role="navigation" class="dropdown-menu searchDropdown">
+        <li><button class="btn-dropdown btn-searchDropdown">Saved Searches</button></li>
+        <li><button class="btn-dropdown btn-searchDropdown">Advanced Search</button></li>
+      </ul>
+    </div>
+  </div>
+  <div class="EIN-col-m-12 EIN-hide-t EIN-hide">
+<? if ($this->layout()->searchbox !== false): ?>
+    <?=$this->layout()->searchbox ?>
+    <hr>
+<? endif; ?>
+  </div>
+</div>

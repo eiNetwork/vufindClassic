@@ -573,4 +573,115 @@ class Sierra2 extends Sierra implements
         $checkDigit = $checkDigit % 11;
         return ($checkDigit == 10) ? "x" : $checkDigit;
     }
+
+    /**
+     * Get Holding
+     *
+     * This is responsible for retrieving the holding information of a certain
+     * record.
+     *
+     * @param string $id     The record id to retrieve the holdings for
+     * @param array  $patron Patron data
+     *
+     * @throws DateException
+     * @throws ILSException
+     * @return array         On success, an associative array with the following
+     * keys: id, availability (boolean), status, location, reserve, callnumber,
+     * duedate, number, barcode.
+     */
+/****************************************************************************\
+*                                                                            *
+*   I tried to make this use the API instead, but finding items by bibID     *
+*   is currently limited to 50 results. -- BJP                               *
+*                                                                            *
+    public function getHolding($id, array $patron = null)
+    {
+        try {
+            $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode&bibIds=" . substr($id,2,-1)));
+            $holdings = [];
+echo "&&" . $apiHoldings->total . "&&<br>";
+            foreach($apiHoldings->entries as $thisItem) {
+                $code = $thisItem->location->code;
+echo "^^" . $code . "^^";
+                if( isset($holdings[$code]) )
+                    $holdings[$code]++;
+                else
+                    $holdings[$code] = 1;
+            }
+
+echo "##" . json_encode($holdings) . "##<br>";
+
+            $holdings = [];
+            $itemIds = $this->getIds($id);
+            // Use the database ids to get the item-level information (status,
+            // location, and potentially call number) associated with that bib record
+            $query1 = "SELECT
+                        item_view.item_status_code,
+                        location_name.name,
+                        checkout.due_gmt,
+                        varfield_view.field_content,
+                        varfield_view.varfield_type_code
+                            FROM
+                            sierra_view.item_view
+                        LEFT JOIN sierra_view.location
+                        ON (item_view.location_code = location.code)
+                        LEFT JOIN sierra_view.location_name
+                        ON (location.id = location_name.location_id)
+                        LEFT JOIN sierra_view.checkout
+                        ON (item_view.id = checkout.item_record_id)
+                        LEFT JOIN sierra_view.varfield_view
+                        ON (item_view.id = varfield_view.record_id)
+                        WHERE item_view.id = $1
+                        AND varfield_view.record_type_code = 'i'
+                        AND location_name.iii_language_id = '1';";
+            pg_prepare($this->db, "prep_query", $query1);
+            foreach ($itemIds as $item) {
+                $callnumber = null;
+                $barcode = null;
+                $number = null;
+                $results1 = pg_execute($this->db, "prep_query", [$item]);
+                while ($row1 = pg_fetch_row($results1)) {
+                    if ($row1[4] == "b") {
+                        $barcode = $row1[3];
+                    } elseif ($row1[4] == "c") {
+                        $callnumber = $row1[3];
+                    } elseif ($row1[4] == "v") {
+                        $number = $row1[3];
+                    }
+                }
+
+                $finalcallnumber = $this->processCallNumber($callnumber, $id);
+
+                $resultArray = pg_fetch_array($results1, 0);
+
+                if (($resultArray[0] == "-" && $resultArray[2] == null)
+                    || ($resultArray[0] == "o" && $resultArray[2] == null)
+                ) {
+                    $availability = true;
+                } else {
+                    $availability = false;
+                }
+
+                $itemInfo = [
+                    "id" => $id,
+                    "availability" => $availability,
+                    "status" => $resultArray[0],
+                    "location" => $resultArray[1],
+                    "reserve" => "N",
+                    "callnumber" => $finalcallnumber,
+                    "duedate" => $resultArray[2],
+                    "returnDate" => false,
+                    "number" => $number,
+                    "barcode" => $barcode
+                    ];
+
+                $holdings[] = $itemInfo;
+            }
+
+            return $holdings;
+        } catch (\Exception $e) {
+            throw new ILSException($e->getMessage());
+        }
+    }
+\****************************************************************************/
 }

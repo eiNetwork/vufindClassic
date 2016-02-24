@@ -71,9 +71,11 @@
       }
     ?>
     <?=$this->headScript()?>
-    <link href="/vufind/themes/bootstrap3/css/einetwork.css" media="all" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="/vufind/themes/truefit/css/einetwork.css" media="all" rel="stylesheet" type="text/css">
   </head>
   <body>
+    <iframe id="loginFrame" name="loginFrame" style="display:none"></iframe>
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box
       // 2. It was set to false; we should display nothing
@@ -89,6 +91,7 @@
         <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>
         <?=$this->render('header.phtml')?>
       </div>
+<!--
       <div class="container">
         <nav class="nav searchbox hidden-lg hidden-print">
           <?=$this->layout()->searchbox ?>
@@ -118,14 +121,47 @@
           </ul>
         <? endif; ?>
       </div>
+-->
     </header>
     <div role="main" class="main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>">
       <div class="container">
         <?=$this->layout()->content ?>
       </div>
+      <span id="returnToTop" class="returnToTop" onclick="$(window).scrollTop(0)"><i class="fa fa-long-arrow-up"></i></span>
+      <script type="text/javascript">
+        var returnOffset = 150;
+        var mostRecentSearchBtn = null;
+
+        jQuery(document).ready(function() {
+          moveButtons();
+          $(window).scroll(moveButtons);
+          $(window).resize(moveButtons);
+        });
+
+        function moveButtons() {
+          // return to top
+          $('#returnToTop').css("margin-left", (($('#pageFooter').width() / 2) - 50) + "px");
+          if( document.body.clientHeight < $(this).height() * 2) {
+            $('#returnToTop').css("bottom", (0 - returnOffset) + "px");
+          } else if($(this).scrollTop() < returnOffset) {
+            $('#returnToTop').css("bottom", ($(this).scrollTop() - returnOffset) + "px");
+          } else if($(this).scrollTop() > (document.body.clientHeight - $(this).height() - $('#pageFooter').height() + 20))  {
+            $('#returnToTop').css("bottom", ($(this).scrollTop() - document.body.clientHeight + $(this).height() + $('#pageFooter').height() - 20) + "px");
+          } else  {
+            $('#returnToTop').css("bottom", "0px");
+          }
+
+          // search dropdown
+          if( mostRecentSearchBtn != null ) {
+            var newLeft = $(mostRecentSearchBtn).offset().left + $(mostRecentSearchBtn).width() - $('#searchBoxDropdown').children("ul").width();
+            var newTop = $(mostRecentSearchBtn).offset().top + $(mostRecentSearchBtn).height();
+            $('#searchBoxDropdown').offset({left:newLeft, top:newTop});
+          }
+        }
+      </script>
     </div>
     <footer role="contentinfo" class="hidden-print">
-      <div class="container">
+      <div id="pageFooter" class="container" style="padding-top:0px;border-top:none">
         <?=$this->render('footer.phtml')?>
         <?=$this->layout()->poweredBy ?>
       </div>
@@ -135,7 +171,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
             <h4 id="modalTitle" class="modal-title"></h4>
           </div>
           <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>

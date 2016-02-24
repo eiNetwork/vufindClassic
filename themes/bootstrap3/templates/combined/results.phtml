@@ -7,7 +7,6 @@
       $this->headTitle($this->translate('Search Results') . (empty($lookfor) ? '' : " - {$lookfor}"));
   }
 
-/**/
   // Set up search box:
   $this->layout()->searchbox = $this->context($this)->renderInContext(
     'search/searchbox.phtml',
@@ -23,7 +22,6 @@
       'selectedShards' => $this->params->getSelectedShards()
     )
   );
-/**/
 
   // Create shortcut to combined results (since $this->results may get overwritten in processing below):
   $combinedResults = $this->results;

@@ -426,7 +426,7 @@ class Sierra extends AbstractBase
      * @throws ILSException
      * @return array         On success, an associative array with the following
      * keys: id, availability (boolean), status, location, reserve, callnumber,
-     * duedate, number, barcode.
+     * duedate, number, barcode, locationcode.
      */
     public function getHolding($id, array $patron = null)
     {
@@ -440,7 +440,8 @@ class Sierra extends AbstractBase
                         location_name.name,
                         checkout.due_gmt,
                         varfield_view.field_content,
-                        varfield_view.varfield_type_code
+                        varfield_view.varfield_type_code,
+                        location.code
                             FROM
                             sierra_view.item_view
                         LEFT JOIN sierra_view.location
@@ -492,7 +493,8 @@ class Sierra extends AbstractBase
                     "duedate" => $resultArray[2],
                     "returnDate" => false,
                     "number" => $number,
-                    "barcode" => $barcode
+                    "barcode" => $barcode,
+                    "locationCode" => $resultArray[5]
                     ];
 
                 $holdings[] = $itemInfo;
@@ -529,6 +531,7 @@ class Sierra extends AbstractBase
             $daysOld = (int) $daysOld;
             if (is_int($daysOld) == false || $daysOld > 30) {
                 $daysOld = "30";
+$daysOld = "120";
             }
             $query = "SELECT bib_view.record_num FROM sierra_view.bib_view ";
             if ($fundID != null) {

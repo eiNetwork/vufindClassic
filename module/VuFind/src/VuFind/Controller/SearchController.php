@@ -286,7 +286,7 @@ class SearchController extends AbstractSearch
         return $this->createViewModel(
             [
                 'DVDResults' => $this->getNewItemsByFormatAction(["DVD"]),
-                'eBoookResults' => $this->getNewItemsByFormatAction(["OverDrive Read", "Adobe EPUB ebook", "Kindle Book", "Adobe PDF eBook", "Ebook Download"]),
+                'eBookResults' => $this->getNewItemsByFormatAction(["OverDrive Read", "Adobe EPUB ebook", "Kindle Book", "Adobe PDF eBook", "Ebook Download"]),
                 'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"])
             ]
         );

@@ -1,23 +1,27 @@
 <hr/>
 <div class="row footer">
-  <table class="footer">
-    <tr><td>&nbsp;</td></tr>
-    <tr><td>
-      <a href="http://radworkshere.org" target="_blank"><img src="/vufind/themes/bootstrap3/images/einetwork/RADLogo.png" class="RADLogo"></a>
-      <a href="http://www.einetwork.net" target="_blank"><img src="/vufind/themes/bootstrap3/images/einetwork/EINLogo.png" class="EINLogo gap"></a>
-    </td></tr>
-    <tr><td>&nbsp;</td></tr>
-    <tr><td>
-      Library Catalog is a service of eiNetwork, a collaboration of the <a href="http://www.aclalibraries.org" target="_blank">Allegheny County Library Association</a> and <a href="http://www.carnegielibrary.org" target="_blank">Carnegie Library of Pittsburgh</a>.
-    </td></tr>
-    <tr><td>&nbsp;</td></tr>
-    <tr><td>
-      <a href="#" target="_blank">Locations</a>
-      <a href="#" target="_blank" class="gap">Help</a>
-      <a href="http://www.einetwork.net/ils/requests/acquire_web_ngc.php" target="_blank" class="gap">Suggest a Purchase</a>
-    </td></tr>
-    <tr><td>&nbsp;</td></tr>
-    <tr><td>&copy;eiNetwork</td></tr>
-    <tr><td>&nbsp;</td></tr>
+  <div class="col-sm-4">
+    <p><strong><?=$this->transEsc('Search Options')?></strong></p>
+    <ul>
+      <li><a href="<?=$this->url('search-history')?>"><?=$this->transEsc('Search History')?></a></li>
+      <li><a href="<?=$this->url('search-advanced')?>"><?=$this->transEsc('Advanced Search')?></a></li>
+    </ul>
+  </div>
+  <div class="col-sm-4">
+    <p><strong><?=$this->transEsc('Find More')?></strong></p>
+    <ul>
+      <li><a href="<?=$this->url('browse-home')?>"><?=$this->transEsc('Browse the Catalog')?></a></li>
+      <li><a href="<?=$this->url('alphabrowse-home')?>"><?=$this->transEsc('Browse Alphabetically')?></a></li>
+      <li><a href="<?=$this->url('search-reserves')?>"><?=$this->transEsc('Course Reserves')?></a></li>
+      <li><a href="<?=$this->url('search-newitem')?>"><?=$this->transEsc('New Items')?></a></li>
+    </ul>
+  </div>
+  <div class="col-sm-4">
+    <p><strong><?=$this->transEsc('Need Help?')?></strong></p>
+    <ul>
+      <li><a href="<?=$this->url('help-home')?>?topic=search" class="help-link" title="<?=$this->transEsc('Search Tips')?>"><?=$this->transEsc('Search Tips')?></a></li>
+      <li><a href="#"><?=$this->transEsc('Ask a Librarian')?></a></li>
+      <li><a href="#"><?=$this->transEsc('FAQs')?></a></li>
+    </ul>
   </div>
 </div>

@@ -7,27 +7,21 @@
       $this->headTitle($this->translate('Search Results') . (empty($lookfor) ? '' : " - {$lookfor}"));
   }
 
-  // Set up search box:
-  $this->layout()->searchbox = $this->context($this)->renderInContext(
-      'search/searchbox.phtml',
-      array(
-        'lookfor' => $lookfor,
-        'searchIndex' => $this->params->getSearchHandler(),
-        'searchType' => $this->params->getSearchType(),
-        'searchId' => $this->results->getSearchId(),
-        'searchClassId' => $this->params->getsearchClassId(),
-        'checkboxFilters' => $this->params->getCheckboxFacets(),
-        'filterList' => $this->params->getFilters(),
-        'hasDefaultsApplied' => $this->params->hasDefaultsApplied(),
-        'selectedShards' => $this->params->getSelectedShards()
-      )
-  );
+  // update the search boxes.  sort of hacky, but it's the only way I could get it to work.
+  // -- BJP
+  if( $lookfor != "" ) {
+?>
+<script type="text/javascript">
+  $("input[name=lookfor]").val("<?= $lookfor ?>");
+</script>
+<?
+  }
 
   // Set up breadcrumbs:
   if (isset($this->overrideTitle)) {
-    $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';
+//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';
   } else {
-    $this->layout()->breadcrumbs .= '<li class="active">' . $this->transEsc('Search') . ': ' . $this->escapeHtml($lookfor) . '</li>';
+//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->transEsc('Search') . ': ' . $this->escapeHtml($lookfor) . '</li>';
   }
 
   // Enable cart if appropriate:

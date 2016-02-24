@@ -3,7 +3,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="btn-noBorderAlternate close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
-        <h4 id="modalTitle" class="modal-title">Log In or Register</h4>
+        <h4 class="modal-title">Log In or Register</h4>
       </div>
       <div class="modal-body" style="text-align:center">
         <button id="loginModalLogin" class="btn-alternate active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
@@ -12,12 +12,12 @@
           <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
             <? $account = $this->auth()->getManager(); ?>
             <div class="textBoxContainer">
-              <input type="text" name="username" id="login_username" value="<?=(isset($this->request) ? $this->escapeHtmlAttr($this->request->get('username')) : "Enter your Barcode")?>" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#000000';}" class="form-control textBox"/>
+              <input type="text" name="username" id="login_username" value="<?=(isset($this->request) ? $this->escapeHtmlAttr($this->request->get('username')) : "Enter your Barcode")?>" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span id="login_usernameError" class="formError"></span>
             </div><br>
             <div class="textBoxContainer">
-              <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; this.style.color='#000000';}" class="form-control textBox"/>
+              <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; this.style.color='#3d3d3d';}" class="form-control textBox"/>
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span id="login_passwordError" class="formError"></span>
             </div>
@@ -46,6 +46,41 @@
     </div>
   </div>
 </div>
+
+<? 
+  if($user): 
+    $patron = $this->catalogLogin();
+    $catalog = $this->getILS();
+    $profile = $catalog->getMyProfile($patron);
+    $profile['home_library'] = $user->home_library;
+    try {
+      $view->pickup = $catalog->getPickUpLocations($patron);
+      $view->defaultPickupLocation = $catalog->getDefaultPickUpLocation($patron);
+    } catch (\Exception $e) {
+      // Do nothing; if we're unable to load information about pickup
+      // locations, they are not supported and we should ignore them.
+    }
+?>
+  <div id="modalHold" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-noBorderAlternate close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+          <h4 class="modal-title">Pickup Location</h4>
+        </div>
+        <div class="modal-body" style="text-align:center">
+          <form method="post" name="placeHold">
+            <h5 class="modalSubheading">Preferred</h5>
+            <h5 class="modalSubheading">Others</h5>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-default">Okay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<? endif; ?>
 
 <script type="text/javascript">
   // the form starts displaying the login screen

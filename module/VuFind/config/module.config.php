@@ -337,6 +337,7 @@ $config = [
                     'resourcetags' => 'VuFind\Db\Table\ResourceTags',
                     'search' => 'VuFind\Db\Table\Search',
                     'session' => 'VuFind\Db\Table\Session',
+                    'shelvinglocation' => 'VuFind\Db\Table\ShelvingLocation',
                     'tags' => 'VuFind\Db\Table\Tags',
                     'userlist' => 'VuFind\Db\Table\UserList',
                     'userresource' => 'VuFind\Db\Table\UserResource',

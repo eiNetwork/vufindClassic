@@ -502,14 +502,20 @@ class MyResearchController extends AbstractBase
             $list = $table->getExisting($listID);
             $list->removeResourcesById($user, [$id], $source);
             $this->flashMessenger()->setNamespace('info')
-                ->addMessage('Item removed from list');
+                ->addMessage('single_delete_success');
         } else {
             // ...My Favorites
             $user->removeResourcesById([$id], $source);
             $this->flashMessenger()->setNamespace('info')
-                ->addMessage('Item removed from favorites');
+                ->addMessage('single_delete_success');
         }
 
+        // redirect to the record if they came from there
+       	$returnBibID = $this->params()->fromPost('returnBibID');
+        if( !is_null($returnBibID) ) {
+            return $this->redirect()->toUrl($this->url()->fromRoute('record', ['id' => $returnBibID]));
+        }
+        
         // All done -- return true to indicate success.
         return true;
     }
@@ -731,11 +737,19 @@ class MyResearchController extends AbstractBase
             $recordId = $this->params()->fromQuery('recordId');
             $recordSource = $this->params()->fromQuery('recordSource', 'VuFind');
             if (!empty($recordId)) {
-                $details = $this->getRecordRouter()->getActionRouteDetails(
-                    $recordSource . '|' . $recordId, 'Save'
+                $record = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($recordId, $recordSource, true);
+                $record->saveToFavorites(['list' => $finalId], $user);
+                // success message
+                $this->flashMessenger()->setNamespace('info')->addMessage('list_create_add');
+                $details = $this->getRecordRouter()->getTabRouteDetails(
+                    $recordSource . '|' . $recordId
                 );
-                return $this
-                    ->lightboxAwareRedirect($details['route'], $details['params']);
+                //return $this
+                //    ->lightboxAwareRedirect($details['route'], $details['params']);
+                //return $this->redirect()->toUrl($this->url()->fromRoute($details['route'], $details['params']));
+                return $this->redirect()->toRoute($details['route'], $details['params']);
+                //return $this->redirect()->toUrl($this->delightboxURL($this->url()->fromRoute($details['route'], $details['params'])));
+                //return $this->redirect()->refresh();
             }
 
             // Similarly, if the user is in the process of bulk-saving records,
@@ -791,6 +805,7 @@ class MyResearchController extends AbstractBase
         // Is this a new list or an existing list?  Handle the special 'NEW' value
         // of the ID parameter:
         $id = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
+        $recordId = $this->params()->fromRoute('recordId', $this->params()->fromQuery('recordId'));
         $table = $this->getTable('UserList');
         $newList = ($id == 'NEW');
         $list = $newList ? $table->getNew($user) : $table->getExisting($id);
@@ -803,7 +818,7 @@ class MyResearchController extends AbstractBase
         }
 
         // Send the list to the view:
-        return $this->createViewModel(['list' => $list, 'newList' => $newList]);
+        return $this->createViewModel(['list' => $list, 'newList' => $newList, 'recordId' => $recordId]);
     }
 
     /**

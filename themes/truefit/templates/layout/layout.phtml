@@ -174,11 +174,88 @@
             <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
             <h4 id="modalTitle" class="modal-title"></h4>
           </div>
-          <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
+          <div style="position:relative">
+            <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
+            <div class="modalScrollBar" onmousedown="StartScrollBarDrag(); return false;"><div class="modalScrollSlider"></div></div>
+          </div>
+          <div class="modal-footer"></div>
         </div>
       </div>
     </div>
     <?=$this->googleanalytics()?>
     <?=$this->piwik()?>
+    <script type="text/javascript">
+      Lightbox.addOpenAction(function() {
+        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
+        var max = $(window).height() - offset;
+        var barHeight = max - 30;
+        var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
+        var hidden = (max > $('.modal-body').outerHeight());
+        maxRange = $('.modal-body').outerHeight() - max;
+        $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
+        $('.modal-body').scrollTop(0);
+        $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
+        $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
+        Lightbox.addCloseAction(function() {
+          $('.modal-footer').html("");
+          $('.modalScrollBar').css({"height":"0px","display":"none"});
+          $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
+          $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
+          initialOffset = -1;
+          maxRange = -1;
+        } );
+      } );
+      var initialOffset = -1;
+      var maxRange = -1;
+      var scrollLogic = function(e) {
+        if( initialOffset == -1 ) {
+          initialOffset = $('.modalScrollSlider').offset().top - $('.modalScrollBar').offset().top - e.pageY;
+        }
+        var target = e.pageY + initialOffset;
+        if( target < 0 ) {
+          target = 0;
+        } else if( target > ($('.modalScrollBar').height() - $('.modalScrollSlider').height()) ) {
+          target = $('.modalScrollBar').height() - $('.modalScrollSlider').height();
+        }
+        var factor = target / ($('.modalScrollBar').height() - $('.modalScrollSlider').height());
+        $('.modalScrollSlider').css({"top":(target + "px")});
+        $('.modal-body').scrollTop(factor * maxRange);
+      };
+      var mouseUpLogic = function(e) {
+        $(document).unbind("mousemove", scrollLogic);  
+        $(document).unbind("mousemove", mouseUpLogic); 
+        initialOffset = -1; 
+      };
+      function StartScrollBarDrag() {
+        $(document).bind("mousemove", scrollLogic);
+        $(document).bind("mouseup", mouseUpLogic);
+      }
+    </script>
+    <!-- -->
+    <!-- WORKING MODAL (with normal scrollbar) --
+    <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+            <h4 id="modalTitle" class="modal-title"></h4>
+          </div>
+          <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
+          <div class="modal-footer"></div>
+        </div>
+      </div>
+    </div>
+    <?=$this->googleanalytics()?>
+    <?=$this->piwik()?>
+    <script type="text/javascript">
+      Lightbox.addOpenAction(function() {
+        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
+        $('.modal-body').css({"max-height":($(window).height() - offset) + "px","overflow-y":"auto"});
+      } );
+      Lightbox.addCloseAction(function() {
+        $('.modal-footer').html("");
+      } );
+    </script>
+    <!-- -->
   </body>
 </html>

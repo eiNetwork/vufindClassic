@@ -242,7 +242,7 @@ trait OverDriveTrait {
 
             $return = curl_exec($ch);
             $curlInfo = curl_getinfo($ch);
-            if ($returnInfo['http_code'] == 204){
+            if ($curlInfo['http_code'] == 204){
                 $result = true;
             }else{
                 $result = false;

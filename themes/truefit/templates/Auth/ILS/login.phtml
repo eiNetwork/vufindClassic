@@ -19,19 +19,15 @@
   </form>
 </div>
 <div id="loginModalRegisterBody" style="color:#3f51b5;display:none">REGISTER</div>
-<div class="modal-break"></div>
-<div id="loginModalError" class="errorAlert" style="display:none">
-  <i class="fa fa-exclamation-triangle"></i>
-  <span id="loginModalErrorText"></span>
-  <button type="button" class="btn-noBorderAlternate closeWhite" aria-hidden="true" onclick="document.getElementById('loginModalError').style.display = 'none'"><i class="fa fa-close"></i></button>
-</div>
-<div id="loginModalLoginFooter">
-  <button class="btn-alternate" aria-hidden="true" onclick="document.getElementById('loginModalError').style.display = 'none'; $('#modalClose').click()">Cancel</button>
-  <button class="btn-default" onclick="SubmitLogIn()">Log In</button>
-</div>
-<div id="loginModalRegisterFooter" style="display:none">
-  <button class="btn-alternate" aria-hidden="true" onclick="document.getElementById('loginModalError').style.display = 'none'; $('#modalClose').click()">Cancel</button>
-  <button class="btn-default" onclick="document.getElementById('loginForm').submit()">Register</button>
+<div class="modal-footer">
+  <div id="loginModalLoginFooter">
+    <button class="btn-alternate" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-default" onclick="SubmitLogIn()">Log In</button>
+  </div>
+  <div id="loginModalRegisterFooter" style="display:none">
+    <button class="btn-alternate" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-default" onclick="document.getElementById('loginForm').submit()">Register</button>
+  </div>
 </div>
 
 <script type="text/javascript">
@@ -71,8 +67,7 @@
         location.reload(true);
       // failure, find the error message and display it in the modal
       } else {
-        document.getElementById("loginModalErrorText").innerHTML = messages.children[0].innerHTML;
-        document.getElementById("loginModalError").style.display = "block";
+        document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;
       }
     };
 

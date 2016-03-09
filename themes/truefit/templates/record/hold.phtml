@@ -1,0 +1,179 @@
+<p class="lead"><?=$this->transEsc("Pickup Location")?></p>
+<div class="hold-form">
+  <table class="pickupLocationTable">
+    <tr><td colspan="2" class="modalSubheading center">Preferred</td></tr>
+    <? $showPreferredLibrary = isset($this->preferredLibrary); ?>
+    <? $showAlternateLibrary = isset($this->alternateLibrary) && (!isset($this->preferredLibrary) || ($this->alternateLibrary != $this->preferredLibrary)); ?>
+    <? $showHomeLibrary = isset($this->homeLibrary) && (!isset($this->preferredLibrary) || ($this->homeLibrary != $this->preferredLibrary)) && (!isset($this->alternateLibrary ) || ($this->homeLibrary != $this->alternateLibrary)); ?>
+    <? $selectedID = $showPreferredLibrary ? $this->preferredLibrary : ($showAlternateLibrary ? $this->alternateLibrary : ($showHomeLibrary ? $this->homeLibrary : "")) ?>
+    <? foreach ($this->pickup as $lib): ?>
+      <? if($showPreferredLibrary && $this->preferredLibrary == $lib['locationID'] ): ?>
+        <tr>
+          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"></i></td>
+          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
+        </tr>
+        <? break; ?>
+      <? endif; ?>
+    <? endforeach; ?>
+    <? foreach ($this->pickup as $lib): ?>
+      <? if($showAlternateLibrary && $this->alternateLibrary == $lib['locationID'] ): ?>
+        <tr>
+          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
+        </tr>
+        <? break; ?>
+      <? endif; ?>
+    <? endforeach; ?>
+    <? foreach ($this->pickup as $lib): ?>
+      <? if($showHomeLibrary && $this->homeLibrary == $lib['locationID'] ): ?>
+        <tr>
+          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?> (Home)</button></td>
+        </tr>
+        <? break; ?>
+      <? endif; ?>
+    <? endforeach; ?>
+    <tr><td colspan="2"><div class="modal-break"></div></td></tr>
+    <tr><td colspan="2" class="modalSubheading center">Others</td></tr>
+    <? foreach ($this->pickup as $lib): ?>
+      <? if((!isset($this->preferredLibrary) || ($this->preferredLibrary != $lib['locationID'])) && 
+            (!isset($this->alternateLibrary) || ($this->alternateLibrary != $lib['locationID'])) && 
+            (!isset($this->homeLibrary)      || ($this->homeLibrary != $lib['locationID']))): ?>
+        <tr>
+          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocation" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
+        </tr>
+      <? endif; ?>
+    <? endforeach; ?>
+  </table>
+<!--
+    <? if (in_array("pickUpLocation", $this->extraHoldFields)): ?>
+      <?
+        if (isset($this->gatheredDetails['pickUpLocation']) && $this->gatheredDetails['pickUpLocation'] !== "") {
+            $selected = $this->gatheredDetails['pickUpLocation'];
+        } elseif (isset($this->homeLibrary) && $this->homeLibrary !== "") {
+            $selected = $this->homeLibrary;
+        } else {
+            $selected = $this->defaultPickup;
+        }
+      ?>
+      <? if ($this->requestGroupNeeded): ?>
+        <div class="form-group">
+          <label id="pickUpLocationLabel" class="col-sm-3 control-label"><i></i> <?=$this->transEsc("pick_up_location")?>:
+            <? if (in_array("requestGroup", $this->extraHoldFields)): ?>
+              <noscript> (<?=$this->transEsc("Please enable JavaScript.")?>)</noscript>
+            <? endif; ?>
+          </label>
+          <div class="col-sm-9">
+            <select id="pickUpLocation" name="gatheredDetails[pickUpLocation]" data-default="<?=$this->escapeHtmlAttr($selected)?>" class="form-control">
+              <? if ($selected === false): ?>
+                <option value="" selected="selected">
+                  <?=$this->transEsc('select_pickup_location')?>
+                </option>
+              <? endif; ?>
+            </select>
+          </div>
+        </div>
+      <? elseif (count($this->pickup) > 1): ?>
+        <div class="form-group">
+          <label class="col-sm-3 control-label"><?=$this->transEsc("pick_up_location")?>:</label>
+          <div class="col-sm-9">
+            <select id="pickUpLocation" name="gatheredDetails[pickUpLocation]" class="form-control">
+            <? if ($selected === false): ?>
+              <option value="" selected="selected">
+                <?=$this->transEsc('select_pickup_location')?>
+              </option>
+            <? endif; ?>
+            <? $needSeparator = false; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( isset($this->homeLibrary) && $this->homeLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( isset($this->preferredLibrary) && $this->preferredLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( isset($this->alternateLibrary) && $this->alternateLibrary == $lib['locationID'] ): ?>
+                <option style="font-weight:bold; font-size:150%;" value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+                <? $needSeparator = true; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <? if( $needSeparator ): ?>
+              <option disabled><?=$this->escapeHtml("-------------------------------------")?></option>
+            <? endif; ?>
+            <? foreach ($this->pickup as $lib): ?>
+              <? if( (!isset($this->homeLibrary) || $this->homeLibrary != $lib['locationID']) &&
+                     (!isset($this->preferredLibrary) || $this->preferredLibrary != $lib['locationID']) &&
+                     (!isset($this->alternateLibrary) || $this->alternateLibrary != $lib['locationID']) ): ?>
+                <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID']) ? ' selected="selected"' : ''?>>
+                  <?=$this->escapeHtml($lib['locationDisplay'])?>
+                </option>
+              <? endif; ?>
+            <? endforeach; ?>
+            </select>
+          </div>
+        </div>
+      <? else: ?>
+        <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$this->escapeHtmlAttr($this->defaultPickup)?>" />
+      <? endif; ?>
+    <? endif; ?>
+    <div class="form-group">
+      <div class="col-sm-9 col-sm-offset-3">
+        <input class="btn btn-primary" type="submit" name="placeHold" value="<?=$this->transEsc('request_submit_text')?>"/>
+      </div>
+    </div>
+-->
+</div>
+<div class="modal-footer">
+  <form action="" class="form-horizontal" method="post" name="placeHold">
+    <input type="hidden" name="gatheredDetails[comment]" value="" />
+    <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
+    <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
+    <input type="hidden" name="placeHold" value="1">
+    <button class="btn-default"<?=(isset($this->preferredLibrary)?"":" disabled")?>>Okay</button>
+  </form>
+
+  <script type="text/javascript">
+    function SubmitHoldForm() {
+      $('form[name="placeHold"]').submit();
+    }
+
+    function SelectPickupLocation(chosenID) {
+      var currentID = $('input[name="gatheredDetails[pickUpLocation]"]').val();
+      $('i[name="check-' + currentID + '"]').css("color","#fff");
+      $('input[name="gatheredDetails[pickUpLocation]"]').val(chosenID);
+      $('i[name="check-' + chosenID + '"]').css("color","");
+    }
+  </script>
+</div>
+<?
+    // Set up hold script; we do this inline instead of in the header for lightbox compatibility:
+    $this->inlineScript()->appendFile('hold.js');
+
+    $js = <<<JS
+        if ($.isReady) {
+            readyFunc();
+        } else {
+            $(document).ready(function(){
+                readyFunc();
+            });
+        }
+
+        function readyFunc() {
+            setUpHoldRequestForm("{$this->escapeHtml($this->driver->getUniqueId())}");
+        }
+JS;
+
+    echo $this->inlineScript()->appendScript($js);
+?>

@@ -336,7 +336,7 @@ class Sierra2 extends Sierra implements
             $thisItem['source'] = "Solr";
             $thisItem['location'] = $jsonVals->entries[$i]->pickupLocation->name;
             $thisItem['create'] = $jsonVals->entries[$i]->placed;
-            $thisItem['expire'] = $jsonVals->entries[$i]->notNeededAfterDate;
+            $thisItem['expire'] = isset($jsonVals->entries[$i]->notNeededAfterDate) ? $jsonVals->entries[$i]->notNeededAfterDate : null;
             if( $jsonVals->entries[$i]->status->code == "i" ) {
                 $thisItem['available'] = true;
             } else {

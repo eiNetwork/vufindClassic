@@ -9,7 +9,7 @@
     $urls = ($openUrl && $this->driver->replaceURLsWithOpenURL()) ? array() : $this->record($this->driver)->getLinkDetails();
 
     // Set page title.
-    $this->headTitle($this->translate('Holdings') . ': ' . $this->driver->getBreadcrumb());
+    $this->headTitle($this->translate('Holdings') . ': ' . trim($this->driver->getBreadcrumb(),"\0\t\n\x0B\r /"));
 ?>
 <? if ($offlineMode == "ils-offline"): ?>
   <div class="alert alert-warning">

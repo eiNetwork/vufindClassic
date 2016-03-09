@@ -661,4 +661,21 @@ echo $patronUpdateParams . "<br>";
     public function checkout($patron) {
         return true;
     }
+
+    /**
+     * Get Default "Hold Required By" Date (as Unix timestamp) or null if unsupported
+     *
+     * @param array $patron   Patron information returned by the patronLogin method.
+     * @param array $holdInfo Contains most of the same values passed to
+     * placeHold, minus the patron data.
+     *
+     * @return int
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getHoldDefaultRequiredDate($patron, $holdInfo)
+    {
+        // 1 year in the future
+        return mktime(0, 0, 0, date('m'), date('d'), date('Y')+1);
+    }
 }

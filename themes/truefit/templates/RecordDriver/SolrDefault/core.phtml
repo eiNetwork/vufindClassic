@@ -2,7 +2,6 @@
   // Set up convenience variables:
   $account = $this->auth()->getManager();
   $user = $account->isLoggedIn();
-  $holdings = $this->driver->getRealTimeHoldings();
   $record = $this->record($this->driver);
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
@@ -35,7 +34,7 @@
   </div>
 
   <div class="EIN-col-m-12 padded">
-    <h1 property="name" class="itemTitle"><?=$this->escapeHtml(trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . $this->driver->getSubtitle() . ' ' . $this->driver->getTitleSection())?></h1>
+    <h1 property="name" class="itemTitle"><?=$this->escapeHtml(trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))?></h1>
 
     <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
     <? if (isset($authors['main']) && !empty($authors['main'])): ?>
@@ -60,7 +59,7 @@
 
     <p class="titleInfoLine">
       <? $totalCopies = 0; $availableCopies = 0; ?>
-      <? foreach($holdings as $entry): ?>
+      <? foreach($this->holdings as $entry): ?>
         <? foreach($entry["items"] as $item): ?>
           <? $totalCopies++; $availableCopies += ($item["availability"]); ?>
         <? endforeach; ?>
@@ -71,32 +70,55 @@
     </p>
 
     <?
-      if($user): 
-        //$patron = $this->catalogLogin();
-        //$catalog = $this->getILS();
-        //$profile = $catalog->getMyProfile($patron);
-        //$profile['home_library'] = $user->home_library;
-        //try {
-        //  $view->pickup = $catalog->getPickUpLocations($patron);
-        //  $view->defaultPickupLocation = $catalog->getDefaultPickUpLocation($patron);
-        //} catch (\Exception $e) {
-          // Do nothing; if we're unable to load information about pickup
-          // locations, they are not supported and we should ignore them.
-        //}
-        $holdArgs = "'Record','Hold',{'id':'" . $this->driver->getUniqueID() . "'}";
+      if($user):
+        $holdArgs = "'Record','Hold'," . $this->holdArgs;
+        $saveClick = " onClick=\"Lightbox.get('Record','Save'," . $this->saveArgs . ")\"";
+        $saveClick = " data-toggle=\"dropdown\" data-target=\"#listButtonDropdown\"";
       else:
         $holdArgs = "'MyResearch','Login'";
+        $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
       endif;
 
-      $holdingTitleHold = $this->driver->tryMethod('getRealTimeTitleHold');
-      $holdLabel = ((!empty($holdingTitleHold) && !isset($holdings["OverDrive"])) ? "Hold" : "Not Hold");
+      $holdLabel = ($this->canHold ? "Hold" : ($this->isTitleHeld ? "Holding" : "Unable to Hold"));
     ?>
     <p class="titleInfoLine">
       <table class="sideBySideButtons"><tr>
-        <td style="width:50%"><button class="btn-default leftButton" onClick="Lightbox.get(<?=$holdArgs?>)"><?=$holdLabel?></button></td>
-        <td style="width:50%"><button class="btn-default rightButton">Add to List</button></td>
+        <td style="width:50%"><button class="btn-default leftButton" onClick="Lightbox.get(<?=$holdArgs?>)"<?=($this->canHold?"":" disabled")?>><?=$holdLabel?></button></td>
+        <td style="width:50%">
+          <button class="btn-default rightButton"<?=$saveClick?>><?=($this->hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
+          <div class="EIN-col-m-12 dropdown" id="listButtonDropdown">
+            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+              <? foreach($this->myLists as $list): ?>
+                <li>
+                  <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
+                    <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
+                      <input type="hidden" name="confirm" value="1">
+                      <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="returnBibID" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
+                      <input type="hidden" name="list" value="<?=$list->id?>">
+                      <button class="btn-dropdown btn-standardDropdown"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+                    </form>
+                  <? else: ?>
+                    <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
+                      <input type="hidden" name="submit" value="1">
+                      <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
+                      <input type="hidden" name="list" value="<?=$list->id?>">
+                      <button class="btn-dropdown btn-standardDropdown"><?=$list->title?></button>
+                    </form>
+                  <? endif; ?>
+                </li>
+              <? endforeach; ?>
+              <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
+              <? if ($this->hasOnList): ?>
+                <hr class="stretchHR">
+                <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
+              <? endif; ?>
+            </ul>
+          </div>
+        </td>
       </tr></table>
-      <span><?=$this->profile?></span>
     </p>
 
     <p class="titleInfoLine">
@@ -117,7 +139,7 @@
                     <td class="EIN-col-m-4">Collection</td>
                     <td class="EIN-col-m-4">Call #</td>
                   </tr>
-                  <? foreach($holdings as $thisHolding): ?>
+                  <? foreach($this->holdings as $thisHolding): ?>
                     <? foreach($thisHolding['items'] as $item): ?>
                       <? if($item['availability']): ?>
                         <tr class="availabilityRow">
@@ -141,7 +163,7 @@
                     <td class="EIN-col-m-4">Collection</td>
                     <td class="EIN-col-m-4">Status</td>
                   </tr>
-                  <? foreach($holdings as $thisHolding): ?>
+                  <? foreach($this->holdings as $thisHolding): ?>
                     <? foreach($thisHolding['items'] as $item): ?>
                       <? if(!$item['availability']): ?>
                         <tr class="availabilityRow">
@@ -157,7 +179,7 @@
             </div>
           </div>
         </div>
-        <div class="panel panel-default">
+        <div class="panel panel-default" style="display:none">
           <div class="panel-heading">
             <h4 class="panel-title">
               <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details2" class="collapsed">Other Formats & Languages<i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
@@ -165,7 +187,7 @@
           </div>
           <div id="details2" class="panel-collapse collapse">
             <div class="panel-body">
-              <span>Some stuff</span>
+              <span>Something</span>
             </div>
           </div>
         </div>
@@ -243,238 +265,5 @@
         </div>
       </div>
     </p>
-<!--
-    <? $summary = $this->driver->getSummary(); $summary = isset($summary[0]) ? $this->escapeHtml($summary[0]) : false; ?>
-    <? if ($summary): ?>
-      <p><?=$this->truncate($summary, 300)?></p>
-
-      <? if(strlen($summary) > 300): ?>
-        <p><a href='<?=$this->recordLink()->getTabUrl($this->driver, 'Description')?>#tabnav'><?=$this->transEsc('Full description')?></a></p>
-      <? endif; ?>
-    <? endif; ?>
-
-    <? if ($this->userlist()->getMode() !== 'disabled'): ?>
-      <? /* Display the lists that this record is saved to */ ?>
-      <div class="savedLists hidden alert alert-info" id="savedLists">
-        <strong><?=$this->transEsc("Saved in")?>:</strong>
-      </div>
-    <? endif; ?>
-
-    <?/* Display Main Details */?>
-    <table class="table table-striped" summary="<?=$this->transEsc('Bibliographic Details')?>">
-      <? $journalTitle = $this->driver->getContainerTitle(); if (!empty($journalTitle)): ?>
-      <tr>
-        <th><?=$this->transEsc('Published in')?>:</th>
-        <td>
-          <? $containerID = $this->driver->getContainerRecordID(); ?>
-          <a href="<?=($containerID ? $this->recordLink()->getUrl("VuFind|$containerID") : $this->record($this->driver)->getLink('journaltitle', $journalTitle))?>"><?=$this->escapeHtml($journalTitle)?></a>
-          <? $ref = $this->driver->getContainerReference(); if (!empty($ref)) { echo $this->escapeHtml($ref); } ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $nextTitles = $this->driver->getNewerTitles(); $prevTitles = $this->driver->getPreviousTitles(); ?>
-      <? if (!empty($nextTitles)): ?>
-      <tr>
-        <th><?=$this->transEsc('New Title')?>: </th>
-        <td>
-          <? foreach($nextTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? if (!empty($prevTitles)): ?>
-      <tr>
-        <th><?=$this->transEsc('Previous Title')?>: </th>
-        <td>
-          <? foreach($prevTitles as $field): ?>
-            <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
-      <? if (isset($authors['main']) && !empty($authors['main'])): ?>
-      <tr>
-        <th><?=$this->transEsc('Main Author')?>: </th>
-        <td property="author"><a href="<?=$this->record($this->driver)->getLink('author', $authors['main'])?>"><?=$this->escapeHtml($authors['main'])?></a></td>
-      </tr>
-      <? endif; ?>
-
-      <? if (isset($authors['corporate']) && !empty($authors['corporate'])): ?>
-      <tr>
-        <th><?=$this->transEsc('Corporate Author')?>: </th>
-        <td property="creator"><a href="<?=$this->record($this->driver)->getLink('author', $authors['corporate'])?>"><?=$this->escapeHtml($authors['corporate'])?></a></td>
-      </tr>
-      <? endif; ?>
-
-      <? if (isset($authors['secondary']) && !empty($authors['secondary'])): ?>
-      <tr>
-        <th><?=$this->transEsc('Other Authors')?>: </th>
-        <td>
-          <? $i = 0; foreach ($authors['secondary'] as $field): ?><?=($i++ == 0)?'':', '?><span property="contributor"><a href="<?=$this->record($this->driver)->getLink('author', $field)?>"><?=$this->escapeHtml($field)?></a></span><? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
-        <tr>
-          <th><?=$this->transEsc('Format')?>: </th>
-          <td><?=$this->record($this->driver)->getFormatList()?></td>
-        </tr>
-      <? endif; ?>
-
-      <? $langs = $this->driver->getLanguages(); if (!empty($langs)): ?>
-        <tr>
-          <th><?=$this->transEsc('Language')?>: </th>
-          <td><? foreach ($langs as $lang): ?><?= $this->escapeHtml($lang)?><br/><? endforeach; ?></td>
-        </tr>
-      <? endif; ?>
-
-      <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
-      <tr>
-        <th><?=$this->transEsc('Published')?>: </th>
-        <td>
-          <? foreach ($publications as $field): ?>
-            <span property="publisher" typeof="Organization">
-            <? $pubPlace = $field->getPlace(); if (!empty($pubPlace)): ?>
-              <span property="location"><?=$this->escapeHtml($pubPlace)?></span>
-            <? endif; ?>
-            <? $pubName = $field->getName(); if (!empty($pubName)): ?>
-              <span property="name"><?=$this->escapeHtml($pubName)?></span>
-            <? endif; ?>
-            </span>
-            <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
-              <span property="publicationDate"><?=$this->escapeHtml($pubDate)?></span>
-            <? endif; ?>
-            <br/>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $edition = $this->driver->getEdition(); if (!empty($edition)): ?>
-      <tr>
-        <th><?=$this->transEsc('Edition')?>: </th>
-        <td property="bookEdition"><?=$this->escapeHtml($edition)?></td>
-      </tr>
-      <? endif; ?>
-
-      <?/* Display series section if at least one series exists. */?>
-      <? $series = $this->driver->getSeries(); if (!empty($series)): ?>
-      <tr>
-        <th><?=$this->transEsc('Series')?>: </th>
-        <td>
-          <? foreach ($series as $field): ?>
-            <?/* Depending on the record driver, $field may either be an array with
-               "name" and "number" keys or a flat string containing only the series
-               name.  We should account for both cases to maximize compatibility. */?>
-            <? if (is_array($field)): ?>
-              <? if (!empty($field['name'])): ?>
-                <a href="<?=$this->record($this->driver)->getLink('series', $field['name'])?>"><?=$this->escapeHtml($field['name'])?></a>
-                <? if (!empty($field['number'])): ?>
-                  <?=$this->escapeHtml($field['number'])?>
-                <? endif; ?>
-                <br/>
-              <? endif; ?>
-            <? else: ?>
-              <a href="<?=$this->record($this->driver)->getLink('series', $field)?>"><?=$this->escapeHtml($field)?></a><br/>
-            <? endif; ?>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $subjects = $this->driver->getAllSubjectHeadings(); if (!empty($subjects)): ?>
-      <tr>
-        <th><?=$this->transEsc('Subjects')?>: </th>
-        <td>
-          <? foreach ($subjects as $field): ?>
-          <div class="subjectLine" property="keywords">
-            <? $subject = ''; ?>
-            <? if(count($field) == 1) $field = explode('--', $field[0]); ?>
-            <? $i = 0; foreach ($field as $subfield): ?>
-              <?=($i++ == 0) ? '' : ' &gt; '?>
-              <? $subject = trim($subject . ' ' . $subfield); ?>
-              <a class="backlink" title="<?=$this->escapeHtmlAttr($subject)?>" href="<?=$this->record($this->driver)->getLink('subject', $subject)?>"><?=trim($this->escapeHtml($subfield))?></a>
-            <? endforeach; ?>
-          </div>
-          <? endforeach; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $childRecordCount = $this->driver->tryMethod('getChildRecordCount'); if ($childRecordCount): ?>
-      <tr>
-        <th><?=$this->transEsc('child_records')?>: </th>
-        <td>
-          <a href="<?=$this->recordLink()->getChildRecordSearchUrl($this->driver)?>"><?=$this->transEsc('child_record_count', array('%%count%%' => $childRecordCount))?></a>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <?
-        $openUrl = $this->driver->openURLActive('record') ? $this->driver->getOpenURL() : false;
-        // Account for replace_other_urls setting
-        $urls = ($openUrl && $this->driver->replaceURLsWithOpenURL()) ? array() : $this->record($this->driver)->getLinkDetails();
-      ?>
-      <? if (!empty($urls) || $openUrl): ?>
-      <tr>
-        <th><?=$this->transEsc('Online Access')?>: </th>
-        <td>
-          <? foreach ($urls as $current): ?>
-            <a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>"><?=$this->escapeHtml($current['desc'])?></a><br/>
-          <? endforeach; ?>
-          <? if ($openUrl): ?>
-            <?=$this->openUrl($openUrl)?><br/>
-          <? endif; ?>
-        </td>
-      </tr>
-      <? endif; ?>
-
-      <? $recordLinks = $this->driver->getAllRecordLinks(); ?>
-      <? if(!empty($recordLinks)): ?>
-        <tr>
-          <th><?=$this->transEsc('Related Items')?>:</th>
-          <td>
-            <? foreach ($recordLinks as $recordLink): ?>
-              <?=$this->transEsc($recordLink['title'])?>:
-              <a href="<?=$this->recordLink()->related($recordLink['link'])?>"><?=$this->escapeHtml($recordLink['value'])?></a><br />
-            <? endforeach; ?>
-            <? /* if we have record links, display relevant explanatory notes */
-              $related = $this->driver->getRelationshipNotes();
-              if (!empty($related)): ?>
-                <? foreach ($related as $field): ?>
-                  <?=$this->escapeHtml($field)?><br/>
-                <? endforeach; ?>
-            <? endif; ?>
-          </td>
-        </tr>
-      <? endif; ?>
-
-      <? if ($this->usertags()->getMode() !== 'disabled'): ?>
-        <? $tagList = $this->driver->getTags(); ?>
-        <tr>
-          <th><?=$this->transEsc('Tags')?>: </th>
-          <td>
-            <span class="pull-right">
-              <i class="fa fa-plus"></i> <a id="tagRecord" class="modal-link" href="<?=$this->recordLink()->getActionUrl($this->driver, 'AddTag')?>" title="<?=$this->transEsc('Add Tag')?>"><?=$this->transEsc('Add Tag')?></a>
-            </span>
-            <div id="tagList">
-              <? if (count($tagList) > 0): ?>
-                <? $i = 0; foreach ($tagList as $tag): ?><?=($i++ == 0)?'':', '?><a href="<?=$this->url('tag-home')?>?lookfor=<?=urlencode($tag->tag)?>"><?=$this->escapeHtml($tag->tag)?></a> (<?=$this->escapeHtml($tag->cnt)?>)<? endforeach; ?>
-              <? else: ?>
-                <?=$this->transEsc('No Tags')?>, <?=$this->transEsc('Be the first to tag this record')?>!
-              <? endif; ?>
-            </div>
-          </td>
-        </tr>
-      <? endif; ?>
-    </table>
-    <?/* End Main Details */?>
--->
   </div>
 </div>

@@ -58,6 +58,81 @@ class RecordController extends AbstractRecord
     }
 
     /**
+     * Create a new ViewModel.
+     *
+     * @param array $params Parameters to pass to ViewModel constructor.
+     *
+     * @return \Zend\View\Model\ViewModel
+     */
+    protected function createViewModel($params = null)
+    {
+        $view = parent::createViewModel($params);
+
+        // load this up so we can check some things
+        $driver = $this->loadRecord();
+        $holdings = $this->driver->getRealTimeHoldings();
+        $bib = $this->loadRecord()->getUniqueID();
+        $view->holdings = $holdings;
+        $catalog = $this->getILS();
+
+        // see whether the driver can hold
+        $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
+        $canHold = (!empty($holdingTitleHold) && !isset($this->holdings["OverDrive"]));
+
+        // see whether they already have a hold on it
+        if($canHold && ($user = $this->getUser())) {
+            $patron = $this->catalogLogin();
+            $holds = $catalog->getMyHolds($patron);
+            foreach($holds as $thisHold) {
+                if($thisHold['id'] == $bib) {
+                    $canHold = false;
+                    $view->isTitleHeld = true;
+                }
+            }
+        }
+
+        // if not, see whether there is a holdable copy available
+        if( $canHold ) {
+            $args=array();
+            foreach($holdings as $holding) {
+                foreach($holding['items'] as $item) {
+                    // look for a hold link
+                    if(in_array($item['status'], ['-','t','!']) && $item['link']['action'] == "Hold") {
+                        foreach(explode('&',$item['link']['query']) as $piece) {
+                            $pieces = explode('=', $piece);
+                            $args[$pieces[0]] = $pieces[1];
+                        }
+                        break 2;
+                    }
+                }
+            }
+            $view->holdArgs = str_replace("\"", "'", json_encode($args));
+            if( count($args) == 0 ) {
+                $canHold = false;
+            }
+        }
+
+        $view->canHold = $canHold;
+        $view->saveArgs = str_replace("\"", "'", json_encode(["id" => $bib]));
+
+        // see whether they have this item in any lists
+        if( $user ) {
+            $lists = $user->getLists();
+            $hasOnList = false;
+            foreach($lists as $thisList) {
+                if($thisList->contains($driver->getResourceSource() . "|" . $bib)) {
+                    $hasOnList = true;
+                    break;
+                }
+            }
+            $view->hasOnList = $hasOnList;
+            $view->myLists = $lists;
+        }
+
+        return $view;
+    }
+
+    /**
      * Is the result scroller active?
      *
      * @return bool

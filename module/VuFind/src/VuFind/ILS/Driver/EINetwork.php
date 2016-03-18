@@ -599,16 +599,11 @@ echo $patronUpdateParams . "<br>";
             $fieldNames = explode(",", $values[0]);
 
             // we have to do some hocus pocus here since the values can also include the  delimiter
-            $fieldValues = explode("\"", $values[1]);
-            for($i = count($fieldValues) - 1; $i>=0; $i-=2) {
-                // chop off the initial comma for anything that is after a double quote
-                $startPos = ($i==0) ? 0 : 1;
-                // chop off the ending comma if it's not the last one
-                $length = strlen($fieldValues[$i]) - $startPos - ((substr($fieldValues[$i], -1) == ",") ? 1 : 0);
-                $fieldValues[$i] = substr($fieldValues[$i], $startPos, $length);
-                // skip empties
-                $replacement = ($fieldValues[$i] == "") ? [] : explode(",",$fieldValues[$i]);
-                array_splice($fieldValues, $i, 1, $replacement);
+            $fieldValues = explode(",", $values[1]);
+            for($i=0;$i<count($fieldValues);$i++) {
+                while( substr($fieldValues[$i], 0, 1) == "\"" && substr($fieldValues[$i], -1) != "\"") {
+                    array_splice($fieldValues, $i, 2, $fieldValues[$i] . "\," . $fieldValues[$i+1]);
+                }
             }
 
             for($i=0; $i<count($fieldNames); $i++) {
@@ -648,6 +643,31 @@ echo $patronUpdateParams . "<br>";
     }
 
     /**
+     * Get My Transactions
+     *
+     * This is responsible for returning a patron's checked out items.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return array         Associative array of checked out items.
+     */
+    public function getMyTransactions($patron){
+        $sierraTransactions = parent::getMyTransactions($patron);
+        $overDriveTransactions = $this->getOverDriveCheckedOutItems((object)$patron);
+        foreach($overDriveTransactions as $item) {
+            $solrInfo = $this->getSolrRecordFromExternalId($item["overDriveId"]);
+            if($solrInfo) {
+                foreach($solrInfo as $key => $value) {
+                    $item[$key] = $value;
+                }
+                $sierraTransactions[] = $item;
+            }
+        }
+        return $sierraTransactions;
+    }
+
+    /**
      * Checkout
      *
      * This is responsible for checking out an item
@@ -658,9 +678,11 @@ echo $patronUpdateParams . "<br>";
      * @return mixed          Associative array of patron info on successful login,
      * null on unsuccessful login.
      */
+/*
     public function checkout($patron) {
         return true;
     }
+*/
 
     /**
      * Get Default "Hold Required By" Date (as Unix timestamp) or null if unsupported

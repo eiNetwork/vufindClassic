@@ -3,9 +3,17 @@
   $account = $this->auth()->getManager();
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
+  $isOverDrive = false;
+  foreach($this->holdings as $entry):
+    foreach($entry["items"] as $item):
+      if( $item["isOverDrive"] ):
+        $isOverDrive = true;
+      endif;
+    endforeach;
+  endforeach;
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
-  <div class="EIN-col-m-12">
+  <div class="EIN-col-m-12 EIN-col-3">
     <div class="text-center">
       <? /* Display thumbnail if appropriate: */ ?>
       <? $mediumThumb = $record->getThumbnail('medium'); $largeThumb = $record->getThumbnail('large'); ?>
@@ -33,61 +41,121 @@
     <?=$record->getPreviews()?>
   </div>
 
-  <div class="EIN-col-m-12 padded">
-    <h1 property="name" class="itemTitle"><?=$this->escapeHtml(trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))?></h1>
+  <div class="EIN-col-m-12 EIN-col-9 padded">
+    <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+      <h1 property="name" class="itemTitle"><?=$this->escapeHtml($isOverDrive ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /")))?></h1>
 
-    <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
-    <? if (isset($authors['main']) && !empty($authors['main'])): ?>
-      <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
-    <? endif; ?>
-
-    <p class="titleInfoLine">
-      <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
-        <? foreach( $formats as $thisFormat ): ?>
-          <span class="formatTag"><?=$thisFormat?></span>
-        <? endforeach; ?>
+      <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
+      <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+        <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
       <? endif; ?>
 
-      <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
-        <? foreach ($publications as $field): ?>
-          <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
-            <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
-          <? endif; ?>
-        <? endforeach; ?>
-      <? endif; ?>
-    </p>
+      <table>
+        <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
+          <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
+            <tr>
+              <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
+              <td style="padding-bottom:5px">
+                <span class="formatTag"><?=$thisFormat?></span>
 
-    <p class="titleInfoLine">
-      <? $totalCopies = 0; $availableCopies = 0; ?>
-      <? foreach($this->holdings as $entry): ?>
-        <? foreach($entry["items"] as $item): ?>
-          <? $totalCopies++; $availableCopies += ($item["availability"]); ?>
-        <? endforeach; ?>
-      <? endforeach; ?>
-      <? $green = (($totalCopies > 0) && ($availableCopies > 0)); ?>
-      <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? '<i class="fa fa-check"></i>Available' : "Unavailable")?></span>
-      <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
-    </p>
+                <? if( $firstTime ): ?>
+                  <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
+                    <? foreach ($publications as $field): ?>
+                      <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
+                        <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
+                      <? endif; ?>
+                    <? endforeach; ?>
+                  <? endif; ?>
+                  <? $firstTime = false; ?>
+                <? endif; ?>
+              </td>
+            </tr>
+          <? endforeach; ?>
+        <? endif; ?>
 
-    <?
-      if($user):
-        $holdArgs = "'Record','Hold'," . $this->holdArgs;
-        $saveClick = " onClick=\"Lightbox.get('Record','Save'," . $this->saveArgs . ")\"";
-        $saveClick = " data-toggle=\"dropdown\" data-target=\"#listButtonDropdown\"";
-      else:
-        $holdArgs = "'MyResearch','Login'";
-        $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
-      endif;
+        <tr>
+          <? $totalCopies = 0; $availableCopies = 0; $firstTime = true;?>
+          <? foreach($this->holdings as $entry): ?>
+            <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Availability:":"&nbsp;")?></td>
+            <? $firstTime = false; ?>
+            <? foreach($entry["items"] as $item): ?>
+              <? if( $item["isOverDrive"] ): ?>
+                <? $totalCopies += ($item["copiesOwned"]); $availableCopies += ($item["copiesAvailable"]); ?>
+              <? else: ?>
+                <? $totalCopies++; $availableCopies += ($item["availability"]); ?>
+              <? endif; ?>
+            <? endforeach; ?>
+          <? endforeach; ?>
+          <? $green = (($totalCopies > 0) && ($availableCopies > 0)); ?>
+          <td style="padding-bottom:5px">
+            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? '<i class="fa fa-check"></i>Available' : "Unavailable")?></span>
+            <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+          </td>
+        </tr>
+      </table>
 
-      $holdLabel = ($this->canHold ? "Hold" : ($this->isTitleHeld ? "Holding" : "Unable to Hold"));
-    ?>
-    <p class="titleInfoLine">
-      <table class="sideBySideButtons"><tr>
-        <td style="width:50%"><button class="btn-default leftButton" onClick="Lightbox.get(<?=$holdArgs?>)"<?=($this->canHold?"":" disabled")?>><?=$holdLabel?></button></td>
-        <td style="width:50%">
-          <button class="btn-default rightButton"<?=$saveClick?>><?=($this->hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-          <div class="EIN-col-m-12 dropdown" id="listButtonDropdown">
-            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+      <?
+        if($user && $this->isTitleCheckedOut && $isOverDrive):
+          $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown\"";
+          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
+        elseif($user):
+          $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ("'Hold'," . $this->holdArgs)) . ")\"";
+          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
+        else:
+          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+          $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+        endif;
+
+        $holdLabel = ($this->canHold ? "Hold" : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));
+        if( $this->isTitleCheckedOut && $isOverDrive ):
+          $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
+        endif;
+      ?>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
+      <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
+        <button class="btn-default leftButton"<?=$holdClick?><?=(($this->canHold || $this->canCheckOut || ($isOverDrive && $this->isTitleCheckedOut))?"":" disabled")?>><?=$holdLabel?></button>
+        <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown">
+          <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+            <? if( $this->ODread && $this->ODread["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODread["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->ODlisten && $this->ODlisten["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODlisten["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->ODwatch && $this->ODwatch["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODwatch["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Watch Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->downloadFormats && count($this->downloadFormats) > 0 ): ?>
+              <?
+                $streamingVideo = false;
+                foreach($this->downloadFormats as $thisFormat): 
+                  $streamingVideo |= ($thisFormat["id"] == "video-streaming");
+                endforeach;
+              ?>
+              <li>
+                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=$this->idArgs?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
+              </li>
+            <? endif; ?>
+            <? if( $this->canReturn ): ?>
+              <li>
+                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','Return',<?=$this->idArgs?>)">Return</button>
+              </li>
+            <? endif; ?>
+          </ul>
+        </div>
+      </div>
+      <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
+        <button class="btn-default rightButton"<?=$saveClick?>><?=($this->hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
+        <div class="EIN-col-m-12 dropdown" id="saveButtonDropdown">
+          <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+            <? if($this->myLists): ?>
               <? foreach($this->myLists as $list): ?>
                 <li>
                   <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
@@ -110,21 +178,44 @@
                   <? endif; ?>
                 </li>
               <? endforeach; ?>
-              <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
-              <? if ($this->hasOnList): ?>
-                <hr class="stretchHR">
-                <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
-              <? endif; ?>
-            </ul>
-          </div>
-        </td>
-      </tr></table>
-    </p>
-
-    <p class="titleInfoLine">
+            <? endif; ?>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
+            <? if ($this->hasOnList): ?>
+              <hr class="stretchHR">
+              <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
+            <? endif; ?>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="EIN-col-m-12 padded">
+    <div class="EIN-col-m-12">
+      <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details1" class="collapsed">Availability Details</a>
+            <div class="openAccordionTab"></div>
+          </h4>
+        </div>
+        <div class="panel-heading" style="display:none">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details2" class="collapsed">Other Formats & Languages</a>
+            <div class="openAccordionTab"></div>
+          </h4>
+        </div>
+        <div class="panel-heading overdriveHeader">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details3" class="collapsed">Details</a>
+            <div class="openAccordionTab"></div>
+          </h4>
+        </div>
+        <div class="panel-heading"></div>
+      </div>
+      <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9">
       <div class="panel-group" id="detailsAccordion">
-        <div class="panel panel-default">
-          <div class="panel-heading">
+        <div class="panel panel-default detailAccordion">
+          <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
               <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details1" class="collapsed">Availability Details<i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
             </h4>
@@ -132,55 +223,59 @@
           <div id="details1" class="panel-collapse collapse">
             <div class="panel-body">
               <? if( $availableCopies > 0): ?>
-                <h6 class="accordionSubheading">Available (<?=$availableCopies?>)</h6>
-                <table class="EIN-col-m-12">
-                  <tr class="availabilityHeaderRow">
-                    <td class="EIN-col-m-4">Location</td>
-                    <td class="EIN-col-m-4">Collection</td>
-                    <td class="EIN-col-m-4">Call #</td>
-                  </tr>
-                  <? foreach($this->holdings as $thisHolding): ?>
-                    <? foreach($thisHolding['items'] as $item): ?>
-                      <? if($item['availability']): ?>
-                        <tr class="availabilityRow">
-                          <td class="EIN-col-m-4"><?=$item['branchName']?></td>
-                          <td class="EIN-col-m-4"><?=$item['shelvingLocation']?></td>
-                          <td class="EIN-col-m-4"><?=$item['callnumber']?></td>
-                        </tr>
-                      <? endif; ?>
+                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":"")?> (<?=$availableCopies?>)</h6>
+                <? if( !$isOverDrive ): ?>
+                  <table class="EIN-col-m-12">
+                    <tr class="availabilityHeaderRow">
+                      <td class="EIN-col-m-4">Location</td>
+                      <td class="EIN-col-m-4">Collection</td>
+                      <td class="EIN-col-m-4">Call #</td>
+                    </tr>
+                    <? foreach($this->holdings as $thisHolding): ?>
+                      <? foreach($thisHolding['items'] as $item): ?>
+                        <? if($item['availability']): ?>
+                          <tr class="availabilityRow">
+                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : json_encode($item))?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? $item['callnumber'] : "")?></td>
+                          </tr>
+                        <? endif; ?>
+                      <? endforeach; ?>
                     <? endforeach; ?>
-                  <? endforeach; ?>
-                </table>
+                  </table>
+                <? endif; ?>
               <? endif; ?>
               <? if( $totalCopies > 0 && $totalCopies != $availableCopies && $availableCopies > 0): ?>
                 <span class="accordionGap">&nbsp;</span>
               <? endif; ?>
               <? if( $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
-                <h6 class="accordionSubheading">Unavailable (<?=($totalCopies - $availableCopies)?>)</h6>
-                <table class="EIN-col-m-12">
-                  <tr class="availabilityHeaderRow">
-                    <td class="EIN-col-m-4">Location</td>
-                    <td class="EIN-col-m-4">Collection</td>
-                    <td class="EIN-col-m-4">Status</td>
-                  </tr>
-                  <? foreach($this->holdings as $thisHolding): ?>
-                    <? foreach($thisHolding['items'] as $item): ?>
-                      <? if(!$item['availability']): ?>
-                        <tr class="availabilityRow">
-                          <td class="EIN-col-m-4"><?=$item['branchName']?></td>
-                          <td class="EIN-col-m-4"><?=$item['shelvingLocation']?></td>
-                          <td class="EIN-col-m-4"><?=$item['displayStatus']?></td>
-                        </tr>
-                      <? endif; ?>
+                <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
+                <? if( !$isOverDrive ): ?>
+                  <table class="EIN-col-m-12">
+                    <tr class="availabilityHeaderRow">
+                      <td class="EIN-col-m-4">Location</td>
+                      <td class="EIN-col-m-4">Collection</td>
+                      <td class="EIN-col-m-4">Status</td>
+                    </tr>
+                    <? foreach($this->holdings as $thisHolding): ?>
+                      <? foreach($thisHolding['items'] as $item): ?>
+                        <? if($item['availability']): ?>
+                          <tr class="availabilityRow">
+                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : json_encode($item))?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['displayStatus']) ? $item['displayStatus'] : "")?></td>
+                          </tr>
+                        <? endif; ?>
+                      <? endforeach; ?>
                     <? endforeach; ?>
-                  <? endforeach; ?>
-                </table>
+                  </table>
+                <? endif; ?>
               <? endif; ?>
             </div>
           </div>
         </div>
-        <div class="panel panel-default" style="display:none">
-          <div class="panel-heading">
+        <div class="panel panel-default detailAccordion" style="display:none">
+          <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
               <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details2" class="collapsed">Other Formats & Languages<i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
             </h4>
@@ -191,8 +286,8 @@
             </div>
           </div>
         </div>
-        <div class="panel panel-default">
-          <div class="panel-heading">
+        <div class="panel panel-default detailAccordion">
+          <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
               <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details3" class="collapsed">Details<i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
             </h4>
@@ -247,12 +342,12 @@
                     <td><? foreach ($langs as $lang): ?><?= $this->escapeHtml($lang)?><br/><? endforeach; ?></td>
                   </tr>
                 <? endif; ?>
-                <? $marcDesc = $this->driver->getFormattedMarcDetails(300,['|abc']); if (!empty($marcDesc)): ?>
+                <? /* $marcDesc = $this->driver->getFormattedMarcDetails(300,['|abc']); if (!empty($marcDesc)): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Description')?></td>
                     <td><?=$this->escapeHtml($marcDesc[0][0])?></td>
                   </tr>
-                <? endif; ?>
+                <? endif; */ ?>
                 <? $isbns = $this->driver->getISBNs(); if (!empty($isbns)): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('ISBN')?></td>
@@ -264,6 +359,25 @@
           </div>
         </div>
       </div>
-    </p>
+      </div>
+      <script type="text/javascript">
+        $('.panel-heading a').on('click',function(e){
+          // prevent them from dismissing the last open section if we're in tablet or desktop layout
+          if($(document).width() >= 600) {
+            if($($(this).attr("href")).hasClass('in')){
+              e.stopPropagation();
+            }
+            // You can also add preventDefault to remove the anchor behavior that makes the page jump
+            e.preventDefault();
+          }
+        });
+        $('body').css({"overflow-y":"hidden"});
+        if($(document).width() >= 600) {
+          $('.panel-heading<?=($isOverDrive?".overdriveHeader":"")?> a').first().click();
+        }
+        $('body').css({"overflow-y":"auto"});
+        $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+      </script>
+    </div>
   </div>
 </div>

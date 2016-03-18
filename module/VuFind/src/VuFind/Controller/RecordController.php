@@ -77,7 +77,8 @@ class RecordController extends AbstractRecord
 
         // see whether the driver can hold
         $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
-        $canHold = (!empty($holdingTitleHold) && !isset($this->holdings["OverDrive"]));
+        $canHold = (!empty($holdingTitleHold));
+        $canCheckOut = false;
 
         // see whether they already have a hold on it
         if($canHold && ($user = $this->getUser())) {
@@ -97,7 +98,9 @@ class RecordController extends AbstractRecord
             foreach($holdings as $holding) {
                 foreach($holding['items'] as $item) {
                     // look for a hold link
-                    if(in_array($item['status'], ['-','t','!']) && $item['link']['action'] == "Hold") {
+                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
+                    $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
+                    if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                         foreach(explode('&',$item['link']['query']) as $piece) {
                             $pieces = explode('=', $piece);
                             $args[$pieces[0]] = $pieces[1];
@@ -112,8 +115,55 @@ class RecordController extends AbstractRecord
             }
         }
 
+        // see if they can check this out
+        if( !$canHold ) {
+            foreach($holdings as $holding) {
+                foreach($holding['items'] as $item) {
+                    $canCheckOut |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
+                }
+            }
+        }
+
+        // make sure they don't already have it checked out
+        if( $user && ($canCheckOut || $canHold) ) {
+            $patron = (isset($patron) ? $patron : $this->catalogLogin());
+            $checkedOutItems = $catalog->getMyTransactions($patron);
+            foreach($checkedOutItems as $thisItem) {
+                if($thisItem['id'] == $bib) {
+                    $canCheckOut = false;
+                    $canHold = false;
+                    $view->isTitleCheckedOut = true;
+                    if( isset($thisItem["overDriveId"]) ) {
+                        $view->canReturn = isset($thisItem["earlyReturn"]) && $thisItem["earlyReturn"];
+                        $view->availableFormats = $thisItem["format"];
+                        if(isset($thisItem["overdriveRead"]) && $thisItem["overdriveRead"]) {
+                            $view->ODread = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-overdrive", $user);
+                        }
+                        if(isset($thisItem["overdriveListen"]) && $thisItem["overdriveListen"]) {
+                            $view->ODlisten = $catalog->getDownloadLink($thisItem["overDriveId"], "audiobook-overdrive", $user);
+                        }
+                        if(isset($thisItem["streamingVideo"]) && $thisItem["streamingVideo"]) {
+                            $view->ODwatch = $thisItem["formatSelected"] ? $catalog->getDownloadLink($thisItem["overDriveId"], "video-streaming", $user) : "www.google.com";
+                        }
+                        // get the download links
+                        $downloadableFormats = [];
+                        foreach($thisItem["formats"] as $possibleFormat) {
+                            if($possibleFormat["id"] == "0") {
+                                $downloadableFormats[] = ["id" => $possibleFormat["format"]->formatType, "name" => $catalog->getOverdriveFormatName($possibleFormat["format"]->formatType)];
+                            } else {
+                                $downloadableFormats[] = $possibleFormat;
+                            }
+                        }
+                        $view->downloadFormats = $downloadableFormats;
+                        $view->formatLocked = $thisItem["formatSelected"];
+                    }
+                }
+            }
+        }
+
+        $view->canCheckOut = $canCheckOut;
         $view->canHold = $canHold;
-        $view->saveArgs = str_replace("\"", "'", json_encode(["id" => $bib]));
+        $view->idArgs = str_replace("\"", "'", json_encode(["id" => $bib]));
 
         // see whether they have this item in any lists
         if( $user ) {
@@ -151,7 +201,7 @@ class RecordController extends AbstractRecord
      */
     public function checkoutAction()
     {
-        // cut off overdrive hold requests
+        // cut off overdrive requests
         $driver = $this->loadRecord();
         $catalog = $this->getILS();
         if( $overDriveId = $catalog->getOverDriveID($driver->getUniqueID()) )
@@ -161,11 +211,82 @@ class RecordController extends AbstractRecord
                 return $this->forceLogin();
             }
 
-            $results = $catalog->placeOverDriveHold($overDriveId, $patron);
+            $results = $catalog->checkoutOverDriveItem($overDriveId, $user);
             $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
             $view = $this->createViewModel();
             $view->setTemplate('blank');
             return $view;
+        }
+    }
+
+    /**
+     * Action for dealing with overdrive returns.
+     *
+     * @return mixed
+     */
+    public function returnAction()
+    {
+        // cut off overdrive requests
+        $driver = $this->loadRecord();
+        $catalog = $this->getILS();
+        if( $overDriveId = $catalog->getOverDriveID($driver->getUniqueID()) )
+        {
+            // Retrieve user object and force login if necessary:
+            if (!($user = $this->getUser())) {
+                return $this->forceLogin();
+            }
+
+            $results = $catalog->returnOverDriveItem($overDriveId, $user);
+            $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
+            $view = $this->createViewModel();
+            $view->setTemplate('blank');
+            return $view;
+        }
+    }
+
+    /**
+     * Action for dealing with overdrive downloads.
+     *
+     * @return mixed
+     */
+    public function overdriveDownloadAction()
+    {
+        // cut off overdrive requests
+        $driver = $this->loadRecord();
+        $catalog = $this->getILS();
+        if( $overDriveId = $catalog->getOverDriveID($driver->getUniqueID()) )
+        {
+            // Retrieve user object and force login if necessary:
+            if (!($user = $this->getUser())) {
+                return $this->forceLogin();
+            }
+
+            if($format = $this->params()->fromQuery('formatType', false)) {
+              // select the format if necessary
+              if($this->params()->fromQuery('lockIn')) {
+                $formatInfo = $catalog->selectOverDriveDownloadFormat($overDriveId, $format, $user);
+                if(!$formatInfo["result"]) {
+                  $this->flashMessenger()->setNamespace('error')->addMessage($formatInfo["message"]);
+                  $view = $this->createViewModel();
+                  $view->setTemplate('blank');
+                  return $view;
+                }
+              }
+
+              // download it
+              $downloadLink = $catalog->getDownloadLink($overDriveId, $format, $user, (($format == "periodicals-nook") ? $this->getLightboxAwareUrl('record-home', ["id"=>$this->loadRecord()->getUniqueID()]) : null));
+              if($downloadLink["result"]) {
+                return $this->redirect()->toUrl($downloadLink["downloadUrl"]);
+              }
+              $this->flashMessenger()->setNamespace('error')->addMessage($downloadLink["message"]);
+              $view = $this->createViewModel();
+              $view->setTemplate('blank');
+              return $view;
+            } else {
+              $view = $this->createViewModel();
+              $view->setTemplate('record/overdriveDownload');
+              return $view;
+            }
         }
     }
 }

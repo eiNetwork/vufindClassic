@@ -34,7 +34,7 @@ trait OverDriveTrait {
     public $version = 4;
 
     protected $format_map = array(
-        'ebook-epub-adobe' => 'Adobe EPUB eBook',
+        'ebook-epub-adobe' => 'Adobe EPUB ebook',
         'ebook-epub-open' => 'Open EPUB eBook',
         'ebook-pdf-adobe' => 'Adobe PDF eBook',
         'ebook-pdf-open' => 'Open PDF eBook',
@@ -48,7 +48,8 @@ trait OverDriveTrait {
         'music-wma' => 'OverDrive Music',
         'video-wmv' => 'OverDrive Video',
         'video-wmv-mobile' => 'OverDrive Video (mobile)',
-        'video-streaming' => 'Streaming Video'
+        'video-streaming' => 'Streaming Video',
+        'periodicals-nook' => 'NOOK Periodical'
     );
 
     private $tokenData;
@@ -218,10 +219,10 @@ trait OverDriveTrait {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+            if( $requestType != null ) {
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestType);
+            }
             if ($params != null){
-                if( $requestType != null ) {
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $requestType);
-                }
                 curl_setopt($ch, CURLOPT_POST, 1);
                 //Convert post fields to json
                 $jsonData = array('fields' => array());
@@ -318,23 +319,16 @@ trait OverDriveTrait {
      *
      * @return array
      */
-/*
     public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
         if (isset($this->checkouts[$user->id])){
             return $this->checkouts[$user->id];
         }
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
-        //echo "<pre>patronUrl response ";
-        //print_r($response);
-        //echo "</pre>";
         $checkedOutTitles = array();
         if (isset($response->checkouts)){
             foreach ($response->checkouts as $curTitle){
-                //echo "<pre>curtitle ";
-                //print_r($curTitle);
-                //echo "</pre>";
-                
+
                 $bookshelfItem = array();
                 //Load data from api
                 $bookshelfItem['overDriveId'] = $curTitle->reserveId;
@@ -342,6 +336,7 @@ trait OverDriveTrait {
                 $bookshelfItem['overdriveListen'] = false;
                 $bookshelfItem['overdriveRead'] = false;
                 $bookshelfItem['streamingVideo'] = false;                
+                $bookshelfItem['downloadable'] = false;
                 $bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
                 $bookshelfItem['formats'] = array();
                 if (isset($curTitle->formats)){
@@ -352,11 +347,6 @@ trait OverDriveTrait {
                             $bookshelfItem['streamingVideo'] = true;
                         }elseif ($format->formatType == 'audiobook-overdrive'){
                             $bookshelfItem['overdriveListen'] = true;
-                        }else{
-                            $bookshelfItem['selectedFormat'] = array(
-                                'name' => $this->format_map[$format->formatType],
-                                'format' => $format->formatType,
-                            );
                         }
                         $curFormat = array();
                         $curFormat['id'] = $id;
@@ -385,9 +375,6 @@ trait OverDriveTrait {
                             $bookshelfItem['formats'][] = $curFormat;
                         }
                     }
-                    //echo "<pre>bookshelfitem ";
-                    //print_r($bookshelfItem);
-                    //echo "</pre>";
                 }
                 if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
                     //Get the options for the format which includes the valid formats
@@ -399,6 +386,7 @@ trait OverDriveTrait {
                         }
                     }
                     foreach ($formatField->options as $index => $format){
+                        $bookshelfItem['downloadable'] = true;
                         $curFormat = array();
                         $curFormat['id'] = $format;
                         $curFormat['name'] = $this->format_map[$format];
@@ -410,32 +398,12 @@ trait OverDriveTrait {
                     $bookshelfItem['earlyReturn']  = true;
                 }
                 //Figure out which eContent record this is for.
-                $eContentRecord = new EContentRecord();
-                $eContentRecord->externalId = $bookshelfItem['overDriveId'];
-                $eContentRecord->source = 'OverDrive';
-                $eContentRecord->status = 'active';
-                if ($eContentRecord->find(true)){
-                    $bookshelfItem['recordId'] = $eContentRecord->id;
-                    $bookshelfItem['title'] = $eContentRecord->title;
-                    $bookshelfItem['imageUrl'] = $eContentRecord->cover;
-
-                    //Get Rating
-                    require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-                    $econtentRating = new EContentRating();
-                    $econtentRating->recordId = $eContentRecord->id;
-                    $bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
-                }else{
-                    $bookshelfItem['recordId'] = -1;
-                }
                 $checkedOutTitles[] = $bookshelfItem;
             }
         }
         $this->checkouts[$user->id] = $checkedOutTitles;
-        return array(
-            'items' => $checkedOutTitles
-        );
+        return $checkedOutTitles;
     }
-*/
 
     /**
      * @param User $user
@@ -585,10 +553,7 @@ trait OverDriveTrait {
      *
      * @return array results (result, message)
      */
-/*
     public function checkoutOverDriveItem($overDriveId, $user){
-
-        global $memcache;
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
         $params = array(
@@ -597,14 +562,13 @@ trait OverDriveTrait {
         if (isset($format)){
             $params['formatType'] = $format;
         }
-        $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url, $params);
+        $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, $params);
 
         $result = array();
         $result['result'] = false;
         $result['message'] = '';
 
         if (!empty($response)){
-            //print_r($response);
             if (isset($response->expires)){
                 $result['result'] = true;
                 $result['message'] = 'Your title was checked out successfully.';
@@ -613,10 +577,8 @@ trait OverDriveTrait {
             }
         }
 
-        $memcache->delete('overdrive_summary_' . $user->id);
         return $result;
     }
-*/
 
 /*
     public function getLoanPeriodsForFormat($formatId){
@@ -629,12 +591,10 @@ trait OverDriveTrait {
     }
 */
 
-/*
-    public function returnOverDriveItem($overDriveId, $transactionId, $user){
-        global $memcache;
+    public function returnOverDriveItem($overDriveId, $user){
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
-        $response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+        $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url, null, 'DELETE');
 
         $cancelHoldResult = array();
         $cancelHoldResult['result'] = false;
@@ -646,14 +606,10 @@ trait OverDriveTrait {
             $cancelHoldResult['message'] = 'There was an error returning this item. ' . $response->message;
         }
 
-        $memcache->delete('overdrive_summary_' . $user->id);
         return $cancelHoldResult;
     }
-*/
 
-/*
     public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
-        global $memcache;
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId . '/formats';
         $params = array(
@@ -678,11 +634,8 @@ trait OverDriveTrait {
             }
         }
 
-        $memcache->delete('overdrive_summary_' . $user->id);
-
         return $result;
     }
-*/
 
 /*
     public function updateLendingOptions(){
@@ -693,8 +646,7 @@ trait OverDriveTrait {
     }
 */
 
-/*
-    public function getDownloadLink($overDriveId, $format, $user){
+    public function getDownloadLink($overDriveId, $format, $user, $successURL = null){
         $url = $this->config['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 
         $url .= '?errorpageurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveError');
@@ -707,7 +659,10 @@ trait OverDriveTrait {
         if ($format == 'video-streaming'){
             $url .= '&streamingauthurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveReadError');
         }
-        
+        if ($format == 'periodicals-nook'){
+            $url .= '&successurl=' . urlencode($this->config['Site']['url'] . $successURL);
+        }
+
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
 
         $result = array();
@@ -726,8 +681,17 @@ trait OverDriveTrait {
 
         return $result;
     }
-*/
-    public function getOverdriveHolding($id, array $patron = null)
+
+    public function getOverdriveFormatId($name)
     {
+        if ($id = array_search($name, $this->format_map)) {
+            return $id;
+        }
+        return null;
+    }
+
+    public function getOverdriveFormatName($id)
+    {
+        return $this->format_map[$id];
     }
 }

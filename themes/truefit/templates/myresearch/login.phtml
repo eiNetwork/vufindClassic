@@ -1,33 +1,40 @@
-<?
-  // Set up page title:
-  $this->headTitle($this->translate('Log In or Register'));
+<? if( $this->inLightbox ): ?>
+  <?
+    // Set up page title:
+    $this->headTitle($this->translate('Log In or Register'));
 
-  // Set up breadcrumbs:
-  $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Login') . '</li>';
+    // Set up breadcrumbs:
+    $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Login') . '</li>';
 
-  // Convenience variables:
-  $account = $this->auth()->getManager();
-  $hideLogin = !(is_object($account) && $account->loginEnabled());
-  $offlineMode = $this->ils()->getOfflineMode();
-?>
+    // Convenience variables:
+    $account = $this->auth()->getManager();
+    $hideLogin = !(is_object($account) && $account->loginEnabled());
+    $offlineMode = $this->ils()->getOfflineMode();
+  ?>
 
-<? if ($offlineMode == "ils-offline"): ?>
-  <div class="alert alert-warning">
-    <h2><?=$this->transEsc('ils_offline_title')?></h2>
-    <p><strong><?=$this->transEsc('ils_offline_status')?></strong></p>
-    <p><?=$this->transEsc('ils_offline_login_message')?></p>
-    <? $supportEmail = $this->escapeHtmlAttr($this->systemEmail()); ?>
-    <p><a href="mailto:<?=$supportEmail?>"><?=$supportEmail?></a></p>
-  </div>
-<? endif; ?>
+  <? if ($offlineMode == "ils-offline"): ?>
+    <div class="alert alert-warning">
+      <h2><?=$this->transEsc('ils_offline_title')?></h2>
+      <p><strong><?=$this->transEsc('ils_offline_status')?></strong></p>
+      <p><?=$this->transEsc('ils_offline_login_message')?></p>
+      <? $supportEmail = $this->escapeHtmlAttr($this->systemEmail()); ?>
+      <p><a href="mailto:<?=$supportEmail?>"><?=$supportEmail?></a></p>
+    </div>
+  <? endif; ?>
 
-<p class="lead lightbox-header"><?=$this->transEsc('Log In or Register')?></p>
-<span id="loginFlashMessages">
-<?=$this->flashmessages()?>
-</span>
+  <p class="lead lightbox-header"><?=$this->transEsc('Log In or Register')?></p>
+  <span id="loginFlashMessages">
+    <?=$this->flashmessages()?>
+  </span>
 
-<? if ($hideLogin): ?>
-  <div class="alert alert-danger" id="loginErrorMessage"><?=$this->transEsc('login_disabled')?></div>
+  <? if ($hideLogin): ?>
+    <div class="alert alert-danger" id="loginErrorMessage"><?=$this->transEsc('login_disabled')?></div>
+  <? else: ?>
+    <?=$this->auth()->getLogin()?>
+  <? endif; ?>
 <? else: ?>
-  <?=$this->auth()->getLogin()?>
+  <div class="EIN-col-m-12 loginWarning">You must be logged in to view this page.</div>
+  <script type="text/javascript">
+    $(document).ready( function() { Lightbox.get('MyResearch', 'Login'); } );
+  </script>
 <? endif; ?>

@@ -1,5 +1,5 @@
-<button id="loginModalLogin" class="btn-alternate active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
-<button id="loginModalRegister" class="btn-alternate" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
+<button id="loginModalLogin" class="btn-alternate btn-wide active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
+<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
 <div id="loginModalLoginBody">
   <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
     <? $account = $this->auth()->getManager(); ?>
@@ -21,12 +21,12 @@
 <div id="loginModalRegisterBody" style="color:#3f51b5;display:none">REGISTER</div>
 <div class="modal-footer">
   <div id="loginModalLoginFooter">
-    <button class="btn-alternate" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
-    <button class="btn-default" onclick="SubmitLogIn()">Log In</button>
+    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-default btn-wide" onclick="SubmitLogIn()">Log In</button>
   </div>
   <div id="loginModalRegisterFooter" style="display:none">
-    <button class="btn-alternate" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
-    <button class="btn-default" onclick="document.getElementById('loginForm').submit()">Register</button>
+    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-default btn-wide" onclick="document.getElementById('loginForm').submit()">Register</button>
   </div>
 </div>
 

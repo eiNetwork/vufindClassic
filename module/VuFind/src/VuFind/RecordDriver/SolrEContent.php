@@ -220,6 +220,17 @@ class SolrEContent extends SolrDefault
 */
 
     /**
+     * Get text that can be displayed to represent this record in
+     * breadcrumbs.
+     *
+     * @return string Breadcrumb text to represent this record.
+     */
+    public function getBreadcrumb()
+    {
+        return $this->getTitle();
+    }
+
+    /**
      * Get the main corporate author (if any) for the record.
      *
      * @return string

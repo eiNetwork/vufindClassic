@@ -118,8 +118,6 @@
    <field name="fulltext_unstemmed" type="textProper" indexed="true" stored="false"/>
    <field name="spelling" type="textSpell" indexed="true" stored="true" multiValued="true"/>
    <field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
-   <!-- Used for loading correct record driver added from vufindplus schema -->
-   <field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
    <!-- Institutional Fields -->
    <field name="institution" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -151,7 +149,7 @@
    <field name="url" type="string" indexed="false" stored="true" multiValued="true"/>
    <field name="thumbnail" type="string" indexed="false" stored="true"/>
    <!-- Catalog Specific Fields -->
-   <field name="lccn" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="lccn" type="string" indexed="true" stored="true"/>
    <field name="ctrlnum" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="isbn" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="issn" type="isn" indexed="true" stored="true" multiValued="true"/>
@@ -227,6 +225,8 @@
    <field name="bib_suppression" type="string" indexed="true" stored="false" multiValued="false" default="notsuppressed"/>
    <field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
    <field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
+   <!-- Used for loading correct record driver added from vufindplus schema -->
+   <field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
    <!-- Tracking fields to keep track of oldest and most recent index times -->
    <field name="first_indexed" type="date" indexed="true" stored="true"/>
    <field name="last_indexed" type="date" indexed="true" stored="true"/>

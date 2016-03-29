@@ -3,10 +3,11 @@
     $account = $this->auth()->getManager();
     $user = $account->isLoggedIn();
     $holdings = $this->driver->getRealTimeHoldings();
-    $openUrl = $this->driver->openURLActive('holdings') ? $this->driver->getOpenURL() : false;
+    $openUrl = $this->openUrl($this->driver, 'holdings');
+    $openUrlActive = $openUrl->isActive();
     $offlineMode = $this->ils()->getOfflineMode();
     // Account for replace_other_urls setting
-    $urls = ($openUrl && $this->driver->replaceURLsWithOpenURL()) ? array() : $this->record($this->driver)->getLinkDetails();
+    $urls = $this->record($this->driver)->getLinkDetails($openUrlActive);
 
     // Set page title.
     $this->headTitle($this->translate('Holdings') . ': ' . trim($this->driver->getBreadcrumb(),"\0\t\n\x0B\r /"));
@@ -43,7 +44,7 @@
       <a href="<?=$this->escapeHtmlAttr($this->proxyUrl($current['url']))?>"><?=$this->escapeHtml($current['desc'])?></a><br/>
     <? endforeach; ?>
   <? endif; ?>
-  <? if ($openUrl): ?><?=$this->openUrl($openUrl);?><? endif; ?>
+  <? if ($openUrlActive): ?><?=$openUrl->renderTemplate();?><? endif; ?>
 <? endif; ?>
 <? foreach ($holdings as $holding): ?>
 <h3><?=$this->transEsc('location_' . $holding['location'], array(), $holding['location'])?></h3>

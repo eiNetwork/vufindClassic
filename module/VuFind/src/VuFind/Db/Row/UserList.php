@@ -28,7 +28,6 @@
 namespace VuFind\Db\Row;
 use VuFind\Exception\ListPermission as ListPermissionException,
     VuFind\Exception\MissingField as MissingFieldException,
-    Zend\Db\Sql\Expression,
     Zend\Session\Container as SessionContainer;
 
 /**

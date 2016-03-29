@@ -98,7 +98,6 @@ class RecordCollectionFactory implements RecordCollectionFactoryInterface
                 )
             );
         }
-
         // switcher
         if( !isset($response['grouped']) ) {
             $collection = new $this->collectionClass($response);

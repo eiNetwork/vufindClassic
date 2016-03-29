@@ -6,7 +6,7 @@
   $isOverDrive = false;
   foreach($this->holdings as $entry):
     foreach($entry["items"] as $item):
-      if( $item["isOverDrive"] ):
+      if( isset($item["isOverDrive"]) && $item["isOverDrive"] ):
         $isOverDrive = true;
       endif;
     endforeach;
@@ -76,10 +76,9 @@
         <tr>
           <? $totalCopies = 0; $availableCopies = 0; $firstTime = true;?>
           <? foreach($this->holdings as $entry): ?>
-            <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Availability:":"&nbsp;")?></td>
             <? $firstTime = false; ?>
             <? foreach($entry["items"] as $item): ?>
-              <? if( $item["isOverDrive"] ): ?>
+              <? if( isset($item["isOverDrive"]) && $item["isOverDrive"] ): ?>
                 <? $totalCopies += ($item["copiesOwned"]); $availableCopies += ($item["copiesAvailable"]); ?>
               <? else: ?>
                 <? $totalCopies++; $availableCopies += ($item["availability"]); ?>
@@ -87,6 +86,7 @@
             <? endforeach; ?>
           <? endforeach; ?>
           <? $green = (($totalCopies > 0) && ($availableCopies > 0)); ?>
+          <td class="EIN-hide-m itemDetailCategory">Availability:</td>
           <td style="padding-bottom:5px">
             <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? '<i class="fa fa-check"></i>Available' : "Unavailable")?></span>
             <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
@@ -312,7 +312,7 @@
                   <? endforeach; ?>
                 <? endif; ?>
               <? endif; ?>
-              <h6 class="accordionSubheading accordionGap">Colophon</h6>
+              <h6 class="accordionSubheading accordionGap">Additional Information</h6>
               <table class="EIN-col-m-12 accordionTable">
                 <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
                   <tr>

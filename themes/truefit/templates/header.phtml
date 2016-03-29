@@ -26,13 +26,14 @@
 <? endif; ?>
     </div>
 <? if ($this->layout()->searchbox !== false): ?>
-    <span class="expand"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #ededed;border-right:1px solid #ededed;padding-right:2px">
+    <span class="expand"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #949494;border-right:1px solid #949494;padding-right:2px">
       <?=$this->layout()->searchbox ?>
     </div></span>
 <? endif; ?>
   </div>
+  <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:10px; border-top:1px solid #949494"></div>
   <div class="EIN-col-m-12">
-    <hr>
+    <hr class="EIN-hide-t EIN-hide">
     <div class="EIN-col-m-12 dropdown" id="navDropdown">
       <ul role="navigation" class="dropdown-menu whiteDropdown<?= ($account->isLoggedIn() ? "" : " EIN-hide")?>">
 <? if( $account->isLoggedIn()): ?>
@@ -68,5 +69,6 @@
     <?=$this->layout()->searchbox ?>
     <hr>
 <? endif; ?>
+  <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
   </div>
 </div>

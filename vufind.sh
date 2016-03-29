@@ -138,7 +138,7 @@ findDirectory()
 # JAVA_OPTIONS="-server -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
 if [ -z "$JAVA_OPTIONS" ]
 then
-  JAVA_OPTIONS="-server -Xms8192m -Xmx8192m -XX:+UseParallelGC -XX:NewRatio=5"
+  JAVA_OPTIONS="-server -Xms1024m -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
 fi
 
 ##################################################
@@ -425,6 +425,15 @@ then
     JAVA_OPTIONS="$JAVA_OPTIONS -Djetty.logs=$JETTY_LOG"
 fi
 
+#####################################################
+# Set log4j configuration file
+#####################################################
+if [ "$SOLR_LOG4J" != "" ]
+then
+  JAVA_OPTIONS="$JAVA_OPTIONS -Dlog4j.configuration=$SOLR_LOG4J"
+else
+  JAVA_OPTIONS="$JAVA_OPTIONS -Dlog4j.configuration=file://$SOLR_HOME/log4j.properties"
+fi
 
 #####################################################
 # Are we running on Windows? Could be, with Cygwin/NT.

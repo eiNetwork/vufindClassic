@@ -58,8 +58,8 @@ class RouteGenerator
     {
         if (null === $nonTabRecordActions) {
             $this->nonTabRecordActions = [
-                'AddComment', 'DeleteComment', 'AddTag', 'Save', 'Email', 'SMS',
-                'Cite', 'Export', 'RDF', 'Hold', 'BlockedHold', 'Home',
+                'AddComment', 'DeleteComment', 'AddTag', 'DeleteTag', 'Save', 'Email', 'SMS', 
+                'Cite', 'Export', 'RDF', 'Hold', 'BlockedHold', 'Home', 
                 'StorageRetrievalRequest', 'AjaxTab', 'OtherFormats', 
                 'BlockedStorageRetrievalRequest', 'ILLRequest', 'BlockedILLRequest',
                 'PDF', 'Checkout', 'OverdriveDownload'
@@ -132,7 +132,7 @@ class RouteGenerator
         $config['router']['routes'][$routeBase] = [
             'type'    => 'Zend\Mvc\Router\Http\Segment',
             'options' => [
-                'route'    => '/' . $controller . '/[:id[/:tab]]',
+                'route'    => '/' . $controller . '/[:id[/[:tab]]]',
                 'constraints' => [
                     'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
                     'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',

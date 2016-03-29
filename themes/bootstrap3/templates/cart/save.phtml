@@ -42,9 +42,7 @@
       <select id="save_list" name="list" class="form-control">
         <? if (count($this->lists) > 0): ?>
           <? foreach ($this->lists as $list): ?>
-            <? if( !($list->isBookCart()) ): ?>
-              <option value="<?=$list['id'] ?>"<? if ($list['id']==$this->userList()->lastUsed()): ?> selected="selected"<? endif; ?>><?=$this->escapeHtml($list['title'])?></option>
-            <? endif; ?>
+            <option value="<?=$list['id'] ?>"<? if ($list['id']==$this->userList()->lastUsed()): ?> selected="selected"<? endif; ?>><?=$this->escapeHtml($list['title'])?></option>
           <? endforeach; ?>
         <? else: ?>
           <option value=""><?=$this->transEsc('My Favorites') ?></option>
@@ -73,7 +71,7 @@
 <?
   $script = <<<JS
   $('button.btn.hidden').removeClass('hidden');
-  $('.collapse.in').removeClass('in');
+  $('#itemhide').removeClass('in');
 JS;
 ?>
 <?=$this->inlineScript(\Zend\View\Helper\HeadScript::SCRIPT, $script, 'SET') ?>

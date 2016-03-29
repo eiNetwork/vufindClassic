@@ -224,9 +224,8 @@ class TitleHolds
         $addlink = false;
 
         $data = [
-            'id' => $id
-//            'id' => $id,
-//            'level' => 'title'
+            'id' => $id,
+            'level' => 'title'
         ];
 
         // Are holds allows?

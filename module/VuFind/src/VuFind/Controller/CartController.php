@@ -232,8 +232,7 @@ class CartController extends AbstractBase
                 );
                 return $this->redirectToSource('info', 'email_success');
             } catch (MailException $e) {
-                $this->flashMessenger()->setNamespace('error')
-                    ->addMessage($e->getMessage());
+                $this->flashMessenger()->addMessage($e->getMessage(), 'error');
             }
         }
 
@@ -315,8 +314,8 @@ class CartController extends AbstractBase
 
         // No legal export options?  Display a warning:
         if (empty($view->exportOptions)) {
-            $this->flashMessenger()->setNamespace('error')
-                ->addMessage('bulk_export_not_supported');
+            $this->flashMessenger()
+                ->addMessage('bulk_export_not_supported', 'error');
         }
         return $view;
     }
@@ -390,8 +389,7 @@ class CartController extends AbstractBase
         if ($this->formWasSubmitted('submit')) {
             $this->favorites()
                 ->saveBulk($this->getRequest()->getPost()->toArray(), $user);
-            $this->flashMessenger()->setNamespace('info')
-                ->addMessage('bulk_save_success');
+            $this->flashMessenger()->addMessage('bulk_save_success', 'info');
             $list = $this->params()->fromPost('list');
             if (!empty($list)) {
                 return $this->redirect()->toRoute('userList', ['id' => $list]);
@@ -421,9 +419,8 @@ class CartController extends AbstractBase
     public function redirectToSource($flashNamespace = null, $flashMsg = null)
     {
         // Set flash message if requested:
-        if (!is_null($flashNamespace) && !empty($flashMsg)) {
-            $this->flashMessenger()->setNamespace($flashNamespace)
-                ->addMessage($flashMsg);
+        if (null !== $flashNamespace && !empty($flashMsg)) {
+            $this->flashMessenger()->addMessage($flashMsg, $flashNamespace);
         }
 
         // If we entered the controller in the expected way (i.e. via the

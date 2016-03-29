@@ -18,7 +18,7 @@
   $this->layout()->title = $this->driver->getShortTitle();
 ?>
 
-<? if (isset($this->scrollData) && ($this->scrollData['previousRecord'] || $this->scrollData['nextRecord'])): ?>
+<? if (false && isset($this->scrollData) && ($this->scrollData['previousRecord'] || $this->scrollData['nextRecord'])): ?>
   <ul class="pager hidden-print">
     <? if ($this->scrollData['previousRecord']): ?>
       <li>

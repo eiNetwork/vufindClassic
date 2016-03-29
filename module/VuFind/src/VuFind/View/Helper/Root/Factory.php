@@ -139,8 +139,11 @@ class Factory
      */
     public static function getDisplayLanguageOption(ServiceManager $sm)
     {
+        // We want to construct a separate translator instance for this helper,
+        // since it configures different language/locale than the core shared
+        // instance!
         return new DisplayLanguageOption(
-            $sm->getServiceLocator()->get('VuFind\Translator')
+            \VuFind\Service\Factory::getTranslator($sm->getServiceLocator())
         );
     }
 
@@ -313,8 +316,16 @@ class Factory
     public static function getOpenUrl(ServiceManager $sm)
     {
         $config = $sm->getServiceLocator()->get('VuFind\Config')->get('config');
+        $openUrlRules = json_decode(
+            file_get_contents(
+                \VuFind\Config\Locator::getConfigPath('OpenUrlRules.json')
+            ),
+            true
+        );
         return new OpenUrl(
-            $sm->get('context'), isset($config->OpenURL) ? $config->OpenURL : null
+            $sm->get('context'),
+            $openUrlRules,
+            isset($config->OpenURL) ? $config->OpenURL : null
         );
     }
 

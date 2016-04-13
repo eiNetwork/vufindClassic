@@ -41,7 +41,7 @@
   <div class="EIN-hide-m EIN-hide-t EIN-col-4 resultsLeftBar" id="facetsDiv">
     <? /* Narrow Search Options */ ?>
     <div class="EIN-hide-m EIN-hide-t EIN-col-12 facetTitle">Filter Results</div>
-    <div class="EIN-col-m-12">
+    <div class="EIN-col-m-12" style="float:none">
       <? foreach ($this->results->getRecommendations('side') as $current): ?>
         <?=$this->recommend($current)?>
       <? endforeach; ?>

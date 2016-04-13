@@ -383,6 +383,7 @@ class AjaxController extends AbstractBase
             $holdArgs = str_replace("\"", "'", json_encode($args));
             if( count($args) == 0 ) {
                 $canHold = false;
+                $holdArgs = "";
             }
         }
 

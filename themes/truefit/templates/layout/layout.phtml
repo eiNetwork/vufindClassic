@@ -185,26 +185,8 @@
     <?=$this->googleanalytics()?>
     <?=$this->piwik()?>
     <script type="text/javascript">
-      Lightbox.addOpenAction(function() {
-        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
-        var max = $(window).height() - offset;
-        var barHeight = max - 30;
-        var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
-        var hidden = (max > $('.modal-body').outerHeight());
-        maxRange = $('.modal-body').outerHeight() - max;
-        $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
-        $('.modal-body').scrollTop(0);
-        $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
-        $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
-        Lightbox.addCloseAction(function() {
-          $('.modal-footer').html("");
-          $('.modalScrollBar').css({"height":"0px","display":"none"});
-          $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
-          $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
-          initialOffset = -1;
-          maxRange = -1;
-        } );
-      } );
+      Lightbox.addOpenAction(sizeModal);
+      $(window).resize(sizeModal);
       var initialOffset = -1;
       var maxRange = -1;
       var scrollLogic = function(e) {
@@ -230,6 +212,31 @@
         $(document).bind("mousemove", scrollLogic);
         $(document).bind("mouseup", mouseUpLogic);
       }
+      function sizeModal() {
+        var targetPos = $('.modal-body').scrollTop();
+        $('.modal-body').css("max-height","none");
+        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
+        var max = $(window).height() - offset;
+        var barHeight = max - 30;
+        var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
+        var hidden = (max > $('.modal-body').outerHeight());
+        maxRange = $('.modal-body').outerHeight() - max;
+        $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
+        $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
+        $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
+        Lightbox.addCloseAction(function() {
+          $('.modal-footer').html("");
+          $('.modalScrollBar').css({"height":"0px","display":"none"});
+          $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
+          $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
+          $('.modal-body').scrollTop(0);
+          initialOffset = -1;
+          maxRange = -1;
+        } );
+        $('.modal-body').scrollTop(targetPos);
+        $('.modalScrollSlider').css({"top":((targetPos * (barHeight - sliderHeight) / maxRange) + "px")});
+      }
+      
     </script>
     <!-- -->
     <!-- WORKING MODAL (with normal scrollbar) --

@@ -20,7 +20,7 @@
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Help</span></button>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Locations</span></button>
 <? if ($account->isLoggedIn()): ?>
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px"></i></span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
 <? else: ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
 <? endif; ?>
@@ -31,7 +31,7 @@
     </div></span>
 <? endif; ?>
   </div>
-  <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:10px; border-top:1px solid #949494"></div>
+  <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="border-top:1px solid #949494"></div>
   <div class="EIN-col-m-12">
     <hr class="EIN-hide-t EIN-hide">
     <div class="EIN-col-m-12 dropdown" id="navDropdown">
@@ -69,6 +69,6 @@
     <?=$this->layout()->searchbox ?>
     <hr>
 <? endif; ?>
-  <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
   </div>
+  <div class="EIN-col-m-12" style="height:10px"></div>
 </div>

@@ -265,7 +265,9 @@ class AjaxController extends AbstractBase
                 'reserve_message'      => $this->translate('Not On Reserve'),
                 'callnumber'           => '',
                 'missing_data'         => true,
-                'record_number'        => $recordNumber
+                'record_number'        => $recordNumber,
+                'isHolding'            => false,
+                'holdArgs'             => ''
             ];
         }
 
@@ -339,14 +341,109 @@ class AjaxController extends AbstractBase
     protected function getItemStatus($record, $messages, $locationSetting,
         $callnumberSetting
     ) {
+        // grab the driver
+        $catalog = $this->getILS();
+        $bib = $record[0]['id'];
+        $driver = $this->getRecordLoader()->load( $bib );
+        $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
+        $isHolding = false;
+        $overDriveInfo = ["canCheckOut" => false];
+        $holdArgs = "";
+        $realTimeHoldings = $driver->getRealTimeHoldings();
+
+        // see if they already have a hold on it
+        if($canHold && ($user = $this->getUser())) {
+            $patron = $this->catalogLogin();
+            $holds = $catalog->getMyHolds($patron);
+            foreach($holds as $thisHold) {
+                if($thisHold['id'] == $bib) {
+                    $canHold = false;
+                    $isHolding = true;
+                }
+            }
+        }
+
+        // if not, see whether there is a holdable copy available
+        if( $canHold ) {
+            $args=array();
+            foreach($realTimeHoldings as $holding) {
+                foreach($holding['items'] as $item) {
+                    // look for a hold link
+                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
+                    $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
+                    if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
+                        foreach(explode('&',$item['link']['query']) as $piece) {
+                            $pieces = explode('=', $piece);
+                            $args[$pieces[0]] = $pieces[1];
+                        }
+                        break 2;
+                    }
+                }
+            }
+            $holdArgs = str_replace("\"", "'", json_encode($args));
+            if( count($args) == 0 ) {
+                $canHold = false;
+            }
+        }
+
+        // see if they can check this out
+        if( !$canHold ) {
+            foreach($realTimeHoldings as $holding) {
+                foreach($holding['items'] as $item) {
+                    $overDriveInfo["canCheckOut"] |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
+                }
+            }
+        }
+
+        // make sure they don't already have it checked out
+        if( $user && ($overDriveInfo["canCheckOut"] || $canHold) ) {
+            $patron = (isset($patron) ? $patron : $this->catalogLogin());
+            $checkedOutItems = $catalog->getMyTransactions($patron);
+            foreach($checkedOutItems as $thisItem) {
+                if($thisItem['id'] == $bib) {
+                    $overDriveInfo["canCheckOut"] = false;
+                    $canHold = false;
+                    if( isset($thisItem["overDriveId"]) ) {
+                        $overDriveInfo["isCheckedOut"] = true;
+                        $overDriveInfo["canReturn"] = isset($thisItem["earlyReturn"]) && $thisItem["earlyReturn"];
+                        $overDriveInfo["availableFormats"] = $thisItem["format"];
+                        if(isset($thisItem["overdriveRead"]) && $thisItem["overdriveRead"]) {
+                            $overDriveInfo["ODread"] = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-overdrive", $user);
+                        }
+                        if(isset($thisItem["overdriveListen"]) && $thisItem["overdriveListen"]) {
+                            $overDriveInfo["ODlisten"] = $catalog->getDownloadLink($thisItem["overDriveId"], "audiobook-overdrive", $user);
+                        }
+                        if(isset($thisItem["streamingVideo"]) && $thisItem["streamingVideo"]) {
+                            $overDriveInfo["ODwatch"] = $thisItem["formatSelected"] ? $catalog->getDownloadLink($thisItem["overDriveId"], "video-streaming", $user) : "www.google.com";
+                        }
+                        // get the download links
+                        $downloadableFormats = [];
+                        foreach($thisItem["formats"] as $possibleFormat) {
+                            if($possibleFormat["id"] == "0") {
+                                $downloadableFormats[] = ["id" => $possibleFormat["format"]->formatType, "name" => $catalog->getOverdriveFormatName($possibleFormat["format"]->formatType)];
+                            } else {
+                                $downloadableFormats[] = $possibleFormat;
+                            }
+                        }
+                        $overDriveInfo["downloadFormats"] = $downloadableFormats;
+                        $overDriveInfo["formatLocked"] = $thisItem["formatSelected"];
+                    }
+                }
+            }
+        }
+
         // Summarize call number, location and availability info across all items:
         $callNumbers = $locations = [];
         $use_unknown_status = $available = false;
+        $totalItems = 0;
+        $availableItems = 0;
         foreach ($record as $info) {
             // Find an available copy
             if ($info['availability']) {
                 $available = true;
+                $availableItems++;
             }
+            $totalItems++;
             // Check for a use_unknown_message flag
             if (isset($info['use_unknown_message'])
                 && $info['use_unknown_message'] == true
@@ -371,9 +468,10 @@ class AjaxController extends AbstractBase
         $availability_message = $use_unknown_status
             ? $messages['unknown']
             : $messages[$available ? 'available' : 'unavailable'];
+        $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message); // . "##" . json_encode($record[0]) . "##";
 
-        // Send back the collected details:
-        return [
+        // Collect the details:
+        $details = [
             'id' => $record[0]['id'],
             'availability' => ($available ? 'true' : 'false'),
             'availability_message' => $availability_message,
@@ -384,8 +482,19 @@ class AjaxController extends AbstractBase
             'reserve_message' => $record[0]['reserve'] == 'Y'
                 ? $this->translate('on_reserve')
                 : $this->translate('Not On Reserve'),
-            'callnumber' => htmlentities($callNumber, ENT_COMPAT, 'UTF-8')
+            'callnumber' => htmlentities($callNumber, ENT_COMPAT, 'UTF-8'),
+            'isHolding' => $isHolding,
+            'holdArgs' => $holdArgs
         ];
+
+        // add in the overdrive info if needed
+        if( $overDriveInfo["canCheckOut"] || count($overDriveInfo) > 1 ) {
+            $overDriveInfo["idArgs"] = str_replace("\"", "'", json_encode(["id" => $bib]));
+            $details = array_merge($details, $overDriveInfo);
+        }
+
+        // Send back the collected details:
+        return $details;
     }
 
     /**

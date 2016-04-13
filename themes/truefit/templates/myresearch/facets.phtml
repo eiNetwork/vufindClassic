@@ -13,10 +13,7 @@ $(document).ready( function() {
     if( facetsContent != "" ) {
       $('#facetsDiv').html("");
       $('#facetsModalDiv').html(facetsContent);
-      setTimeout(function(){    
-        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
-        $('.modal-body').css({"max-height":($(window).height() - offset) + "px","overflow-y":"auto"});
-      }, 100 );
+      setTimeout(sizeModal, 100 );
     }
     // remove this function from the open stack, since it doesn't clean up after itself automatically like close actions do
     Lightbox.openStack.splice(Lightbox.openStack.indexOf(openFunc), 1);

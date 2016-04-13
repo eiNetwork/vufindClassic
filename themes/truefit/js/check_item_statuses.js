@@ -52,7 +52,7 @@ function checkItemStatuses() {
             leftButton.empty().append('Checked Out<i class="fa fa-caret-down"></i>');
           } else if( result.holdArgs != '' ) {
             leftButton.prop('disabled', false);
-            leftButton.attr('data-toggle', "Lightbox.get('Record','Hold'," + result.holdArgs + ")");
+            leftButton.attr('onClick', "Lightbox.get('Record','Hold'," + result.holdArgs + ")");
             leftButton.empty().append('Hold');
           } else {
             leftButton.empty().append('Unable to Hold');

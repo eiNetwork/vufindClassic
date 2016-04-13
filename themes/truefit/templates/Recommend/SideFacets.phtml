@@ -1,0 +1,209 @@
+<?
+  $results = $this->recommend->getResults();
+  $urlParams = $this->results->getUrlQuery()->getParamArray();
+  $urlString = $this->currentPath();
+  $firstOne = true;
+  foreach($urlParams as $name => $value) {
+    if( $name != "filter" ) {
+      $urlString .= ($firstOne ? "?" : "&") . $name . "=" . $value;
+      $firstOne = false;
+    }
+  }
+?>
+<script type="text/javascript">
+  function ToggleFacet(item) {
+    if(item.hasClass('facetToggleOn')) {
+      item.removeClass('facetToggleOn');
+      item.addClass('facetToggleOff');
+    } else {
+      item.removeClass('facetToggleOff');
+      item.addClass('facetToggleOn');
+    }
+  }
+
+  function ToggleCategory(item) {
+    // flip all of the descendents to off if the clicked category is on, otherwise flip them all to on
+    var p = $(item).parent().get()[0];
+    var stopSign = "." + p.className + ((p.className == "facetOffset1") ? ",.facetOffset0" : "");
+    var targetClass = item.hasClass("fa-check-square") ? "fa-square-o" : "fa-check-square";
+    $(p).nextUntil(stopSign).children('.' + targetClass).removeClass('facetToggleOff');
+    $(p).nextUntil(stopSign).children('.' + targetClass).addClass('facetToggleOn');
+    $(p).nextUntil(stopSign).children('.fa').not('.' + targetClass).removeClass('facetToggleOn');
+    $(p).nextUntil(stopSign).children('.fa').not('.' + targetClass).addClass('facetToggleOff');
+  }
+
+  function CleanChecks(forceExpand = false) {
+    // fix all of the category states in the format section
+    $.each($('#facet1').find('.facetOffset1'), function(index, item) {
+      // ignore the ones that aren't categories
+      if( $(item).children('[value]').length == 0 ) {
+        $(item).children('.fa').removeClass('facetToggleOn');
+        $(item).children('.fa').addClass('facetToggleOff');
+        if( $(item).nextUntil('.facetOffset1,.facetOffset0').length == $(item).nextUntil('.facetOffset1,.facetOffset0').find('.fa-check-square.facetToggleOn').length ) {
+          $(item).children('.fa-check-square').removeClass('facetToggleOff');
+          $(item).children('.fa-check-square').addClass('facetToggleOn');
+        } else if( $(item).nextUntil('.facetOffset1,.facetOffset0').find('.fa-check-square.facetToggleOn').length > 0 ) {
+          $(item).children('.fa-minus-square-o').removeClass('facetToggleOff');
+          $(item).children('.fa-minus-square-o').addClass('facetToggleOn');
+        } else {
+          $(item).children('.fa-square-o').removeClass('facetToggleOff');
+          $(item).children('.fa-square-o').addClass('facetToggleOn');
+        }
+      }
+    } );
+    $.each($('#facet1').find('.facetOffset0'), function(index, item) {
+      $(item).children('.fa').removeClass('facetToggleOn');
+      $(item).children('.fa').addClass('facetToggleOff');
+      if( $(item).nextUntil('.facetOffset0').length == $(item).nextUntil('.facetOffset0').find('.fa-check-square.facetToggleOn').length ) {
+        $(item).children('.fa-check-square').removeClass('facetToggleOff');
+        $(item).children('.fa-check-square').addClass('facetToggleOn');
+      } else if( $(item).nextUntil('.facetOffset0').find('.fa-check-square.facetToggleOn').length > 0 ) {
+        $(item).children('.fa-minus-square-o').removeClass('facetToggleOff');
+        $(item).children('.fa-minus-square-o').addClass('facetToggleOn');
+      } else {
+        $(item).children('.fa-square-o').removeClass('facetToggleOff');
+        $(item).children('.fa-square-o').addClass('facetToggleOn');
+      }
+    } );
+    // turn on all of the needed checkmarks
+    $.each($('.panel-facetAccordion'), function(index, item) {
+      if( $(item).find('.facetToggleOn.fa-check-square').length > 0 ) {
+        $(item).find('.greenCheck').css('display', 'inline-block');
+        if( forceExpand ) {
+          //$(item).find('.facetAccordionTitle').click();
+          $(item).find('.facetAccordionTitle').removeClass('collapsed');
+          $(item).find($(item).find('.facetAccordionTitle').attr('href')).addClass('in');
+        }
+      } else {
+        $(item).find('.greenCheck').css('display', 'none');
+      }
+    } );
+    // if we are not on the desktop, refresh the link on the apply button
+    if($(window).width() < 768) {
+    //if($('#facetSubmitLink').length > 0) {
+      // fix the link on the apply button
+      $('#facetSubmitLink').prop("href", "<?=$urlString?>");
+      $.each($('.facetToggleOn.fa-check-square'), function(index, item) {
+        if($(item).attr("value") != undefined) {
+          $('#facetSubmitLink').prop("href", $('#facetSubmitLink').prop("href") + $(item).attr("value"));
+        }
+      } );
+    // if we are on the desktop, refresh the page
+    } else {
+      var url = window.location.href.replace(/%20/, "+");
+      var changed = false;
+      $.each($('.fa-check-square'), function(index, item) {
+        if($(item).attr("value") != undefined) {
+          var testStr = $(item).attr("value").replace(/ /g,"+").replace(/\//g,"%2F");
+          if( $(item).hasClass("facetToggleOn") && url.indexOf(testStr) == -1 ) {
+            url += testStr;
+            changed = true;
+          } else if( $(item).hasClass("facetToggleOff") && url.indexOf(testStr) >= 0 ) {
+            url = url.replace(new RegExp(testStr.replace(/\+/g,"\\+"), 'g'), "");
+            changed = true;
+          }
+        }
+      } );
+      if(changed) {
+        window.location.href = url;
+      }
+    }
+  }
+
+  $(document).ready( function() {
+    CleanChecks(true);
+  } );
+</script>
+<? $sideFacetSet = $this->recommend->getFacetSet(); $rangeFacets = $this->recommend->getAllRangeFacets(); ?>
+<? if (!empty($sideFacetSet) && $results->getResultTotal() > 0): ?>
+  <? $facetCount = 0; foreach ($sideFacetSet as $title => $cluster): ?>
+    <? if( $title != "format_category"): ?>
+      <div class="panel panel-facetAccordion">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" class="facetAccordionTitle collapsed" href="#facet<?=$facetCount?>" class="collapsed"><i class="fa fa-check greenCheck" style="float:none"></i><?=$this->transEsc($cluster['label'])?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          </h4>
+        </div>
+        <div id="facet<?=($facetCount++)?>" class="panel-collapse collapse">
+          <div class="panel-body">
+            <ul class="facetAccordionList">
+              <? if( $title != "format" ): ?>
+                <? foreach ($cluster['list'] as $i=>$thisFacet): ?>
+                  <li>
+                    <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                    <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
+                    <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                  </li>
+                <? endforeach; ?>
+              <? else: ?>
+                <? $inputVals = $cluster['list']; ?>
+                <? $outputVals = []; ?>
+                <? foreach($this->formatCategories->types as $category): ?>
+                  <? $formatTypes = explode(",", $category); ?>
+                  <? $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
+                  <? $outputVals[$categoryName] = ["someApplied" => false, "allApplied" => true, "children" => []]; ?>
+                  <? foreach( $formatTypes as $needleFormat): ?>
+                    <? foreach( $inputVals as $index => $haystackFormat): ?>
+                      <? if( $needleFormat == $haystackFormat["value"] ): ?>
+                        <? $outputVals[$categoryName]["children"][] = array_splice($inputVals, $index, 1)[0]; ?>
+                        <? $outputVals[$categoryName]["someApplied"] |= $haystackFormat["isApplied"]; ?>
+                        <? $outputVals[$categoryName]["allApplied"] &= $haystackFormat["isApplied"]; ?>
+                      <? endif; ?>
+                    <? endforeach; ?>
+                  <? endforeach; ?>
+                <? endforeach; ?>
+                <? $bookTypes = ["Print Book", "eBook", "Audio Book"]; $showBooks = false; foreach($bookTypes as $type): $showBooks |= (count($outputVals[$type]["children"]) > 0); endforeach; ?>
+                <? if( $showBooks ): ?>
+                  <li class="facetOffset0">
+                    <i class="fa fa-check-square facetToggleOn" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <i class="fa fa-minus-square-o facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <i class="fa fa-square-o facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <?=$this->escapeHtml("Books")?>
+                  </li>
+                <? endif; ?>
+                <? foreach( $outputVals as $type => $thisArray ): ?>
+                  <? if( count($thisArray["children"]) > 0 ): ?>
+                    <li class="facetOffset<?=(in_array($type, $bookTypes) ? "1" : "0")?>">
+                      <i class="fa fa-check-square facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                      <i class="fa fa-minus-square-o facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                      <i class="fa fa-square-o facetToggleOn" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                      <?=$this->escapeHtml($type)?>
+                    </li>
+                    <? foreach( $thisArray["children"] as $thisFacet ): ?>
+                      <li class="facetOffset<?=(in_array($type, $bookTypes) ? "2" : "1")?>">
+                        <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                        <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
+                        <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                      </li>
+                    <? endforeach; ?>
+                  <? endif; ?>
+                <? endforeach; ?>
+                <? if( count($inputVals) > 0 ): ?>
+                  <li class="facetOffset0">
+                    <i class="fa fa-check-square facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <i class="fa fa-minus-square-o facetToggleOff" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <i class="fa fa-square-o facetToggleOn" onClick="ToggleCategory($(this));CleanChecks();"></i>
+                    <?=$this->escapeHtml("Other")?>
+                  </li>
+                  <? foreach( $inputVals as $thisFacet ): ?>
+                    <li class="facetOffset1">
+                      <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                      <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
+                      <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                    </li>
+                  <? endforeach; ?>
+                <? endif; ?>
+              <? endif; ?>
+            </ul>
+          </div>
+        </div>
+      </div>
+    <? endif; ?>
+  <? endforeach; ?>
+  <div class="panel panel-facetAccordion EIN-hide-m EIN-hide-t">
+    <div class="panel-heading">
+    </div>
+  </div>
+<? else: ?>
+  &nbsp;
+<? endif; ?>

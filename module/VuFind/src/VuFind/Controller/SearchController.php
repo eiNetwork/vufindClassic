@@ -572,7 +572,9 @@ class SearchController extends AbstractSearch
         }
 
         // Default case -- standard behavior.
-        return parent::resultsAction();
+        $view = parent::resultsAction();
+        $view->formatCategories = $this->getConfig()->FormatCategories;
+        return $view;
     }
 
     /**

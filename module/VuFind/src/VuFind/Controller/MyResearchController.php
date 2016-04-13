@@ -439,6 +439,17 @@ class MyResearchController extends AbstractBase
 */
 
     /**
+     * Action for moving the facets information to a modal
+     *
+     * @return mixed
+     */
+    public function facetsAction()
+    {
+        // Favorites is the same as MyList, but without the list ID parameter.
+        return $this->createViewModel();
+    }
+
+    /**
      * Action for sending all of a user's saved book cart items to the view
      *
      * @return mixed

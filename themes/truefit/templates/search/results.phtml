@@ -17,13 +17,6 @@
 <?
   }
 
-  // Set up breadcrumbs:
-  if (isset($this->overrideTitle)) {
-//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->escapeHtml($this->overrideTitle) . '</li>';
-  } else {
-//    $this->layout()->breadcrumbs .= '<li class="active">' . $this->transEsc('Search') . ': ' . $this->escapeHtml($lookfor) . '</li>';
-  }
-
   // Enable cart if appropriate:
   $this->showCartControls = $this->params->getOptions()->supportsCart() && $this->cart()->isActive();
   // Enable bulk options if appropriate:
@@ -32,97 +25,104 @@
   // Load Javascript dependencies into header:
   $this->headScript()->appendFile("check_item_statuses.js");
   $this->headScript()->appendFile("check_save_statuses.js");
+
+  // get results
+  $recordTotal = $this->results->getResultTotal();
+  $resultCategories = $this->results->getRecommendations('side')[0]->getFacetSet()["format_category"]["list"];
+  $resultFormats = $this->results->getRecommendations('side')[0]->getFacetSet()["format"]["list"];
+  $usableFormats = [];
+  foreach( $resultFormats as $thisFormat ):
+    $usableFormats[] = $thisFormat["value"];
+  endforeach;
 ?>
 
 <div class="row">
-  <div class="<?=$this->layoutClass('mainbody')?>">
-    <? if (($recordTotal = $this->results->getResultTotal()) > 0): // only display these at very top if we have results ?>
-      <? foreach ($this->results->getRecommendations('top') as $current): ?>
+  <?=$this->flashmessages()?>
+  <div class="EIN-hide-m EIN-hide-t EIN-col-4 resultsLeftBar" id="facetsDiv">
+    <? /* Narrow Search Options */ ?>
+    <div class="EIN-hide-m EIN-hide-t EIN-col-12 facetTitle">Filter Results</div>
+    <div class="EIN-col-m-12">
+      <? foreach ($this->results->getRecommendations('side') as $current): ?>
         <?=$this->recommend($current)?>
       <? endforeach; ?>
-    <? endif; ?>
-    <?=$this->flashmessages()?>
-    <div class="hidden-print search-controls row">
-      <div class="col-sm-6">
-        <? if ($recordTotal > 0): ?>
-          <?=$this->transEsc("Showing")?>
-          <strong><?=$this->localizedNumber($this->results->getStartRecord())?></strong> - <strong><?=$this->localizedNumber($this->results->getEndRecord())?></strong>
-          <? if (!isset($this->skipTotalCount)): ?>
-            <?=$this->transEsc('of')?> <strong><?=$this->localizedNumber($recordTotal)?></strong>
-          <? endif; ?>
-          <? if (isset($this->overrideSearchHeading)): ?>
-            <?=$this->overrideSearchHeading?>
-          <? elseif ($this->params->getSearchType() == 'basic'): ?>
-            <?=$this->transEsc('for search')?>: <strong>'<?=$this->escapeHtml($lookfor)?>'</strong>,
-          <? endif; ?>
-          <? if ($qtime = $this->results->getQuerySpeed()): ?>
-            <?=$this->transEsc('query time')?>: <?=$this->localizedNumber($qtime, 2).$this->transEsc('seconds_abbrev')?>
-          <? endif; ?>
-        <? else: ?>
-          <p class="lead"><?=$this->transEsc('nohit_heading')?></p>
-        <? endif; ?>
-      </div>
-
-      <? if ($recordTotal > 0): ?>
-        <div class="col-sm-6 text-right">
-          <?=$this->render('search/controls/limit.phtml')?>
-          <?=$this->render('search/controls/sort.phtml')?>
-          <?=$this->render('search/controls/view.phtml')?>
-        </div>
-      <? endif; ?>
+      <? /* End Narrow Search Options */ ?>
     </div>
+  </div>
+  <div class="EIN-col-m-12 EIN-col-t-12 EIN-col-8 resultsRightBar">
+    <div class="EIN-col-m-12">
+      <table style="width:100%; text-align:center">
+        <tr>
+          <? foreach($this->formatCategories->types as $category): ?>
+            <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
+            <? $imageName = str_replace(" ", "", $categoryName); $resultCount = 0; foreach($resultCategories as $thisResult): ?>
+              <? if($thisResult["value"] == $categoryName):  $resultCount = $thisResult["count"]; endif; ?>
+            <? endforeach; ?>
+            <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $firstType = null;  foreach($formatTypes as $type): ?>
+              <? if( in_array($type, $usableFormats) ): ?>
+                <? if( $firstType == null ): ?>
+                  <? $firstType = $type; ?>
+                <? else: ?>
+                  <? $urlParams["filter"][] = "~format:\"" . $type . "\""; ?>
+                <? endif; ?>
+              <? endif; ?>
+            <? endforeach; ?>
+            <td><div style="position:relative">
+              <? if( $firstType != null ): ?>
+                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->addFacet('format', $firstType, 'OR', $urlParams)?>">
+              <? endif; ?>
+              <img class="formatIcon" src="../themes/truefit/images/<?=$imageName . (($firstType == null) ? "Disabled" : "")?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
+              <? if( $firstType != null ): ?>
+                </a>
+              <? endif; ?>
+              </div></td>
+          <? endforeach; ?>
+        </tr>
+        <tr>
+          <? foreach($this->formatCategories->types as $category): ?>
+            <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
+            <td class="formatName"><?=$categoryName?></td>
+          <? endforeach; ?>
+        </tr>
+      </table>
+      <hr style="margin:5px 0">
+    </div>
+    <? if ($recordTotal > 0): ?>
+      <table style="margin:auto;text-align:center">
+        <tr>
+          <td class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
+          <td style="padding-left:10px"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
+          <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml')?></td>
+        </tr>
+      </table>
+      <hr style="margin:5px 0">
+    <? endif; ?>
     <? /* End Listing Options */ ?>
 
-    <? if ($recordTotal < 1): ?>
-      <p>
-        <? if (isset($this->overrideEmptyMessage)): ?>
-          <?=$this->overrideEmptyMessage?>
-        <? else: ?>
-          <?=$this->transEsc('nohit_prefix')?> - <strong><?=$this->escapeHtml($lookfor)?></strong> - <?=$this->transEsc('nohit_suffix')?>
-        <? endif; ?>
-      </p>
-      <? if (isset($this->parseError)): ?>
-        <p class="alert alert-danger"><?=$this->transEsc('nohit_parse_error')?></p>
-      <? endif; ?>
-      <? foreach (($top = $this->results->getRecommendations('top')) as $current): ?>
-        <?=$this->recommend($current)?>
-      <? endforeach; ?>
-      <? foreach ($this->results->getRecommendations('noresults') as $current): ?>
-        <? if (!in_array($current, $top)): ?>
-          <?=$this->recommend($current)?>
-        <? endif; ?>
-      <? endforeach; ?>
-    <? else: ?>
-      <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-home')?>">
-        <?=$this->context($this)->renderInContext('search/bulk-action-buttons.phtml', array('idPrefix' => ''))?>
-        <?=$this->render('search/list-' . $this->params->getView() . '.phtml')?>
-        <?=$this->context($this)->renderInContext('search/bulk-action-buttons.phtml', array('idPrefix' => 'bottom_'))?>
-        <?=$this->paginationControl($this->results->getPaginator(), 'Sliding', 'search/pagination.phtml', array('results' => $this->results))?>
-      </form>
-
-      <div class="searchtools hidden-print">
-        <strong><?=$this->transEsc('Search Tools')?>:</strong>
-        <i class="fa fa-bell"></i> <a href="<?=$this->results->getUrlQuery()->setViewParam('rss')?>"><?=$this->transEsc('Get RSS Feed')?></a>
-        &mdash;
-        <i class="fa fa-envelope"></i> <a href="<?=$this->url('search-email')?>" class="mailSearch modal-link" id="mailSearch<?=$this->escapeHtmlAttr($this->results->getSearchId())?>" title="<?=$this->transEsc('Email this Search')?>"><?=$this->transEsc('Email this Search')?></a>
-        &mdash;
-        <? if (is_numeric($this->results->getSearchId())): ?>
-          <? if ($this->results->isSavedSearch()): ?>
-            <i class="fa fa-minus-square"></i> <a href="<?=$this->url('myresearch-savesearch')?>?delete=<?=urlencode($this->results->getSearchId())?>"><?=$this->transEsc('save_search_remove')?></a>
+    <div class="EIN-col-m-12">
+      <? if ($recordTotal < 1): ?>
+        <p>
+          <? if (isset($this->overrideEmptyMessage)): ?>
+            <?=$this->overrideEmptyMessage?>
           <? else: ?>
-            <i class="fa fa-plus-square"></i> <a href="<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>"><?=$this->transEsc('save_search')?></a>
+            <?=$this->transEsc('nohit_prefix')?> - <strong><?=$this->escapeHtml($lookfor)?></strong> - <?=$this->transEsc('nohit_suffix')?>
           <? endif; ?>
+        </p>
+        <? if (isset($this->parseError)): ?>
+          <p class="alert alert-danger"><?=$this->transEsc('nohit_parse_error')?></p>
         <? endif; ?>
-      </div>
-    <? endif; ?>
+        <? foreach (($top = $this->results->getRecommendations('top')) as $current): ?>
+          <?=$this->recommend($current)?>
+        <? endforeach; ?>
+        <? foreach ($this->results->getRecommendations('noresults') as $current): ?>
+          <? if (!in_array($current, $top)): ?>
+            <?=$this->recommend($current)?>
+          <? endif; ?>
+        <? endforeach; ?>
+      <? else: ?>
+        <?=$this->render('search/list-' . $this->params->getView() . '.phtml')?>
+        <?=$this->paginationControl($this->results->getPaginator(), 'Sliding', 'search/pagination.phtml', array('results' => $this->results))?>
+      <? endif; ?>
+    </div>
+    <? /* End Main Listing */ ?>
   </div>
-  <? /* End Main Listing */ ?>
-
-  <? /* Narrow Search Options */ ?>
-  <div class="<?=$this->layoutClass('sidebar')?>">
-    <? foreach ($this->results->getRecommendations('side') as $current): ?>
-      <?=$this->recommend($current)?>
-    <? endforeach; ?>
-  </div>
-  <? /* End Narrow Search Options */ ?>
 </div>

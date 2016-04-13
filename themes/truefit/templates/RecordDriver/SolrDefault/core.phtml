@@ -17,10 +17,10 @@
     <div class="text-center">
       <? /* Display thumbnail if appropriate: */ ?>
       <? $mediumThumb = $record->getThumbnail('medium'); $largeThumb = $record->getThumbnail('large'); ?>
-      <? if ($mediumThumb): ?>
-        <? if ($largeThumb): ?><a href="<?=$this->escapeHtmlAttr($largeThumb)?>"><? endif; ?>
-          <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($mediumThumb);?>"/>
-        <? if ($largeThumb): ?></a><? endif; ?>
+      <? if ($largeThumb): ?>
+        <a href="<?=$this->escapeHtmlAttr($largeThumb)?>">
+          <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
+        </a>
       <? else: ?>
         <img src="<?=$this->url('cover-unavailable')?>" class="recordcover" alt="<?=$this->transEsc('No Cover Image')?>"/>
       <? endif; ?>
@@ -259,7 +259,7 @@
                     </tr>
                     <? foreach($this->holdings as $thisHolding): ?>
                       <? foreach($thisHolding['items'] as $item): ?>
-                        <? if($item['availability']): ?>
+                        <? if(!$item['availability']): ?>
                           <tr class="availabilityRow">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : json_encode($item))?></td>
                             <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "")?></td>

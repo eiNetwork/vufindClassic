@@ -22,12 +22,38 @@ table.footer {
 
 .EINLogo {
   width:103px;
-  height:63px
+  height:63px;
+  background:url("../images/einetwork/EINLogo.png") no-repeat scroll left center transparent;
+  display:inline-block
 }
 
 .RADLogo {
-  width:96px;
-  height:63px
+  width:103px;
+  height:63px;
+  background:url("../images/einetwork/RADLogo.png") no-repeat scroll left center transparent;
+  display:inline-block
+}
+
+.formatIcon {
+  width:50%;
+  max-width:100px;
+  height:auto
+}
+
+.formatName {
+  width:20%;
+  color:#3f51b5;
+  font-size:12px;
+  font-weight:700
+}
+
+.formatIconCount {
+  position:absolute;
+  top:-10px;
+  left:75%;
+  width:100%;
+  margin-left:-50%;
+  text-align:center
 }
 
 fa {
@@ -155,7 +181,8 @@ fa {
 .openAccordionTab{background-color: #fff;height:100%;width:1px;position:absolute;top:0px;right:0;}
 .collapsed + .openAccordionTab{display:none}
 
-.btn-default > .fa-caret-down{margin:0;padding-left:7px}
+.btn-default > .fa-caret-down,.btn-alternate > .fa-caret-down{margin:0;padding-left:7px}
+.form-inline{display:inline}
 
 .floatR{float:right}
 
@@ -254,3 +281,17 @@ input:-webkit-autofill {-webkit-box-shadow: 0 0 0 1000px white inset;}
 .lightboxText a {color:#3d3d3d}
 .lightboxText + .available{color:#007517}
 .lightboxText + .unavailable{color:#9d0000}
+
+.resultsLeftBar{margin-right:-1px;border-right:1px solid #949494}
+.panel-facetAccordion{border:1px solid #949494;border-radius:5px;text-align:left;margin-bottom:10px}
+.footer a.facetAccordionTitle{color:#3f51b5;text-decoration:none}
+.facetAccordionList{color:#3d3d3d;padding:0;list-style:none;font-size:16px}
+.facetToggleOn{padding:6px;cursor:pointer;width:26px;text-align:center}
+.facetToggleOff{display:none}
+.facetOffset1{padding-left:30px}
+.facetOffset2{padding-left:60px}
+@media only screen and (min-width: 768px) {
+  .panel-facetAccordion{border:0;border-radius:0;text-align:left;margin-bottom:0px}
+  .resultsRightBar{border-left:1px solid #949494}
+}
+.facetTitle{padding:10px;text-align:center;background-color:#3f51b5;color:#fff;font-weight:700}

@@ -51,6 +51,20 @@ class Sierra2 extends Sierra implements
     protected $authorizationCode = null;
 
     /**
+     * Initialize the driver.
+     *
+     * Validate configuration and perform all resource-intensive tasks needed to
+     * make the driver active.
+     *
+     * @throws ILSException
+     * @return void
+     */
+    public function init()
+    {
+        // this function does nothing, but it's necessary to override the Sierra init() function that creates a postgres connection
+    }
+
+    /**
      * Make an HTTP request
      *
      * @param string $url URL to request
@@ -102,7 +116,7 @@ class Sierra2 extends Sierra implements
             }
 
             if (!$result->isSuccess()) {
-                throw new ILSException('HTTP error<br>' . $url . '<br>' . $body . "<br>" . $result->toString());
+                //throw new ILSException('HTTP error<br>' . $url . '<br>' . $body . "<br>" . $result->toString());
             }
 
             return $result->getBody();
@@ -453,6 +467,7 @@ class Sierra2 extends Sierra implements
      * @return mixed          Associative array of patron info on successful login,
      * null on unsuccessful login.
      */
+/*
     public function freezeHolds($holds){
         for($i=0; $i<count($holds["details"]); $i++ )
         {
@@ -462,6 +477,7 @@ class Sierra2 extends Sierra implements
         }
         return ['success' => true];
     }
+*/
 
     /**
      * Get Cancel Hold Details
@@ -589,99 +605,63 @@ class Sierra2 extends Sierra implements
      * keys: id, availability (boolean), status, location, reserve, callnumber,
      * duedate, number, barcode.
      */
-/****************************************************************************\
-*                                                                            *
-*   I tried to make this use the API instead, but finding items by bibID     *
-*   is currently limited to 50 results. -- BJP                               *
-*                                                                            *
     public function getHolding($id, array $patron = null)
     {
         try {
-            $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode&bibIds=" . substr($id,2,-1)));
             $holdings = [];
-echo "&&" . $apiHoldings->total . "&&<br>";
-            foreach($apiHoldings->entries as $thisItem) {
-                $code = $thisItem->location->code;
-echo "^^" . $code . "^^";
-                if( isset($holdings[$code]) )
-                    $holdings[$code]++;
-                else
-                    $holdings[$code] = 1;
-            }
-
-echo "##" . json_encode($holdings) . "##<br>";
-
-            $holdings = [];
-            $itemIds = $this->getIds($id);
-            // Use the database ids to get the item-level information (status,
-            // location, and potentially call number) associated with that bib record
-            $query1 = "SELECT
-                        item_view.item_status_code,
-                        location_name.name,
-                        checkout.due_gmt,
-                        varfield_view.field_content,
-                        varfield_view.varfield_type_code
-                            FROM
-                            sierra_view.item_view
-                        LEFT JOIN sierra_view.location
-                        ON (item_view.location_code = location.code)
-                        LEFT JOIN sierra_view.location_name
-                        ON (location.id = location_name.location_id)
-                        LEFT JOIN sierra_view.checkout
-                        ON (item_view.id = checkout.item_record_id)
-                        LEFT JOIN sierra_view.varfield_view
-                        ON (item_view.id = varfield_view.record_id)
-                        WHERE item_view.id = $1
-                        AND varfield_view.record_type_code = 'i'
-                        AND location_name.iii_language_id = '1';";
-            pg_prepare($this->db, "prep_query", $query1);
-            foreach ($itemIds as $item) {
-                $callnumber = null;
-                $barcode = null;
-                $number = null;
-                $results1 = pg_execute($this->db, "prep_query", [$item]);
-                while ($row1 = pg_fetch_row($results1)) {
-                    if ($row1[4] == "b") {
-                        $barcode = $row1[3];
-                    } elseif ($row1[4] == "c") {
-                        $callnumber = $row1[3];
-                    } elseif ($row1[4] == "v") {
-                        $number = $row1[3];
+            $pageSize = 20;
+            $currentOffset = 0;
+            do {
+                $processed = 0;
+                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                foreach($apiHoldings->entries as $thisItem) {
+                    $number = null;
+                    if( isset($thisItem->varFields) ) {
+                        foreach($thisItem->varFields as $thisVarField) {
+                            if( $thisVarField->fieldTag == "v" ) {
+                                $number = $thisVarField->content;
+                            }
+                        }
                     }
+                    $itemInfo = [
+                        "id" => $id,
+                        "availability" => (($thisItem->status->code == "-") || ($thisItem->status->code == "o")) && !isset($thisItem->status->duedate),
+                        "status" => $thisItem->status->code,
+                        "location" => $thisItem->location->name,
+                        "reserve" => "N",
+                        "callnumber" => str_replace("|a", " ", $thisItem->callNumber),
+                        "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
+                        "returnDate" => false,
+                        "number" => $number,
+                        "barcode" => $thisItem->barcode,
+                        "locationCode" => $thisItem->location->code
+                        ];
+                    $holdings[] = $itemInfo;
+                    $processed++;
                 }
-
-                $finalcallnumber = $this->processCallNumber($callnumber, $id);
-
-                $resultArray = pg_fetch_array($results1, 0);
-
-                if (($resultArray[0] == "-" && $resultArray[2] == null)
-                    || ($resultArray[0] == "o" && $resultArray[2] == null)
-                ) {
-                    $availability = true;
-                } else {
-                    $availability = false;
-                }
-
-                $itemInfo = [
-                    "id" => $id,
-                    "availability" => $availability,
-                    "status" => $resultArray[0],
-                    "location" => $resultArray[1],
-                    "reserve" => "N",
-                    "callnumber" => $finalcallnumber,
-                    "duedate" => $resultArray[2],
-                    "returnDate" => false,
-                    "number" => $number,
-                    "barcode" => $barcode
-                    ];
-
-                $holdings[] = $itemInfo;
-            }
+                $currentOffset += $pageSize;
+            } while( $processed == $pageSize );
 
             return $holdings;
         } catch (\Exception $e) {
             throw new ILSException($e->getMessage());
         }
     }
-\****************************************************************************/
+
+    /**
+     * Get Status
+     *
+     * This is responsible for retrieving the status information of a certain
+     * record.
+     *
+     * @param string $id The record id to retrieve the holdings for
+     *
+     * @throws ILSException
+     * @return mixed     On success, an associative array with the following keys:
+     * id, availability (boolean), status, location, reserve, callnumber.
+     */
+    public function getStatus($id)
+    {
+        return $this->getHolding($id);
+    }
 }

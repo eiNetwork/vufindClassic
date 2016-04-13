@@ -467,7 +467,7 @@ abstract class Results implements ServiceLocatorAwareInterface
         $paginator = new Paginator(new $nullAdapter($total));
         $paginator->setCurrentPageNumber($this->getParams()->getPage())
             ->setItemCountPerPage($this->getParams()->getLimit())
-            ->setPageRange(11);
+            ->setPageRange(5);
         return $paginator;
     }
 

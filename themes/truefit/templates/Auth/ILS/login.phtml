@@ -28,13 +28,22 @@
     <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="document.getElementById('loginForm').submit()">Register</button>
   </div>
+  <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
+    <span><i class="fa fa-spinner"></i></span>
+    <span>&nbsp;Loading...</span>
+  </div
 </div>
 
 <script type="text/javascript">
   // the form starts displaying the login screen
   var loginToggle = "loginModalLogin";
+  var processingLogin = false;
   // flip the modal to the desired function (log in OR register)
   function ToggleLoginModal(target) {
+    // can't do anything while we're processing
+    if( processingLogin ) {
+      return;
+    }
     document.getElementById(loginToggle).classList.remove('active');
     document.getElementById(loginToggle + "Body").style.display = "none";
     document.getElementById(loginToggle + "Footer").style.display = "none";
@@ -46,6 +55,10 @@
 
   // make the switcher buttons more responsive
   function HighlightLoginModal(targetID, turnOn) {
+    // can't do anything while we're processing
+    if( processingLogin ) {
+      return;
+    }
     if( targetID != loginToggle ) {
       if( turnOn ) {
         document.getElementById(loginToggle).classList.remove('active');
@@ -57,7 +70,13 @@
 
   // process an attempted login
   function SubmitLogIn() {
-    document.getElementById("loginFrame").onload = function() { 
+    // can't do anything while we're processing
+    if( processingLogin ) {
+      return;
+    }
+
+    // we need to give this a few frames to load before we test for error messages
+    $('#loginFrame').load( function() { setTimeout( function() { 
       var frame = document.getElementById("loginFrame");
       frame.onload = null;
 
@@ -67,9 +86,12 @@
         location.reload(true);
       // failure, find the error message and display it in the modal
       } else {
+        processingLogin = false;
+        document.getElementById(loginToggle + "Footer").style.display = "block";
+        document.getElementById("loadingFooter").style.display = "none";
         document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;
       }
-    };
+    }, 100); } );
 
     // make sure they've given us all the relevant info
     var barcode = document.getElementById("login_username");
@@ -93,6 +115,9 @@
       }
       pword.nextElementSibling.style.display = "block";
     } else {
+      processingLogin = true;
+      document.getElementById(loginToggle + "Footer").style.display = "none";
+      document.getElementById("loadingFooter").style.display = "block";
       document.getElementById("loginForm").submit();
     }
   }

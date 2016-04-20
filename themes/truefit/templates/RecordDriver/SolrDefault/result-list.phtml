@@ -55,7 +55,7 @@
         <tr>
           <td class="EIN-hide-m itemDetailCategory">Availability:</td>
           <td style="padding-bottom:5px">
-            <span class="status ajax-availability hidden"><?=$this->transEsc('Loading')?>...</span>
+            <span class="status ajax-availability hidden"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
           </td>
         </tr>
       </table>
@@ -72,7 +72,7 @@
     </div>
     <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
-        <button class="btn-default leftButton"<?=$holdClick?> disabled>Loading...</button>
+        <button class="btn-default leftButton"<?=$holdClick?> disabled><i class="fa fa-spinner"></i>&nbsp;Loading...</button>
         <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
           </ul>
@@ -98,10 +98,9 @@
                   <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
                     <input type="hidden" name="confirm" value="1">
                     <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
-                    <input type="hidden" name="returnBibID" value="<?=$this->driver->getUniqueID()?>">
                     <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
                     <input type="hidden" name="list" value="<?=$list->id?>">
-                    <button class="btn-dropdown btn-standardDropdown"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+                    <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
                   </form>
                 <? else: ?>
                   <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
@@ -109,7 +108,7 @@
                     <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
                     <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
                     <input type="hidden" name="list" value="<?=$list->id?>">
-                    <button class="btn-dropdown btn-standardDropdown"><?=$list->title?></button>
+                    <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
                   </form>
                 <? endif; ?>
               </li>

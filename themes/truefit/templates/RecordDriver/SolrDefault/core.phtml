@@ -95,11 +95,17 @@
       </table>
 
       <?
+        $holdLink = null;
         if($user && $this->isTitleCheckedOut && $isOverDrive):
           $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown\"";
           $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
         elseif($user):
-          $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ("'Hold'," . $this->holdArgs)) . ")\"";
+          if( $isOverDrive ) {
+            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . "?hashKey=" . json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
+            $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
+          } else {
+            $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ("'Hold'," . $this->holdArgs)) . ")\"";
+          }
           $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
         else:
           $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
@@ -114,7 +120,13 @@
     </div>
     <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
+        <? if($holdLink != null): ?>
+          <a href="<?=$holdLink?>" target="loginFrame">
+        <? endif; ?>
         <button class="btn-default leftButton"<?=$holdClick?><?=(($this->canHold || $this->canCheckOut || ($isOverDrive && $this->isTitleCheckedOut))?"":" disabled")?>><?=$holdLabel?></button>
+        <? if($holdLink != null): ?>
+          </a>
+        <? endif; ?>
         <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if( $this->ODread && $this->ODread["result"] ): ?>
@@ -145,7 +157,9 @@
             <? endif; ?>
             <? if( $this->canReturn ): ?>
               <li>
-                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','Return',<?=$this->idArgs?>)">Return</button>
+                <a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Return')?>" target="loginFrame">
+                  <button class="btn-dropdown btn-standardDropdown" onClick="$('.leftButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')">Return</button>
+                </a>
               </li>
             <? endif; ?>
           </ul>
@@ -165,7 +179,7 @@
                       <input type="hidden" name="returnBibID" value="<?=$this->driver->getUniqueID()?>">
                       <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
                       <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+                      <button class="btn-dropdown btn-standardDropdown" onClick="$('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
                     </form>
                   <? else: ?>
                     <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
@@ -173,7 +187,7 @@
                       <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
                       <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
                       <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown"><?=$list->title?></button>
+                      <button class="btn-dropdown btn-standardDropdown" onClick="$('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
                     </form>
                   <? endif; ?>
                 </li>

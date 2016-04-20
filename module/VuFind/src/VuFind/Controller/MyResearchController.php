@@ -557,14 +557,8 @@ class MyResearchController extends AbstractBase
                 ->addMessage('single_delete_success', 'success');
         }
 
-        // redirect to the record if they came from there
-       	$returnBibID = $this->params()->fromPost('returnBibID');
-        if( !is_null($returnBibID) ) {
-            return $this->redirect()->toUrl($this->url()->fromRoute('record', ['id' => $returnBibID]));
-        }
-
-        // All done -- return true to indicate success.
-        return true;
+        // All done -- return from whence we came
+        return $this->redirect()->toUrl($this->getRequest()->getServer()->get('HTTP_REFERER'));
     }
 
     /**
@@ -723,10 +717,7 @@ class MyResearchController extends AbstractBase
                 'confirm', $this->params()->fromQuery('confirm')
             );
             if ($confirm) {
-                $success = $this->performDeleteFavorite($deleteId, $deleteSource);
-                if ($success !== true) {
-                    return $success;
-                }
+                return $this->performDeleteFavorite($deleteId, $deleteSource);
             } else {
                 return $this->confirmDeleteFavorite($deleteId, $deleteSource);
             }
@@ -794,12 +785,9 @@ class MyResearchController extends AbstractBase
                 $details = $this->getRecordRouter()->getTabRouteDetails(
                     $recordSource . '|' . $recordId
                 );
-                return $this->redirect()->toRoute($details['route'], $details['params']);
-                //$details = $this->getRecordRouter()->getActionRouteDetails(
-                //    $recordSource . '|' . $recordId, 'Save'
-                //);
-                //return $this
-                //    ->lightboxAwareRedirect($details['route'], $details['params']);
+                $view = $this->createViewModel();
+                $view->setTemplate('blankModal');
+                return $view;
             }
 
             // Similarly, if the user is in the process of bulk-saving records,

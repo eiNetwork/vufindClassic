@@ -80,6 +80,11 @@ class RecordController extends AbstractRecord
     {
         $view = parent::createViewModel($params);
 
+        // short version of this
+        if( isset($params["skip"]) && $params["skip"] ) {
+          return $view;
+        }
+
         // load this up so we can check some things
         $driver = $this->loadRecord();
         $holdings = $this->driver->getRealTimeHoldings();
@@ -213,8 +218,8 @@ class RecordController extends AbstractRecord
 
             $results = $catalog->checkoutOverDriveItem($overDriveId, $user);
             $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
-            $view = $this->createViewModel();
-            $view->setTemplate('blank');
+            $view = $this->createViewModel(['skip' => true, 'title' => 'Checking Item Out', 'reloadParent' => true]);
+            $view->setTemplate('blankModal');
             return $view;
         }
     }
@@ -238,8 +243,8 @@ class RecordController extends AbstractRecord
 
             $results = $catalog->returnOverDriveItem($overDriveId, $user);
             $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
-            $view = $this->createViewModel();
-            $view->setTemplate('blank');
+            $view = $this->createViewModel(['skip' => true, 'title' => 'Returning Item', 'reloadParent' => true]);
+            $view->setTemplate('blankModal');
             return $view;
         }
     }
@@ -267,8 +272,8 @@ class RecordController extends AbstractRecord
                 $formatInfo = $catalog->selectOverDriveDownloadFormat($overDriveId, $format, $user);
                 if(!$formatInfo["result"]) {
                   $this->flashMessenger()->setNamespace('error')->addMessage($formatInfo["message"]);
-                  $view = $this->createViewModel();
-                  $view->setTemplate('blank');
+                  $view = $this->createViewModel(['skip' => true, 'title' => 'No Result', 'reloadParent' => true]);
+                  $view->setTemplate('blankModal');
                   return $view;
                 }
               }
@@ -279,8 +284,8 @@ class RecordController extends AbstractRecord
                 return $this->redirect()->toUrl($downloadLink["downloadUrl"]);
               }
               $this->flashMessenger()->setNamespace('error')->addMessage($downloadLink["message"]);
-              $view = $this->createViewModel();
-              $view->setTemplate('blank');
+              $view = $this->createViewModel(['skip' => true, 'title' => 'Download Item', 'reloadParent' => true]);
+              $view->setTemplate('blankModal');
               return $view;
             } else {
               $view = $this->createViewModel();
@@ -288,5 +293,25 @@ class RecordController extends AbstractRecord
               return $view;
             }
         }
+    }
+
+    /**
+     * Save action - Allows the save template to appear,
+     *   passes containingLists & nonContainingLists
+     *
+     * @return mixed
+     */
+    public function saveAction() {
+      // keep a hold of the referring page since we are skipping the submit step
+      $referer = $this->getRequest()->getServer()->get('HTTP_REFERER');
+      if (substr($referer, -5) != '/Save'
+          && stripos($referer, 'MyResearch/EditList/NEW') === false
+      ) {
+          $this->setFollowupUrlToReferer();
+      } else {
+          $this->clearFollowupUrl();
+      }
+
+      return parent::saveAction();
     }
 }

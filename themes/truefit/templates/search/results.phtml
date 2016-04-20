@@ -28,9 +28,11 @@
 
   // get results
   $recordTotal = $this->results->getResultTotal();
-  $resultCategories = $this->results->getRecommendations('side')[0]->getFacetSet()["format_category"]["list"];
-  $resultFormats = $this->results->getRecommendations('side')[0]->getFacetSet()["format"]["list"];
+  $facetSet = $this->results->getRecommendations('side')[0]->getFacetSet();
+  $resultCategories = $facetSet ? $facetSet["format_category"]["list"] : [];
+  $resultFormats = $facetSet ? $facetSet["format"]["list"] : [];
   $usableFormats = [];
+  $usableCategories = [];
   foreach( $resultFormats as $thisFormat ):
     $usableFormats[] = $thisFormat["value"];
   endforeach;
@@ -60,7 +62,7 @@
             <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $firstType = null;  foreach($formatTypes as $type): ?>
               <? if( in_array($type, $usableFormats) ): ?>
                 <? if( $firstType == null ): ?>
-                  <? $firstType = $type; ?>
+                  <? $firstType = $type; $usableCategories[] = $categoryName; ?>
                 <? else: ?>
                   <? $urlParams["filter"][] = "~format:\"" . $type . "\""; ?>
                 <? endif; ?>
@@ -70,7 +72,7 @@
               <? if( $firstType != null ): ?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->addFacet('format', $firstType, 'OR', $urlParams)?>">
               <? endif; ?>
-              <img class="formatIcon" src="../themes/truefit/images/<?=$imageName . (($firstType == null) ? "Disabled" : "")?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
+              <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (($firstType == null) ? "Disabled" : "")?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
               <? if( $firstType != null ): ?>
                 </a>
               <? endif; ?>
@@ -80,21 +82,23 @@
         <tr>
           <? foreach($this->formatCategories->types as $category): ?>
             <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
-            <td class="formatName"><?=$categoryName?></td>
+            <td class="formatName"<?=(in_array($categoryName, $usableCategories)?"":" style=\"color:#cdcdcd\"") . ">" . $categoryName?></td>
           <? endforeach; ?>
         </tr>
       </table>
       <hr style="margin:5px 0">
     </div>
     <? if ($recordTotal > 0): ?>
-      <table style="margin:auto;text-align:center">
-        <tr>
-          <td class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
-          <td style="padding-left:10px"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
-          <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml')?></td>
-        </tr>
-      </table>
-      <hr style="margin:5px 0">
+      <div class="EIN-col-m-12">
+        <table style="margin:auto;text-align:center">
+          <tr>
+            <td class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
+            <td style="padding-left:10px"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
+            <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml')?></td>
+          </tr>
+        </table>
+        <hr style="margin:5px 0">
+      </div>
     <? endif; ?>
     <? /* End Listing Options */ ?>
 

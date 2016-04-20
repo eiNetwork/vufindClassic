@@ -24,7 +24,8 @@ function checkItemStatuses() {
             leftButton.empty().append('Holding');
           } else if( ("canCheckOut" in result) && result.canCheckOut ) {
             leftButton.prop('disabled', false);
-            leftButton.attr('onClick', "Lightbox.get('Record','Checkout'," + result.idArgs + ")");
+            leftButton.wrap("<a href=\"" + result.checkoutLink + "\" target=\"loginFrame\"></a>");
+            leftButton.attr('onClick', "$(this).html('<i class=\\\'fa fa-spinner bwSpinner\\\'></i>&nbsp;Loading...')");
             leftButton.empty().append('Checkout');
           } else if( ("isCheckedOut" in result) && result.isCheckedOut ) {
             leftButton.prop('disabled', false);
@@ -47,9 +48,14 @@ function checkItemStatuses() {
               leftButtonMenu.children(".standardDropdown").append("<li><button class=\"btn-dropdown btn-standardDropdown\" onClick=\"Lightbox.get('Record','OverdriveDownload'," + result.idArgs + ")\">" + (streamingVideo ? "Watch Now" : "Download") + "</button></li>");
             }
             if( ("canReturn" in result) && result.canReturn ) {
-              leftButtonMenu.children(".standardDropdown").append("<li><button class=\"btn-dropdown btn-standardDropdown\" onClick=\"Lightbox.get('Record','Return'," + result.idArgs + ")\">Return</button></li>");
+              leftButtonMenu.children(".standardDropdown").append("<li><a href=\"" + result.returnLink + "\" target=\"loginFrame\"><button class=\"btn-dropdown btn-standardDropdown\" onClick=\"$(this).parents('.dropdown').siblings('.leftButton').html('<i class=\\'fa fa-spinner bwSpinner\\'></i>&nbsp;Loading...')\">Return</button></a></li>");
             }
             leftButton.empty().append('Checked Out<i class="fa fa-caret-down"></i>');
+          } else if( ("holdLink" in result) ) {
+            leftButton.prop('disabled', false);
+            leftButton.wrap("<a href=\"" + result.holdLink + "\" target=\"loginFrame\"></a>");
+            leftButton.attr('onClick', "$(this).html('<i class=\\\'fa fa-spinner bwSpinner\\\'></i>&nbsp;Loading...')");
+            leftButton.empty().append('Hold');
           } else if( result.holdArgs != '' ) {
             leftButton.prop('disabled', false);
             leftButton.attr('onClick', "Lightbox.get('Record','Hold'," + result.holdArgs + ")");

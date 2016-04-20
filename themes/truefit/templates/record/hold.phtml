@@ -1,4 +1,4 @@
-<p class="lead"><?=$this->transEsc("Pickup Location")?></p>
+<h2><?=$this->transEsc("Pickup Location")?></h2>
 <div class="hold-form">
   <table class="pickupLocationTable">
     <tr><td colspan="2" class="modalSubheading center">Preferred</td></tr>
@@ -48,44 +48,35 @@
   </table>
 </div>
 <div class="modal-footer">
-  <form action="" class="form-horizontal" method="post" name="placeHold">
-    <input type="hidden" name="gatheredDetails[comment]" value="" />
-    <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
-    <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
-    <input type="hidden" name="placeHold" value="1">
-    <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?>>Okay</button>
-  </form>
+  <div id="holdFooter">
+    <form action="" class="form-horizontal" method="post" name="placeHold" target="loginFrame">
+      <input type="hidden" name="gatheredDetails[comment]" value="" />
+      <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
+      <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
+      <input type="hidden" name="placeHold" value="1">
+      <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?> onclick="$('#holdFooter').css('display', 'none');$('#loadingFooter').css('display', 'block');">Okay</button>
+    </form>
+  </div>
+  <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
+    <span><i class="fa fa-spinner"></i></span>
+    <span>&nbsp;Loading...</span>
+  </div>
 
   <script type="text/javascript">
-    function SubmitHoldForm() {
-      $('form[name="placeHold"]').submit();
-    }
-
     function SelectPickupLocation(chosenID) {
       var currentID = $('input[name="gatheredDetails[pickUpLocation]"]').val();
       $('i[name="check-' + currentID + '"]').css("color","#fff");
       $('input[name="gatheredDetails[pickUpLocation]"]').val(chosenID);
       $('i[name="check-' + chosenID + '"]').css("color","");
     }
+
+    function ProcessHoldForm() {
+      Lightbox.addFormHandler('placeHold', null);
+      $('form[name="placeHold"]').attr("action", Lightbox.lastURL);
+      $('form[name="placeHold"]').get(0).submit();
+      return false;
+    }
+
+    Lightbox.addFormHandler('placeHold', ProcessHoldForm);
   </script>
 </div>
-<?
-    // Set up hold script; we do this inline instead of in the header for lightbox compatibility:
-    $this->inlineScript()->appendFile('hold.js');
-
-    $js = <<<JS
-        if ($.isReady) {
-            readyFunc();
-        } else {
-            $(document).ready(function(){
-                readyFunc();
-            });
-        }
-
-        function readyFunc() {
-            setUpHoldRequestForm("{$this->escapeHtml($this->driver->getUniqueId())}");
-        }
-JS;
-
-    echo $this->inlineScript()->appendScript($js);
-?>

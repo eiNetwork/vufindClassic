@@ -744,7 +744,7 @@ $staticRoutes = [
     'LibGuides/Home', 'LibGuides/Results',
     'LibraryCards/Home', 'LibraryCards/SelectCard',
     'LibraryCards/DeleteCard',
-    'MyResearch/Account', 'MyResearch/ChangePassword', 'MyResearch/CheckedOut', 'MyResearch/Checkout',
+    'MyResearch/Account', 'MyResearch/ChangePassword', 'MyResearch/CheckedOut',
     'MyResearch/Delete', 'MyResearch/DeleteList', 'MyResearch/Edit',
     'MyResearch/Email', 'MyResearch/BookCart', 'MyResearch/Fines',
     'MyResearch/Holds', 'MyResearch/Home',
@@ -774,6 +774,65 @@ $routeGenerator = new \VuFind\Route\RouteGenerator();
 $routeGenerator->addRecordRoutes($config, $recordRoutes);
 $routeGenerator->addDynamicRoutes($config, $dynamicRoutes);
 $routeGenerator->addStaticRoutes($config, $staticRoutes);
+
+// add some extra routes for record
+$config['router']['routes']['record-checkout'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Record/:id/Checkout',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Record',
+            'action'     => 'Checkout',
+        ]
+    ]
+];
+$config['router']['routes']['record-return'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Record/:id/Return',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Record',
+            'action'     => 'Return',
+        ]
+    ]
+];
+$config['router']['routes']['record-otherformats'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Record/:id/OtherFormats',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Record',
+            'action'     => 'OtherFormats',
+        ]
+    ]
+];
+$config['router']['routes']['record-overdrivedownload'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Record/:id/OverdriveDownload',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Record',
+            'action'     => 'OverdriveDownload',
+        ]
+    ]
+];
+
 
 // Add the home route last
 $config['router']['routes']['home'] = [

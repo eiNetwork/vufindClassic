@@ -189,12 +189,21 @@ class AjaxController extends AbstractBase
         $this->writeSession();  // avoid session write timing bug
         $catalog = $this->getILS();
         $ids = $this->params()->fromQuery('id');
-        $results = $catalog->getStatuses($ids);
-
-        if (!is_array($results)) {
-            // If getStatuses returned garbage, let's turn it into an empty array
-            // to avoid triggering a notice in the foreach loop below.
-            $results = [];
+        $results = [];
+        foreach($ids as $thisID) {
+            $driver = $this->getRecordLoader()->load( $thisID );
+            $holdings = $driver->getRealTimeHoldings();
+            $items = [];
+            foreach($holdings as $holding) {
+                $items = array_merge($items, $holding["items"]);
+            }
+            $results[] = $items;
+        }
+        $holds = [];
+        if($user = $this->getUser()) {
+            $patron = $this->catalogLogin();
+            $holds = $catalog->getMyHolds($patron);
+            $checkedOutItems = $catalog->getMyTransactions($patron);
         }
 
         // In order to detect IDs missing from the status response, create an
@@ -236,7 +245,7 @@ class AjaxController extends AbstractBase
                     );
                 } else {
                     $current = $this->getItemStatus(
-                        $record, $messages, $locationSetting, $callnumberSetting
+                        $record, $messages, $holds, $checkedOutItems, $locationSetting, $callnumberSetting
                     );
                 }
                 // If a full status display has been requested, append the HTML:
@@ -258,7 +267,7 @@ class AjaxController extends AbstractBase
             $statuses[] = [
                 'id'                   => $missingId,
                 'availability'         => 'false',
-                'availability_message' => $messages['unavailable'],
+                'availability_message' => str_replace("<countText>", "0 copies", $messages['unavailable']),
                 'location'             => $this->translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -331,6 +340,10 @@ class AjaxController extends AbstractBase
      *                                  record
      * @param array  $messages          Custom status HTML
      *                                  (keys = available/unavailable)
+     * @param array  $holds             This users's current holds
+     *                                  
+     * @param array  $checkedOutItems   This users's checked out items
+     *                                  
      * @param string $locationSetting   The location mode setting used for
      *                                  pickValue()
      * @param string $callnumberSetting The callnumber mode setting used for
@@ -338,7 +351,7 @@ class AjaxController extends AbstractBase
      *
      * @return array                    Summarized availability information
      */
-    protected function getItemStatus($record, $messages, $locationSetting,
+    protected function getItemStatus($record, $messages, $holds, $checkedOutItems, $locationSetting,
         $callnumberSetting
     ) {
         // grab the driver
@@ -349,12 +362,9 @@ class AjaxController extends AbstractBase
         $isHolding = false;
         $overDriveInfo = ["canCheckOut" => false];
         $holdArgs = "";
-        $realTimeHoldings = $driver->getRealTimeHoldings();
 
         // see if they already have a hold on it
         if($canHold && ($user = $this->getUser())) {
-            $patron = $this->catalogLogin();
-            $holds = $catalog->getMyHolds($patron);
             foreach($holds as $thisHold) {
                 if($thisHold['id'] == $bib) {
                     $canHold = false;
@@ -366,18 +376,19 @@ class AjaxController extends AbstractBase
         // if not, see whether there is a holdable copy available
         if( $canHold ) {
             $args=array();
-            foreach($realTimeHoldings as $holding) {
-                foreach($holding['items'] as $item) {
-                    // look for a hold link
-                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
-                    $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
-                    if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
-                        foreach(explode('&',$item['link']['query']) as $piece) {
-                            $pieces = explode('=', $piece);
-                            $args[$pieces[0]] = $pieces[1];
-                        }
-                        break 2;
+            foreach($record as $item) {
+                // look for a hold link
+                $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
+                $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
+                if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
+                    foreach(explode('&',$item['link']['query']) as $piece) {
+                        $pieces = explode('=', $piece);
+                        $args[$pieces[0]] = $pieces[1];
                     }
+                    if( $overdriveHoldOK ) {
+                        $overDriveInfo["canHold"] = true;
+                    }
+                    break;
                 }
             }
             $holdArgs = str_replace("\"", "'", json_encode($args));
@@ -389,17 +400,13 @@ class AjaxController extends AbstractBase
 
         // see if they can check this out
         if( !$canHold ) {
-            foreach($realTimeHoldings as $holding) {
-                foreach($holding['items'] as $item) {
-                    $overDriveInfo["canCheckOut"] |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
-                }
+            foreach($record as $item) {
+                $overDriveInfo["canCheckOut"] |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
             }
         }
 
         // make sure they don't already have it checked out
         if( $user && ($overDriveInfo["canCheckOut"] || $canHold) ) {
-            $patron = (isset($patron) ? $patron : $this->catalogLogin());
-            $checkedOutItems = $catalog->getMyTransactions($patron);
             foreach($checkedOutItems as $thisItem) {
                 if($thisItem['id'] == $bib) {
                     $overDriveInfo["canCheckOut"] = false;
@@ -442,18 +449,16 @@ class AjaxController extends AbstractBase
             // Find an available copy
             if ($info['availability']) {
                 $available = true;
-                $availableItems++;
+                $availableItems += (isset($item["isOverDrive"]) && $item["isOverDrive"]) ? $item["copiesAvailable"] : 1;
             }
-            $totalItems++;
+            $totalItems += (isset($item["isOverDrive"]) && $item["isOverDrive"]) ? $item["copiesOwned"] : 1;
             // Check for a use_unknown_message flag
-            if (isset($info['use_unknown_message'])
-                && $info['use_unknown_message'] == true
-            ) {
+            if (isset($info['use_unknown_message']) && $info['use_unknown_message'] == true) {
                 $use_unknown_status = true;
             }
             // Store call number/location info:
-            $callNumbers[] = $info['callnumber'];
-            $locations[] = $info['location'];
+            $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
+            $locations[] = isset($info['location']) ? $info['location'] : null;
         }
 
         // Determine call number string based on findings:
@@ -469,7 +474,7 @@ class AjaxController extends AbstractBase
         $availability_message = $use_unknown_status
             ? $messages['unknown']
             : $messages[$available ? 'available' : 'unavailable'];
-        $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message); // . "##" . json_encode($record[0]) . "##";
+        $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
 
         // Collect the details:
         $details = [
@@ -490,6 +495,16 @@ class AjaxController extends AbstractBase
 
         // add in the overdrive info if needed
         if( $overDriveInfo["canCheckOut"] || count($overDriveInfo) > 1 ) {
+            $renderer = $this->getViewRenderer();
+            if( $overDriveInfo["canCheckOut"] ) {
+                $overDriveInfo["checkoutLink"] = $renderer->recordLink()->getActionUrl($driver, 'Checkout');
+            }
+            if( $overDriveInfo["canReturn"] ) {
+                $overDriveInfo["returnLink"] = $renderer->recordLink()->getActionUrl($driver, 'Return');
+            }
+            if( $canHold ) {
+                $overDriveInfo["holdLink"] = $renderer->recordLink()->getActionUrl($driver, 'Hold') . "?hashKey=" . json_decode(str_replace("'", "\"", $holdArgs))->hashKey;
+            }
             $overDriveInfo["idArgs"] = str_replace("\"", "'", json_encode(["id" => $bib]));
             $details = array_merge($details, $overDriveInfo);
         }

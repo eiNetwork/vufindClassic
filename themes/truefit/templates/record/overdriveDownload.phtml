@@ -17,7 +17,7 @@
           <tr>
             <td style="padding:5px"><span class="formatTag"><?=$format?></span></td>	
             <td class="lightboxText" style="padding:5px">
-              <?=($downloadId?("<a href=\"" . ($this->recordLink()->getActionUrl($this->driver, 'OverdriveDownload') . "?formatType=" . $downloadId . ($this->formatLocked?"":"&lockIn=true")) . "\" id=\"format-" . $downloadId ."\" target=\"" . (($downloadId=="periodicals-nook")?"_self":"_blank") . "\">"):"")?>
+              <?=($downloadId?("<a href=\"" . ($this->recordLink()->getActionUrl($this->driver, 'OverdriveDownload') . "?formatType=" . $downloadId . ($this->formatLocked?"":"&lockIn=true")) . "\" id=\"format-" . $downloadId ."\" target=\"" . (($downloadId=="periodicals-nook")?"_self":"loginFrame") . "\">"):"")?>
                 <button class="btn-default"<?=($downloadId?"":" disabled")?>>Download</button>
               <?=($downloadId?"</a>":"")?>
             </td>
@@ -28,7 +28,7 @@
     </table>
     <br>
   </div>
-  <img src="/vufind/themes/truefit/images/overdrive.png" style="float:left;padding-right:20px">
+  <img src="/vufind/themes/truefit/images/icons/overdrive.png" style="float:left;padding-right:20px">
   <div class="EIN-m-12 lightboxText">
     This title requires the <a href="http://www.overdrive.com/software/omc/" target="_blank">OverDrive&#0169; Media Console&#0153;</a> for use. If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/" target="_blank">here</a>.
   </div>

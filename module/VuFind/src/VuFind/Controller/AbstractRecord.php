@@ -281,7 +281,7 @@ class AbstractRecord extends AbstractBase
         $driver->saveToFavorites($post, $user);
 
         // Display a success status message:
-        $this->flashMessenger()->addMessage('bulk_save_success', 'info');
+        $this->flashMessenger()->addMessage((count($post['id']) > 1) ? 'bulk_save_success' : 'single_save_success', 'info');
 
         // redirect to followup url saved in saveAction
         if ($url = $this->getFollowupUrl()) {

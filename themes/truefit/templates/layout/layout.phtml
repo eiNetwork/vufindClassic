@@ -91,40 +91,10 @@
         <a class="sr-only" href="#content"><?=$this->transEsc('Skip to content') ?></a>
         <?=$this->render('header.phtml')?>
       </div>
-<!--
-      <div class="container">
-        <nav class="nav searchbox hidden-lg hidden-print">
-          <?=$this->layout()->searchbox ?>
-        </nav>
-        <? if((!isset($this->layout()->showBreadcrumbs) || $this->layout()->showBreadcrumbs == true)
-          && !empty($this->layout()->breadcrumbs)
-          && $this->layout()->breadcrumbs !== false
-        ): ?>
-          <ul class="breadcrumb hidden-print">
-          <? if(is_array($this->layout()->breadcrumbs)): ?>
-            <? if(count($this->layout()->breadcrumbs) > 1): ?>
-              <?=$this->render('breadcrumbs/multi.phtml', array(
-                  'parents' => $this->layout()->breadcrumbs,
-                  'title'   => $this->layout()->title,
-                  'end'     => $this->layout()->breadcrumbEnd,
-                  'from'    => $this->layout()->from
-                )) ?>
-            <? else: ?>
-              <?=$this->render('breadcrumbs/default.phtml', array(
-                  'parents' => $this->layout()->breadcrumbs,
-                  'title'   => $this->layout()->title
-                )) ?>
-            <? endif; ?>
-          <? else: ?>
-            <?=$this->layout()->breadcrumbs ?>
-          <? endif; ?>
-          </ul>
-        <? endif; ?>
-      </div>
--->
     </header>
     <div role="main" class="main template-dir-<?=$this->templateDir?> template-name-<?=$this->templateName?>">
       <div class="container">
+        <div class="EIN-col-m-12" style="height:10px"></div>
         <?=$this->layout()->content ?>
       </div>
       <span id="returnToTop" class="returnToTop" onclick="$(window).scrollTop(0)"><i class="fa fa-long-arrow-up"></i></span>
@@ -215,7 +185,11 @@
       function sizeModal() {
         var targetPos = $('.modal-body').scrollTop();
         $('.modal-body').css("max-height","none");
-        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
+        var offset = parseInt($('.modal-dialog').css('margin-top').replace('px', '')) + 
+                     parseInt($('.modal-dialog').css('margin-bottom').replace('px', '')) + 
+                     parseInt($('.modal-dialog').css('border-top-width').replace('px', '')) + 
+                     parseInt($('.modal-dialog').css('border-bottom-width').replace('px', '')) + 
+                     $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
         var max = $(window).height() - offset;
         var barHeight = max - 30;
         var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
@@ -238,31 +212,5 @@
       }
       
     </script>
-    <!-- -->
-    <!-- WORKING MODAL (with normal scrollbar) --
-    <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
-            <h4 id="modalTitle" class="modal-title"></h4>
-          </div>
-          <div class="modal-body"><?=$this->transEsc('Loading') ?>...</div>
-          <div class="modal-footer"></div>
-        </div>
-      </div>
-    </div>
-    <?=$this->googleanalytics()?>
-    <?=$this->piwik()?>
-    <script type="text/javascript">
-      Lightbox.addOpenAction(function() {
-        var offset = 22 + $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
-        $('.modal-body').css({"max-height":($(window).height() - offset) + "px","overflow-y":"auto"});
-      } );
-      Lightbox.addCloseAction(function() {
-        $('.modal-footer').html("");
-      } );
-    </script>
-    <!-- -->
   </body>
 </html>

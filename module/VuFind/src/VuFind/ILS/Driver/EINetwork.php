@@ -283,23 +283,7 @@ class EINetwork extends Sierra2 implements
     }
 
     public function getStatus($id) {
-        // make sure it's an overdrive item
-        if( ($overDriveId = $this->getOverDriveID($id)) )
-        {
-            $availability = $this->getProductAvailability($overDriveId);
-            return [[
-                    "id" => $id,
-                    "status" => "STATUS",
-                    "location" => "Overdrive",
-                    "reserve" => "N",
-                    "availability" => $availability->available
-                   ]];
-        }
-        // else pass on to parent
-        else
-        {
-            return parent::getStatus($id);
-        }
+        return $this->getHolding($id);
     }
 	
     public function getHolding($id, array $patron = null)

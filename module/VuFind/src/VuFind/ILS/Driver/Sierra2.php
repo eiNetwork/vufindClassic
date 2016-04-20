@@ -425,8 +425,7 @@ class Sierra2 extends Sierra implements
      */
     public function placeHold($details)
     {
-        $body = array('id' => $details["id"], 
-                      'recordType' => substr($details["id"], 1, 1), 
+        $body = array('recordType' => substr($details["id"], 1, 1), 
                       'recordNumber' => (int)substr($details["id"], 2, -1), 
                       'pickupLocation' => $details['pickUpLocation'], 
                       'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));
@@ -614,6 +613,9 @@ class Sierra2 extends Sierra implements
             do {
                 $processed = 0;
                 $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                if( !isset($apiHoldings->entries) ) {
+                    break;
+                }
                 foreach($apiHoldings->entries as $thisItem) {
                     $number = null;
                     if( isset($thisItem->varFields) ) {

@@ -94,9 +94,12 @@ trait HoldsTrait
         if( $overDriveId = $catalog->getOverDriveID($gatheredDetails['id']) )
         {
             $results = $catalog->placeOverDriveHold($overDriveId, $patron);
+            if( $results['result'] ) {
+                $results['message']['tokens'] = ['%%url%%' => $this->url()->fromRoute('myresearch-holds')];
+            }
             $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
-            $view = $this->createViewModel();
-            $view->setTemplate('blank');
+            $view = $this->createViewModel(['skip' => true, 'title' => 'Hold Item', 'reloadParent' => true]);
+            $view->setTemplate('blankModal');
             return $view;
         }
 
@@ -143,7 +146,9 @@ trait HoldsTrait
                         ],
                     ];
                     $this->flashMessenger()->addMessage($msg, 'info');
-                    return $this->redirectToRecord('#top');
+                    $view = $this->createViewModel(['skip' => true, 'title' => 'Hold Item', 'reloadParent' => true]);
+                    $view->setTemplate('blankModal');
+                    return $view;
                 } else {
                     // Failure: use flash messenger to display messages, stay on
                     // the current form.

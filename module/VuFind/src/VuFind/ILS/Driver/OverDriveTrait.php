@@ -505,10 +505,12 @@ trait OverDriveTrait {
 
             if (isset($response->holdListPosition)){
                 $holdResult['result'] = true;
-                //$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
-                $holdResult['message'] = 'Your hold was placed successfully.';
+                $holdResult['message'] = [
+                        'html' => true,
+                        'msg' => 'hold_place_success_html',
+                    ];
             }else{
-                $holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.'; // . $response->message;
+                $holdResult['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Sorry, but we could not place a hold for you on this title.  ' . $response->message;
             }
         }
 
@@ -571,9 +573,9 @@ trait OverDriveTrait {
         if (!empty($response)){
             if (isset($response->expires)){
                 $result['result'] = true;
-                $result['message'] = 'Your title was checked out successfully.';
+                $result['message'] = '<i class="fa fa-info"></i>Your title was checked out successfully.';
             }else{
-                $result['message'] = 'Sorry, we could not checkout this title to you.  ' . $response->message;
+                $result['message'] = '<i class="fa fa-exclamation-triangle"></i>Sorry, we could not check out this title to you.  ' . $response->message;
             }
         }
 
@@ -601,9 +603,9 @@ trait OverDriveTrait {
         $cancelHoldResult['message'] = '';
         if ($response === true){
             $cancelHoldResult['result'] = true;
-            $cancelHoldResult['message'] = 'Your item was returned successfully.';
+            $cancelHoldResult['message'] = '<i class="fa fa-info"></i>Your item was returned successfully.';
         }else{
-            $cancelHoldResult['message'] = 'There was an error returning this item. ' . $response->message;
+            $cancelHoldResult['message'] = '<i class="fa fa-exclamation-triangle"></i>There was an error returning this item. ' . $response->message;
         }
 
         return $cancelHoldResult;

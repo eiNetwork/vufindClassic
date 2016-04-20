@@ -60,9 +60,9 @@ class RouteGenerator
             $this->nonTabRecordActions = [
                 'AddComment', 'DeleteComment', 'AddTag', 'DeleteTag', 'Save', 'Email', 'SMS', 
                 'Cite', 'Export', 'RDF', 'Hold', 'BlockedHold', 'Home', 
-                'StorageRetrievalRequest', 'AjaxTab', 'OtherFormats', 
+                'StorageRetrievalRequest', 'AjaxTab', 
                 'BlockedStorageRetrievalRequest', 'ILLRequest', 'BlockedILLRequest',
-                'PDF', 'Checkout', 'OverdriveDownload'
+                'PDF'
             ];
         } else {
             $this->nonTabRecordActions = $nonTabRecordActions;

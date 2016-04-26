@@ -1,7 +1,7 @@
 <?
   $account = $this->auth()->getManager();
-  if( $account->isLoggedIn() ) {
-    $displayName = $account->isLoggedIn()->firstname . " " . $account->isLoggedIn()->lastname;
+  if( $user = $account->isLoggedIn() ) {
+    $displayName = $user->firstname . " " . $user->lastname;
     $displayName = ucwords( strtolower( $displayName ) );
   }
 ?>
@@ -19,7 +19,7 @@
       </div>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Help</span></button>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate"><span class="headerLink">Locations</span></button>
-<? if ($account->isLoggedIn()): ?>
+<? if ($user): ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
 <? else: ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
@@ -35,21 +35,29 @@
   <div class="EIN-col-m-12">
     <hr class="EIN-hide-t EIN-hide">
     <div class="EIN-col-m-12 dropdown" id="navDropdown">
-      <ul role="navigation" class="dropdown-menu whiteDropdown<?= ($account->isLoggedIn() ? "" : " EIN-hide")?>">
-<? if( $account->isLoggedIn()): ?>
+      <ul role="navigation" class="dropdown-menu whiteDropdown<?= ($user ? "" : " EIN-hide")?>">
+<? if( $user): ?>
+  <? $listCount = 0; $bookCartCount = 0; ?>
+  <? foreach( $user->getLists() as $list ): ?>
+    <? if( $list->isBookCart() ): ?>
+      <? $bookCartCount = $list->count(); ?>
+    <? else: ?>
+      <? $listCount++; ?>
+    <? endif; ?>
+  <? endforeach; ?>
         <li class="loggedInName"><?= $displayName ?></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Message Center<span class="badge">2</span></button></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Lists</button></li>
-        <li><a href="/vufind/MyResearch/BookCart"><button class="btn-dropdown btn-whiteDropdown">Book Cart</button></a></li>
-        <li><a href="/vufind/MyResearch/Holds"><button class="btn-dropdown btn-whiteDropdown">Holds</button></a></li>
-        <li><a href="/vufind/MyResearch/CheckedOut"><button class="btn-dropdown btn-whiteDropdown">Checked Out</button></a></li>
+        <li><a href="<?=$this->url('myresearch-mylist')?>"><button class="btn-dropdown btn-whiteDropdown">Lists<? if($listCount>0): ?><span class="badge"><?=$listCount?></span><? endif; ?></button></a></li>
+        <li><a href="<?=$this->url('myresearch-bookcart')?>"><button class="btn-dropdown btn-whiteDropdown">Book Cart<? if($bookCartCount>0): ?><span class="badge"><?=$bookCartCount?></span><? endif; ?></button></a></li>
+        <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds</button></a></li>
+        <li><a href="<?=$this->url('myresearch-checkedout')?>"><button class="btn-dropdown btn-whiteDropdown">Checked Out</button></a></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Reading History</button></li>
-        <li><a href="/vufind/MyResearch/Profile"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
+        <li><a href="<?=$this->url('myresearch-profile')?>"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
         <hr class="stretchHR">
         <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Help</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown EIN-hide">Locations</button></li>
-        <li><a href="/vufind/MyResearch/Logout"><button class="btn-dropdown btn-whiteDropdown"><i class="fa fa-sign-out"></i>Log Out</button></a></li>
+        <li><a href="<?=$this->url('myresearch-logout')?>"><button class="btn-dropdown btn-whiteDropdown"><i class="fa fa-sign-out"></i>Log Out</button></a></li>
 <? else: ?>
         <li><button class="btn-dropdown btn-whiteDropdown">Help</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown">Locations</button></li>

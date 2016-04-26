@@ -6,8 +6,8 @@
        endif;
      endforeach; ?>
   <div class="EIN-col-m-4" style="display:inline;float:none;white-space:nowrap">
-    <button class="btn-alternate" id="sortButton" data-toggle="dropdown" data-target="#sortButtonDropdown"><?=$caption?><i class="fa fa-caret-down"></i></button>
-    <div class="EIN-col-m-12 dropdown" id="sortButtonDropdown">
+    <button class="btn-alternate" id="sortButton<?=$this->id?>" data-toggle="dropdown" data-target="#sortButtonDropdown<?=$this->id?>"><?=$caption?><i class="fa fa-caret-down"></i></button>
+    <div class="EIN-col-m-12 dropdown" id="sortButtonDropdown<?=$this->id?>" style="position:absolute">
       <ul role="navigation" class="dropdown-menu standardDropdown">
         <? foreach ($list as $sortType => $sortData): ?>
           <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="submitSortForm('<?=$this->escapeHtmlAttr($sortType)?>')"><?=$this->transEsc($sortData['desc'])?></button></li>
@@ -15,20 +15,20 @@
       </ul>
     </div>
   </div>
-  <form class="form-inline" action="<?=$this->currentPath()?>" method="get" name="sort">
-    <input type="hidden" id="sort_options_1" name="sort">
+  <form class="form-inline" action="<?=$this->currentPath()?>" method="get" name="sort<?=$this->id?>">
+    <input type="hidden" id="sort_options_1_<?=$this->id?>" name="sort">
     <?=$this->results->getUrlQuery()->asHiddenFields(array('sort' => '/.*/'));?>
     <noscript><input type="submit" class="btn btn-default" value="<?=$this->transEsc("Set")?>" /></noscript>
   </form>
   <script type="text/javascript">
     function submitSortForm(sortType) {
-      $('#sort_options_1').val(sortType);
-      $("form[name='sort']").submit();
+      $('#sort_options_1_<?=$this->id?>').val(sortType);
+      $("form[name='sort<?=$this->id?>']").submit();
     }
 
     jQuery(document).ready(function() {
-      test = setTimeout(function() {
-        $('#sortButton').css("width", $('#sortButtonDropdown').children().outerWidth());
+      setTimeout(function() {
+        $('#sortButton<?=$this->id?>').css("width", $('#sortButtonDropdown<?=$this->id?>').children().outerWidth());
       }, 50);
     });
   </script>

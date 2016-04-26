@@ -483,14 +483,9 @@ class MyResearchController extends AbstractBase
 
         // Get target URL for after deletion:
         $listID = $this->params()->fromPost('listID');
-        $newUrl = empty($listID)
-            ? $this->url()->fromRoute('myresearch-favorites')
-            : $this->url()->fromRoute('userList', ['id' => $listID]);
 
         // Fail if we have nothing to delete:
-        $ids = is_null($this->params()->fromPost('selectAll'))
-            ? $this->params()->fromPost('ids')
-            : $this->params()->fromPost('idsAll');
+        $ids = $this->params()->fromPost('ids');
         if (!is_array($ids) || empty($ids)) {
             $this->flashMessenger()->addMessage('bulk_noitems_advice', 'error');
             return $this->redirect()->toUrl($newUrl);
@@ -499,8 +494,10 @@ class MyResearchController extends AbstractBase
         // Process the deletes if necessary:
         if ($this->formWasSubmitted('submit')) {
             $this->favorites()->delete($ids, $listID, $user);
-            $this->flashMessenger()->addMessage('fav_delete_success', 'success');
-            return $this->redirect()->toUrl($newUrl);
+            $this->flashMessenger()->addMessage((count($ids) == 1) ? 'single_delete_success' : 'multiple_delete_success', 'info');
+            $view = $this->createViewModel();
+            $view->setTemplate('blankModal');
+            return $view;
         }
 
         // If we got this far, the operation has not been confirmed yet; show
@@ -727,26 +724,46 @@ class MyResearchController extends AbstractBase
         try {
             $runner = $this->getServiceLocator()->get('VuFind\SearchRunner');
 
-            // We want to merge together GET, POST and route parameters to
-            // initialize our search object:
-            $request = $this->getRequest()->getQuery()->toArray()
-                + $this->getRequest()->getPost()->toArray()
-                + ['id' => $this->params()->fromRoute('id')];
+            $lists = [];
+            if( !$this->params()->fromRoute('id') && !$this->params()->fromQuery('id') ) {
+                // make sure they are logged in
+                if (!$this->getUser()) {
+                    return $this->forceLogin();
+                }
 
-            // Set up listener for recommendations:
-            $rManager = $this->getServiceLocator()
-                ->get('VuFind\RecommendPluginManager');
-            $setupCallback = function ($runner, $params, $searchId) use ($rManager) {
-                $listener = new RecommendListener($rManager, $searchId);
-                $listener->setConfig(
-                    $params->getOptions()->getRecommendationSettings()
-                );
-                $listener->attach($runner->getEventManager()->getSharedManager());
-            };
+                foreach($this->getUser()->getLists() as $thisList) {
+                    if( !$thisList->isBookCart() ) {
+                        $lists[] = $thisList;
+                    }
+                }
+            } else {
+                $lists[] = $this->getTable('UserList')->getExisting($this->params()->fromRoute('id') ? $this->params()->fromRoute('id') : $this->params()->fromQuery('id'));
+            }
 
-            $results = $runner->run($request, 'Favorites', $setupCallback);
+            $results = [];
+            foreach( $lists as $thisList ) {
+                // We want to merge together GET, POST and route parameters to
+                // initialize our search object:
+                $request = $this->getRequest()->getQuery()->toArray()
+                    + $this->getRequest()->getPost()->toArray()
+                    + ['id' => $thisList->id];
+
+                // Set up listener for recommendations:
+                $rManager = $this->getServiceLocator()
+                    ->get('VuFind\RecommendPluginManager');
+                $setupCallback = function ($runner, $params, $searchId) use ($rManager) {
+                    $listener = new RecommendListener($rManager, $searchId);
+                    $listener->setConfig(
+                        $params->getOptions()->getRecommendationSettings()
+                    );
+                    $listener->attach($runner->getEventManager()->getSharedManager());
+                };
+
+                $results[] = ['list' => $thisList, 'items' => $runner->run($request, 'Favorites', $setupCallback)];
+            }
+
             return $this->createViewModel(
-                ['params' => $results->getParams(), 'results' => $results]
+                ['results' => $results]
             );
         } catch (ListPermissionException $e) {
             if (!$this->getUser()) {
@@ -765,7 +782,7 @@ class MyResearchController extends AbstractBase
      * @return object|bool                  Response object if redirect is
      * needed, false if form needs to be redisplayed.
      */
-    protected function processEditList($user, $list)
+    protected function processEditList($user, $list, $isNew)
     {
         // Process form within a try..catch so we can handle errors appropriately:
         try {
@@ -806,7 +823,10 @@ class MyResearchController extends AbstractBase
                     ->toUrl($saveUrl . implode('&', $params));
             }
 
-            return $this->lightboxAwareRedirect('userList', ['id' => $finalId]);
+            $this->flashMessenger()->setNamespace('info')->addMessage($isNew ? 'list_create' : 'edit_list_success');
+            $view = $this->createViewModel();
+            $view->setTemplate('blankModal');
+            return $view;
         } catch (\Exception $e) {
             switch(get_class($e)) {
             case 'VuFind\Exception\ListPermission':
@@ -854,7 +874,7 @@ class MyResearchController extends AbstractBase
 
         // Process form submission:
         if ($this->formWasSubmitted('submit')) {
-            if ($redirect = $this->processEditList($user, $list)) {
+            if ($redirect = $this->processEditList($user, $list, $newList)) {
                 return $redirect;
             }
         }
@@ -876,8 +896,7 @@ class MyResearchController extends AbstractBase
         }
 
         // Get requested list ID:
-        $listID = $this->params()
-            ->fromPost('listID', $this->params()->fromQuery('listID'));
+        $listID = $this->params()->fromPost('id', $this->params()->fromQuery('id'));
 
         // Have we confirmed this?
         $confirm = $this->params()->fromPost(
@@ -905,7 +924,9 @@ class MyResearchController extends AbstractBase
                 }
             }
             // Redirect to MyResearch home
-            return $this->redirect()->toRoute('myresearch-home');
+            $view = $this->createViewModel();
+            $view->setTemplate('blankModal');
+            return $view;
         }
 
         // If we got this far, we must display a confirmation message:
@@ -913,7 +934,7 @@ class MyResearchController extends AbstractBase
             'confirm_delete_list_brief',
             $this->url()->fromRoute('myresearch-deletelist'),
             $this->url()->fromRoute('userList', ['id' => $listID]),
-            'confirm_delete_list_text', ['listID' => $listID]
+            'confirm_delete_list_text', ['id' => $listID]
         );
     }
 

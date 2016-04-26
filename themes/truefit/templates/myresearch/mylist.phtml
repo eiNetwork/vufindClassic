@@ -1,18 +1,13 @@
 <?
-  // Grab list object from search results (if applicable):
-  $list = $this->results->getListObject();
-
   // Set up page title:
-  $this->headTitle(isset($list) ? $list->title : $this->translate('Favorites'));
+  $this->headTitle((count($this->results) == 1) ? $this->results[0]["list"]->title : $this->translate('Lists'));
 
   // Set up breadcrumbs:
-  $currPage = isset($list) ? 'List' : 'Favorites';
+  $currPage = (count($this->results) == 1) ? 'List' : 'Favorites';
   $this->layout()->breadcrumbs = '<li><a href="' .  $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc($currPage) . '</li>';
 
   // Load Javascript dependencies into header:
   $this->headScript()->appendFile("check_item_statuses.js");
-
-  $recordTotal = $this->results->getResultTotal();
 
   // Convenience variable:
   $account = $this->auth()->getManager();
@@ -21,56 +16,115 @@
 
 <?=$this->flashmessages()?>
 
-<div class="row">
-  <div class="<?=$this->layoutClass('mainbody')?>">
-    <div class="clearfix hidden-print">
-      <p class="lead pull-left"><?=$list ? $this->escapeHtml($list->title) : $this->transEsc("Your Book Cart")?></p>
-      <div class="pull-right">
-        <? if (isset($list) && !($list->isBookCart())): ?>
-          <? if ($list->editAllowed($account->isLoggedIn())): ?>
-            <a href="<?=$this->url('editList', array('id' => $list->id)) ?>" class="btn btn-link" title="<?=$this->transEsc("edit_list")?>"><i class="fa fa-edit"></i> <?=$this->transEsc("edit_list")?></a>
-            <div class="btn-group">
-              <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" href="<?=$this->url('myresearch-deletelist') ?>?listID=<?=urlencode($list->id)?>">
-                <i class="fa fa-trash-o"></i> <?=$this->transEsc("delete_list")?>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="<?=$this->url('myresearch-deletelist') ?>?listID=<?=urlencode($list->id)?>&amp;confirm=1"><?=$this->transEsc('confirm_dialog_yes') ?></a></li>
-                <li><a href="#"><?=$this->transEsc('confirm_dialog_no')?></a></li>
-              </ul>
+<div class="EIN-col-m-12 padded">
+  <? if( count($this->results) > 1 ): ?>
+    <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
+      <div class="facetTitle">Lists</div>
+      <? foreach($this->results as $thisResult): ?>
+        <? $list = $thisResult["list"]; ?>    
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#listAccordion" href="#details<?=$list->id?>" class="collapsed" onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"><?=$list->title?><span class="badge"><?=$thisResult["items"]->getResultTotal()?></span></a>
+            <div class="openAccordionTab"></div>
+          </h4>
+        </div>
+      <? endforeach; ?>
+      <div class="panel-heading">
+        <h4 class="panel-title"><a onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})">Create New List</a></h4>
+      </div>
+      <div class="panel-heading"></div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9">
+      <h1 class="pageTitle EIN-hide-t EIN-hide"><?=((count($this->results) == 1) ? ($this->results[0]["list"]->title) : "Lists")?></h1>
+  <? else: ?>
+    <div class="EIN-col-m-12">
+  <? endif; ?>
+    <? if( count($this->results) == 0 ): ?>
+      <div class="center">You have not created any lists yet.</div>
+    <? else: ?>
+      <? if( count($this->results) > 1 ): ?>
+        <div class="panel-group" id="listAccordion">
+      <? endif; ?>
+      <? foreach($this->results as $thisResult): ?>
+        <? $list = $thisResult["list"]; ?>
+        <? if( count($this->results) > 1 ): ?>
+          <div class="panel panel-default listAccordion">
+            <div class="panel-heading EIN-hide-t EIN-hide">
+              <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#listAccordion" href="#details<?=$list->id?>" class="collapsed" onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"><?=$list->title?><span class="badge"><?=$thisResult["items"]->getResultTotal()?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+              </h4>
+            </div>
+            <div id="details<?=$list->id?>" class="panel-collapse collapse">
+        <? endif; ?>
+        <div class="panel-body">
+          <? if ($list && !empty($list->description)): ?>
+            <p><?=$this->escapeHtml($list->description)?></p>
+          <? endif; ?>
+          <? if ($thisResult["items"]->getResultTotal() > 0): ?>
+            <div class="clearfix hidden-print center">
+              <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:10px"></div>
+              <table style="margin:auto;display:inline-block">
+                <tr>
+                  <td><span><strong><?=$this->localizedNumber($thisResult["items"]->getResultTotal())?></strong> titles sorted by </span></td>
+                  <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml', ['params' => $thisResult["items"]->getParams(), 'results' => $thisResult["items"], 'id' => $thisResult["list"]->id])?></td>
+                </tr>
+              </table>
             </div>
           <? endif; ?>
-        <? elseif ($recordTotal > 0): ?>
-          <?=$this->transEsc("Showing")?>
-          <strong><?=$this->localizedNumber($this->results->getStartRecord())?></strong> - <strong><?=$this->localizedNumber($this->results->getEndRecord())?></strong>
-          <?=$this->transEsc('of')?> <strong><?=$this->localizedNumber($recordTotal)?></strong>
-        <? endif; ?>
-      </div>
-    </div>
-  <? if ($list && !empty($list->description)): ?>
-    <p><?=$this->escapeHtml($list->description)?></p>
-  <? endif; ?>
-    <? if ($recordTotal > 0): ?>
-      <div class="resulthead">
-        <div class="pull-right">
-          <?=$this->render('search/controls/sort.phtml')?>
+          <? if ($thisResult["items"]->getResultTotal() > 0): ?>
+            <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>">
+              <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'list' => isset($list) ? $list : null, 'account' => $this->account))?>
+              <div style="display:none">
+                <? foreach ($thisResult["items"]->getResults() as $i=>$current): ?>
+                  <?=$this->record($current)->getCheckbox()?>
+                <? endforeach; ?>
+              </div>
+            </form>
+            <? foreach ($thisResult["items"]->getResults() as $i=>$current): ?>
+              <?=$this->record($current)->getListEntry($list, $user)?>
+            <? endforeach; ?>
+          <? else: ?>
+            <p><?=$this->transEsc('You do not have any saved resources')?></p>
+          <? endif; ?>
+          <? if (isset($list) && !($list->isBookCart())): ?>
+            <? if ($list->editAllowed($account->isLoggedIn())): ?>
+              <div class="EIN-col-m-12 center">Edit List:
+                <button class="btn-alternate btn-wide" onclick="Lightbox.get('MyResearch', 'EditList', {'id':'<?=$list->id?>'})"><i class="fa fa-pencil"></i><?=$this->transEsc("edit_list")?></button></td>
+                <button class="btn-alternate btn-wide" onclick="Lightbox.get('MyResearch', 'DeleteList', {'id':'<?=$list->id?>'})"><i class="fa fa-trash"></i><?=$this->transEsc("delete_list")?></button></td>
+              </div>
+            <? endif; ?>
+          <? endif; ?>
         </div>
-      </div>
-      <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>">
-        <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'list' => isset($list) ? $list : null, 'account' => $this->account))?>
-        <? foreach ($this->results->getResults() as $i=>$current): ?>
-          <?=$this->record($current)->getListEntry($list, $user)?>
-        <? endforeach; ?>
-      </form>
-      <?=$this->paginationControl($this->results->getPaginator(), 'Sliding', 'search/pagination.phtml', array('results' => $this->results))?>
-    <? else: ?>
-      <p><?=$this->transEsc('You do not have any saved resources')?></p>
+        <? if( count($this->results) > 1 ): ?>
+            </div>
+            <script type="text/javascript">
+              $('.panel-heading a').on('click',function(e){
+                // prevent them from dismissing the last open section if we're in tablet or desktop layout
+                if($(document).width() >= 600) {
+                  if($($(this).attr("href")).hasClass('in')){
+                    e.stopPropagation();
+                  }
+                  // You can also add preventDefault to remove the anchor behavior that makes the page jump
+                  e.preventDefault();
+                }
+            });
+            $('body').css({"overflow-y":"hidden"});
+              if($(document).width() >= 600) {
+                $('.panel-heading a').first().click();
+              }
+              $('body').css({"overflow-y":"auto"});
+              $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+            </script>
+          </div>
+        <? endif; ?>
+      <? endforeach; ?>
     <? endif; ?>
-  </div>
-
-  <div class="<?=$this->layoutClass('sidebar')?>">
-    <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => isset($list) ? 'list' . $list['id'] : 'favorites'))?>
-    <? foreach ($this->results->getRecommendations('side') as $current): ?>
-      <?=$this->recommend($current)?>
-    <? endforeach; ?>
+    <? if( count($this->results) > 1 ): ?>
+      <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:20px"></div>
+      <div class="EIN-col-m-12 EIN-hide-t EIN-hide center">
+        <button class="btn-default btn-wide" onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})">Create New List</button>
+      </div>
+    <? endif; ?>
+    <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
   </div>
 </div>

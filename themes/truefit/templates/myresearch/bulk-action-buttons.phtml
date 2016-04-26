@@ -1,16 +1,59 @@
 <? if (isset($list)): ?>
   <input type="hidden" name="listID" value="<?=$this->escapeHtmlAttr($list->id)?>" />
   <input type="hidden" name="listName" value="<?=$this->escapeHtmlAttr($list->title)?>" />
+  <input type="hidden" id="bulkAction<?=$list->id?>" name="action" value="true" />
 <? endif; ?>
 <? $user = $this->auth()->isLoggedIn(); ?>
-<div class="checkbox">
-  <label>
-    <input type="checkbox" name="selectAll" class="checkbox-select-all"/>
-    <?=$this->transEsc('select_page')?> | <?=$this->transEsc('with_selected')?>:
+<script type="text/javascript">
+  function ToggleAll(target) {
+    target.prop('checked', !(target.prop('checked')));
+    target.parents('.panel-body').find('.checkbox-select-item').prop('checked', target.prop('checked'));
+  }
+
+  function ScanBulkButton(form) {
+    var target = form.find('.bulkButton');
+    target.prop('disabled', true);
+    form.siblings('.ajaxItem').find('.checkbox-select-item').each( function() {
+      if(this.checked) {
+        target.prop('disabled', false);
+      }
+    } );
+  }
+
+  function HoldSelected(form) {
+    var recordArgs = [];
+    form.siblings('.ajaxItem').find('.checkbox-select-item').each( function() {
+      if(this.checked) {
+        var id = $(this).attr("value").split('|')[1];
+        //form.find('div.dropdown[id="' + id.substring(1)
+        recordArgs.push({'id': id});
+      }
+    } );
+    alert( JSON.stringify(recordArgs) );
+  }
+
+  setTimeout(ScanBulkButton, 10, $('#bulkAction<?=$list->id?>').parent());
+</script>
+<div class="checkbox EIN-col-m-12">
+  <label class="EIN-col-m-12">
+    <input type="checkbox" name="selectAll" class="checkbox-select-all" style="display:none"/>
+    <button class="btn-default btn-wide" onclick="ToggleAll($(this).siblings('.checkbox-select-all')); ScanBulkButton($(this).parents('form')); return false;"><?=$this->transEsc('select_page')?></button>
+    <div class="floatR">
+      <button class="btn-default btn-wide bulkButton" data-toggle="dropdown" data-target="#listBulkDropdown<?=$list->id?>"><?=$this->transEsc('with_selected')?><i class="fa fa-caret-down"></i></button>
+      <div class="EIN-col-m-12 dropdown" id="listBulkDropdown<?=$list->id?>">
+        <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+          <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form')); return false;" disabled>Hold</button></li>
+          <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$list->id?>').attr('name','delete');">Remove</button></li>
+        </ul>
+      </div>
+    </div>
   </label>
 </div>
-<div class="btn-group">
-  <? if ($this->userlist()->getMode() !== 'disabled'): ?>
+<div class="EIN-col-m-12">
+  <hr style="margin:5px 0">
+</div>
+<div class="btn-group" style="display:none">
+  <? if ($this->userlist()->getMode() !== 'disabled' && isset($list)): ?>
     <? if ($list->isBookCart()): ?>
       <input id="ribbon-save" class="btn btn-default modal-link" type="submit" name="saveList" title="<?=$this->transEsc('bookbag_save_selected')?>" value="<?=$this->transEsc('Add to List')?>"/>
     <? else: ?>

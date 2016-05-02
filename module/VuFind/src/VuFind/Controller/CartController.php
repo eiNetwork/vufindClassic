@@ -145,13 +145,6 @@ class CartController extends AbstractBase
      */
     public function myresearchbulkAction()
     {
-        // We came in from the MyResearch section -- let's remember which list (if
-        // any) we came from so we can redirect there when we're done:
-        $listID = $this->params()->fromPost('listID');
-        $this->session->url = empty($listID)
-            ? $this->url()->fromRoute('myresearch-bookcart')
-            : $this->url()->fromRoute('userList', ['id' => $listID]);
-
         // Now forward to the requested controller/action:
         $controller = 'Cart';   // assume Cart unless overridden below.
         if (strlen($this->params()->fromPost('email', '')) > 0) {
@@ -161,6 +154,25 @@ class CartController extends AbstractBase
         } else if (strlen($this->params()->fromPost('delete', '')) > 0) {
             $controller = 'MyResearch';
             $action = 'Delete';
+        } else if (strlen($this->params()->fromPost('addBulk', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'AddBulk';
+        } else if (strlen($this->params()->fromPost('createListBulk', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'EditList';
+            //$action = 'AddBulk';
+        } else if (strlen($this->params()->fromPost('changePickup', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'Holds';
+        } else if (strlen($this->params()->fromPost('cancel', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'Holds';
+        } else if (strlen($this->params()->fromPost('freeze', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'Holds';
+        } else if (strlen($this->params()->fromPost('unfreeze', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'Holds';
         } else if (strlen($this->params()->fromPost('saveList', '')) > 0) {
             $action = 'Save';
         } else if (strlen($this->params()->fromPost('add', '')) > 0) {

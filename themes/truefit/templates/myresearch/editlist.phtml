@@ -20,9 +20,20 @@
     <span id="list_titleError" class="formError"></span>
   </div>
   <input type="hidden" id="list_desc" name="desc" value="">
-  <? if( $this->recordId ): ?><input type="hidden" name="recordId" value="<?=$this->recordId ?>"><? endif; ?>
+  <? if( $this->recordId ): ?>
+    <? if( is_array($this->recordId) ): ?>
+      <? foreach( $this->recordId as $thisRecord ): ?>
+        <input type="hidden" name="recordId[]" value="<?=$thisRecord?>">
+      <? endforeach; ?>
+    <? else: ?>
+      <input type="hidden" name="recordId" value="<?=$this->recordId ?>">
+    <? endif; ?>
+  <? endif; ?>
   <input type="hidden" name="public" value="0" />
   <input type="hidden" name="submit" value="1" />
+  <? if (isset($this->bulkAction)): ?>
+    <input type="hidden" name="<?=$this->bulkAction?>" value="true" />
+  <? endif; ?>
 </form>
 <div class="modal-footer">
   <div id="editListFooter">

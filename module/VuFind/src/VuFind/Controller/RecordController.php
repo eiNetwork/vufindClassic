@@ -136,7 +136,7 @@ class RecordController extends AbstractRecord
         if( !$canHold ) {
             foreach($holdings as $holding) {
                 foreach($holding['items'] as $item) {
-                    $canCheckOut |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
+                    $canCheckOut |= isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
                 }
             }
         }

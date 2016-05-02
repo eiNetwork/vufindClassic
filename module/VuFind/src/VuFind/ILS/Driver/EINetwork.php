@@ -7,12 +7,30 @@
 namespace VuFind\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
+use Zend\Session\Container as SessionContainer;
 
 class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
 {
     use \VuFind\Db\Table\DbTableAwareTrait;
     use \VuFind\ILS\Driver\OverDriveTrait;
+
+    protected $session = null;
+
+    /**
+     * Initialize the driver.
+     *
+     * Validate configuration and perform all resource-intensive tasks needed to
+     * make the driver active.
+     *
+     * @throws ILSException
+     * @return void
+     */
+    public function init()
+    {
+        // create the session
+        $this->session = new SessionContainer("EINetwork");
+    }
 
     /**
      * Patron Login
@@ -31,6 +49,11 @@ class EINetwork extends Sierra2 implements
 /** BP => Client Credentials Grant **/
         // TODO: if username is a barcode, test to make sure it fits proper format
         if ($this->config['PATRONAPI']['enabled'] == 'true') {
+
+            if( $cachedInfo = $this->session->{'username' . base64_encode($username . ":" . $password)} ) {
+                return $cachedInfo;
+            }
+
             // use patronAPI to authenticate customer
             $url = $this->config['PATRONAPI']['url'];
             // build patronapi pin test request
@@ -99,6 +122,7 @@ class EINetwork extends Sierra2 implements
             // Only if agency module is enabled.
             $ret['region'] = $api_data['AGENCY'];
 
+            $this->session->{'username' . base64_encode($username . ":" . $password)} = $ret;
             return $ret;
         } else {
             // TODO: use screen scrape
@@ -129,6 +153,10 @@ class EINetwork extends Sierra2 implements
      */
     public function getMyProfile($patron)
     {
+        if( $this->session->patron ) {
+            return $this->session->patron;
+        }
+
         $patron = parent::getMyProfile($patron);
 
         $location = $this->getDbTable('Location')->getByCode($patron['homelibrarycode']);
@@ -150,6 +178,7 @@ class EINetwork extends Sierra2 implements
         $patron['OD_video'] = $lendingOptions["Video"];
         $patron['OD_renewalInDays'] = $lendingOptions["renewalInDays"];
 
+        $this->session->patron = $patron;
         return $patron;
     }
 
@@ -172,11 +201,16 @@ class EINetwork extends Sierra2 implements
      */
     public function getPickUpLocations($patron = false, $holdInfo = null)
     {
+        if( $this->session->pickup_locations ) {
+            return $this->session->pickup_locations;
+        }
+
         $locations = $this->getDbTable('Location')->getPickupLocations();
         $pickupLocations = [];
         foreach( $locations as $loc ) {
             $pickupLocations[] = ["locationID" => $loc->code, "locationDisplay" => $loc->displayName];
         }
+        $this->session->pickup_locations = $pickupLocations;
         return $pickupLocations;
     }
 
@@ -361,9 +395,9 @@ class EINetwork extends Sierra2 implements
 
             // get shelving details
             $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
-            $location = $this->getDBTable('location')->getByLocationId($shelfLoc->locationId);
-            $results[$i]['branchName'] = $location->displayName;
-            $results[$i]['shelvingLocation'] = $shelfLoc->shortName;
+            $location = (isset($shelfLoc) && $shelfLoc) ? $this->getDBTable('location')->getByLocationId($shelfLoc->locationId) : null;
+            $results[$i]['branchName'] = $location ? $location->displayName : null;
+            $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
 
             for($j=0; $j<count($results2) && $results[$i]['branchName'] > $results2[$j]['branchName']; $j++) {}
             array_splice($results2, $j, 0, [$results[$i]]);
@@ -683,5 +717,79 @@ echo $patronUpdateParams . "<br>";
     {
         // 1 year in the future
         return mktime(0, 0, 0, date('m'), date('d'), date('Y')+1);
+    }
+
+    /**
+     * Cancel Holds
+     *
+     * This is responsible for cancelling a patron's holds.
+     *
+     * @param array  $holds  The holds to cancel
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function cancelHolds($holds){
+        $success = true;
+        $overDriveHolds = [];
+        for($i=0; $i<count($holds["details"]); $i++ )
+        {
+            if( substr($holds["details"][$i], 0, 9) == "OverDrive" ) {
+                $overDriveHolds[] = substr(array_splice($holds["details"], $i, 1)[0], 9);
+                $i--;
+            }
+        }
+
+        // process the overdrive holds
+        foreach($overDriveHolds as $overDriveID ) {
+            $overDriveResults = $this->cancelOverDriveHold($overDriveID, $holds["patron"]);
+            $success &= $overDriveResults["result"];
+        }
+
+        // process the sierra holds
+        if( count($holds["details"]) > 0 ) {
+            $sierraResults = parent::cancelHolds($holds);
+            $success &= $sierraResults["success"];
+        }
+
+        return ["success" => $success];
+    }
+
+    /**
+     * Freeze Holds
+     *
+     * This is responsible for (un)freezing a patron's holds.
+     *
+     * @param array  $holds  The holds to freeze
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function freezeHolds($holds, $doFreeze){
+        $success = true;
+        $overDriveHolds = [];
+        for($i=0; $i<count($holds["details"]); $i++ )
+        {
+            if( substr($holds["details"][$i], 0, 9) == "OverDrive" ) {
+                $overDriveHolds[] = substr(array_splice($holds["details"], $i, 1)[0], 9);
+                $i--;
+            }
+        }
+
+        // process the overdrive holds
+        foreach($overDriveHolds as $overDriveID ) {
+            $overDriveResults = $this->freezeOverDriveHold($overDriveID, $holds["patron"], $doFreeze);
+            $success &= $overDriveResults["result"];
+        }
+
+        // process the sierra holds
+        if( count($holds["details"]) > 0 ) {
+            $sierraResults = parent::freezeHolds($holds, $doFreeze);
+            $success &= $sierraResults["success"];
+        }
+
+        return ["success" => $success];
     }
 }

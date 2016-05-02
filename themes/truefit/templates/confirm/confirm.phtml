@@ -3,11 +3,20 @@
 <?=$this->flashmessages();?>
 </div>
 <? foreach( $this->messages as $msg ): ?>
-  <div class="EIN-col-m-12 confirmText"><?=$this->transEsc($msg)?></div>
+  <? if (true === is_array($msg)): ?>
+    <? if (isset($msg["html"]) && $msg["html"]): ?>
+      <div class="EIN-col-m-12 confirmText"><?=$this->translate($msg["msg"], $msg["tokens"])?></div>
+    <? else: ?>
+      <div class="EIN-col-m-12 confirmText"><?=$this->transEsc($msg["msg"], $msg["tokens"])?></div>
+    <? endif; ?>
+  <? else: ?>
+    <div class="EIN-col-m-12 confirmText"><?=$this->transEsc($msg)?></div>
+  <? endif; ?>
 <? endforeach; ?>
 <div class="modal-footer">
   <div id="confirmFooter">
     <form id="confirmForm" action="<?=$this->escapeHtmlAttr($this->confirm)?>" method="post">
+      <input type="hidden" name="suppressFlashMessages" value="true">
       <input type="hidden" name="confirm" value="true">
       <? if (isset($this->extras)): ?>
         <? foreach ($this->extras as $extra=>$value): ?>
@@ -36,3 +45,5 @@
     Lightbox.submit($('#confirmForm'), function(html) { location.reload() } );
   }
 </script>
+
+

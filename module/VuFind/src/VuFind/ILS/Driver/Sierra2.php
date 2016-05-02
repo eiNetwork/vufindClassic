@@ -351,6 +351,8 @@ class Sierra2 extends Sierra implements
             $thisItem['location'] = $jsonVals->entries[$i]->pickupLocation->name;
             $thisItem['create'] = $jsonVals->entries[$i]->placed;
             $thisItem['expire'] = isset($jsonVals->entries[$i]->notNeededAfterDate) ? $jsonVals->entries[$i]->notNeededAfterDate : null;
+            $thisItem['status'] = $jsonVals->entries[$i]->status->code;
+            $thisItem['frozen'] = $jsonVals->entries[$i]->frozen;
             if( $jsonVals->entries[$i]->status->code == "i" ) {
                 $thisItem['available'] = true;
             } else {
@@ -447,12 +449,14 @@ class Sierra2 extends Sierra implements
      * null on unsuccessful login.
      */
     public function cancelHolds($holds){
+        $success = true;
         for($i=0; $i<count($holds["details"]); $i++ )
         {
             $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i],
                                                           \Zend\Http\Request::METHOD_DELETE));
+            $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
-        return ['success' => true];
+        return ['success' => $success];
     }
 
     /**
@@ -466,17 +470,18 @@ class Sierra2 extends Sierra implements
      * @return mixed          Associative array of patron info on successful login,
      * null on unsuccessful login.
      */
-/*
-    public function freezeHolds($holds){
+    public function freezeHolds($holds, $doFreeze){
+        $success = true;
         for($i=0; $i<count($holds["details"]); $i++ )
         {
-            $body = array('freeze' => 'true');
+            $body = json_encode(array('freeze' => $doFreeze));
             $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i], 
-                                                          \Zend\Http\Request::METHOD_PUT));
+                                                          \Zend\Http\Request::METHOD_PUT, 
+                                                          $body));
+            $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
-        return ['success' => true];
+        return ['success' => $success];
     }
-*/
 
     /**
      * Get Cancel Hold Details
@@ -631,7 +636,7 @@ class Sierra2 extends Sierra implements
                         "status" => $thisItem->status->code,
                         "location" => $thisItem->location->name,
                         "reserve" => "N",
-                        "callnumber" => str_replace("|a", " ", $thisItem->callNumber),
+                        "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
                         "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
                         "returnDate" => false,
                         "number" => $number,

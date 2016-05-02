@@ -4,6 +4,7 @@ return array(
     'helpers' => array(
         'factories' => array(
             'flashmessages' => 'VuFind\View\Helper\Truefit\Factory::getFlashmessages',
+            'record' => 'VuFind\View\Helper\Truefit\Factory::getRecord',
         )
     )
 );

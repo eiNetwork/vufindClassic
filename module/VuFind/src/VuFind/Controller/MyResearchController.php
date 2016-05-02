@@ -31,7 +31,8 @@ use VuFind\Exception\Auth as AuthException,
     VuFind\Exception\Mail as MailException,
     VuFind\Exception\ListPermission as ListPermissionException,
     VuFind\Exception\RecordMissing as RecordMissingException,
-    VuFind\Search\RecommendListener, Zend\Stdlib\Parameters;
+    VuFind\Search\RecommendListener, Zend\Stdlib\Parameters, 
+    Zend\Session\Container as SessionContainer;
 
 /**
  * Controller for the user account area.
@@ -44,6 +45,21 @@ use VuFind\Exception\Auth as AuthException,
  */
 class MyResearchController extends AbstractBase
 {
+    /**
+     * Session container
+     *
+     * @var SessionContainer
+     */
+    protected $session;
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->session = new SessionContainer('MyResearchController');
+    }
+
     /**
      * Process an authentication error.
      *
@@ -483,6 +499,7 @@ class MyResearchController extends AbstractBase
 
         // Get target URL for after deletion:
         $listID = $this->params()->fromPost('listID');
+        $this->session->lastList = $listID;
 
         // Fail if we have nothing to delete:
         $ids = $this->params()->fromPost('ids');
@@ -514,6 +531,39 @@ class MyResearchController extends AbstractBase
                 'records' => $this->getRecordLoader()->loadBatch($ids)
             ]
         );
+    }
+
+    /**
+     * Add group of records to favorites.
+     *
+     * @return mixed
+     */
+    public function addBulkAction()
+    {
+        // Force login:
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->forceLogin();
+        }
+
+        // Get target URL for after deletion:
+        $listID = $this->params()->fromPost('listID');
+        $this->session->lastList = $listID;
+        $listID = $this->params()->fromPost('addListID');
+
+        // Fail if we have nothing to delete:
+        $ids = $this->params()->fromPost('ids');
+        if (!is_array($ids) || empty($ids)) {
+            $this->flashMessenger()->addMessage('bulk_noitems_advice', 'error');
+            return $this->redirect()->toUrl($newUrl);
+        }
+
+        // Process the adds:
+        $this->favorites()->saveBulk(['ids' => $ids, 'list' => $listID], $user);
+        $this->flashMessenger()->addMessage((count($ids) == 1) ? 'single_save_success' : 'multiple_save_success', 'info');
+        $view = $this->createViewModel(['skip' => true, 'reloadParent' => true]);
+        $view->setTemplate('blankModal');
+        return $view;
     }
 
     /**
@@ -763,7 +813,7 @@ class MyResearchController extends AbstractBase
             }
 
             return $this->createViewModel(
-                ['results' => $results]
+                ['results' => $results, 'showList' => $this->session->lastList]
             );
         } catch (ListPermissionException $e) {
             if (!$this->getUser()) {
@@ -792,16 +842,13 @@ class MyResearchController extends AbstractBase
             // If the user is in the process of saving a record, send them back
             // to the save screen; otherwise, send them back to the list they
             // just edited.
-            $recordId = $this->params()->fromQuery('recordId');
+            $recordId = $this->params()->fromQuery('recordId', $this->params()->fromPost('recordId'));
             $recordSource = $this->params()->fromQuery('recordSource', 'VuFind');
             if (!empty($recordId)) {
-                $record = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($recordId, $recordSource, true);
-                $record->saveToFavorites(['list' => $finalId], $user);
+                $this->favorites()->saveBulk(['ids' => (is_array($recordId) ? $recordId : [$recordSource."|".$recordId]), 'list' => $finalId], $user);
+
                 // success message
-                $this->flashMessenger()->setNamespace('info')->addMessage('list_create_add');
-                $details = $this->getRecordRouter()->getTabRouteDetails(
-                    $recordSource . '|' . $recordId
-                );
+                $this->flashMessenger()->setNamespace('info')->addMessage(is_array($recordId) ? 'list_create_add_multiple' : 'list_create_add_single');
                 $view = $this->createViewModel();
                 $view->setTemplate('blankModal');
                 return $view;
@@ -862,7 +909,7 @@ class MyResearchController extends AbstractBase
         // Is this a new list or an existing list?  Handle the special 'NEW' value
         // of the ID parameter:
         $id = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
-        $recordId = $this->params()->fromRoute('recordId', $this->params()->fromQuery('recordId'));
+        $recordId = $this->params()->fromRoute('recordId', $this->params()->fromQuery('recordId', $this->params()->fromPost('recordId')));
         $table = $this->getTable('UserList');
         $newList = ($id == 'NEW');
         $list = $newList ? $table->getNew($user) : $table->getExisting($id);
@@ -875,12 +922,17 @@ class MyResearchController extends AbstractBase
         // Process form submission:
         if ($this->formWasSubmitted('submit')) {
             if ($redirect = $this->processEditList($user, $list, $newList)) {
+                $this->session->lastList = $list->id;
                 return $redirect;
             }
         }
 
         // Send the list to the view:
-        return $this->createViewModel(['list' => $list, 'newList' => $newList, 'recordId' => $recordId]);
+        $args = ['list' => $list, 'newList' => $newList, 'recordId' => $recordId];
+        if( $this->params()->fromPost("createListBulk") != null ) {
+            $args["bulkAction"] = "createListBulk";
+        }
+        return $this->createViewModel($args);
     }
 
     /**
@@ -924,6 +976,7 @@ class MyResearchController extends AbstractBase
                 }
             }
             // Redirect to MyResearch home
+            unset($this->session->lastList);
             $view = $this->createViewModel();
             $view->setTemplate('blankModal');
             return $view;
@@ -990,12 +1043,25 @@ class MyResearchController extends AbstractBase
         if (!is_array($view->cancelResults)) {
             return $view->cancelResults;
         }
-        // By default, assume we will not need to display a cancel form:
-        $view->cancelForm = false;
+
+        // Process unfreeze requests if necessary:
+        $unfreezeStatus = $catalog->checkFunction('freezeHolds', compact('patron'));
+        $view = $this->createViewModel();
+        $view->cancelResults = $unfreezeStatus
+            ? $this->holds()->unfreezeHolds($catalog, $patron) : [];
+        // If we need to confirm
+        if (!is_array($view->cancelResults)) {
+            return $view->cancelResults;
+        }
+
+        // tell the view if it needs to hide the flash messages
+        if( $this->params()->fromPost('suppressFlashMessages') ) {
+            $view->suppressFlashMessages = $this->params()->fromPost('suppressFlashMessages');
+        }
 
         // Get held item details:
         $result = $catalog->getMyHolds($patron);
-        $recordList = [];
+        $holdList = ['ready' => [], 'transit' => [], 'hold' => [], 'frozen' => []];
         $this->holds()->resetValidation();
         foreach ($result as $current) {
             // Add cancel details if appropriate:
@@ -1010,7 +1076,8 @@ class MyResearchController extends AbstractBase
             }
 
             // Build record driver:
-            $recordList[] = $this->getDriverForILSRecord($current);
+            $current["driver"] = $this->getDriverForILSRecord($current);
+            $holdList[($current["status"] == "i") ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'))][] = $current;
         }
 
         // Get List of PickUp Libraries based on patron's home library
@@ -1020,7 +1087,7 @@ class MyResearchController extends AbstractBase
             // Do nothing; if we're unable to load information about pickup
             // locations, they are not supported and we should ignore them.
         }
-        $view->recordList = $recordList;
+        $view->holdList = $holdList;
         return $view;
     }
 

@@ -191,6 +191,7 @@ trait HoldsTrait
 
         $view = $this->createViewModel(
             [
+                'skip' => true, 
                 'gatheredDetails' => $gatheredDetails,
                 'pickup' => $pickup,
                 'defaultPickup' => $defaultPickup,

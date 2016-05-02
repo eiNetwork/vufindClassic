@@ -1,13 +1,22 @@
 <? if (isset($list)): ?>
   <input type="hidden" name="listID" value="<?=$this->escapeHtmlAttr($list->id)?>" />
   <input type="hidden" name="listName" value="<?=$this->escapeHtmlAttr($list->title)?>" />
-  <input type="hidden" id="bulkAction<?=$list->id?>" name="action" value="true" />
+  <? $bulkID = $list->id; ?>
+<? elseif (isset($hold)): ?>
+  <? $bulkID = $hold; ?>
+  <input type="hidden" name="confirm" value="0" />
 <? endif; ?>
+<input type="hidden" id="bulkAction<?=$bulkID?>" name="action" value="true" />
+<input type="hidden" id="bulkAction2<?=$bulkID?>" name="action2" value="true" />
 <? $user = $this->auth()->isLoggedIn(); ?>
 <script type="text/javascript">
   function ToggleAll(target) {
     target.prop('checked', !(target.prop('checked')));
     target.parents('.panel-body').find('.checkbox-select-item').prop('checked', target.prop('checked'));
+    target.parents('.panel-body').find('.fa-square-o').addClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
+    target.parents('.panel-body').find('.fa-square-o').removeClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
+    target.parents('.panel-body').find('.fa-check-square').addClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
+    target.parents('.panel-body').find('.fa-check-square').removeClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
   }
 
   function ScanBulkButton(form) {
@@ -32,18 +41,74 @@
     alert( JSON.stringify(recordArgs) );
   }
 
-  setTimeout(ScanBulkButton, 10, $('#bulkAction<?=$list->id?>').parent());
+  function ConfirmSelected(form, id, action) {
+    form.find('#bulkAction' + id).attr('name',action);
+    form.find('#bulkAction2' + id).attr('name',action + 'Selected');
+    form.find('.temporaryInput').remove();
+    form.find('.checkbox-select-item').each(function() {
+      if( $(this).prop('checked') ) {
+        $(this).append('<input type="hidden" class="temporaryInput" name="' + action + 'SelectedIDS[]" value="' + $(this).attr('value') + '">');
+        var twin = form.siblings('.ajaxItem').find('.checkbox-select-item[value="' + $(this).attr("value") + '"]');
+        var title = twin.parents('table').find('.itemTitle').children('a').html();
+        $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + encodeURI(title) + '">');
+      }
+    } );
+  }
+
+  function AddSelected(form, id, listID) {
+    form.find('.temporaryInput').remove();
+    if( listID == "NEW" ) {
+      form.find('#bulkAction' + id).attr('name','createListBulk');
+      form.find('#bulkAction2' + id).attr('name','id');
+      form.find('#bulkAction2' + id).attr('value','NEW');
+      form.find('.checkbox-select-item').each(function() {
+        if( $(this).prop('checked') ) {
+           $(this).append('<input type="hidden" class="temporaryInput" name="recordId[]" value="' + $(this).attr('value') + '">');
+        }
+      } );
+      bulkActionSubmit(form);
+    } else {
+      form.find('#bulkAction' + id).attr('name','addBulk');
+      form.find('#bulkAction2' + id).attr('name','addListID');
+      form.find('#bulkAction2' + id).attr('value',listID);
+    }
+  }
+
+  setTimeout(ScanBulkButton, 10, $('#bulkAction<?=$bulkID?>').parent());
 </script>
 <div class="checkbox EIN-col-m-12">
   <label class="EIN-col-m-12">
     <input type="checkbox" name="selectAll" class="checkbox-select-all" style="display:none"/>
     <button class="btn-default btn-wide" onclick="ToggleAll($(this).siblings('.checkbox-select-all')); ScanBulkButton($(this).parents('form')); return false;"><?=$this->transEsc('select_page')?></button>
     <div class="floatR">
-      <button class="btn-default btn-wide bulkButton" data-toggle="dropdown" data-target="#listBulkDropdown<?=$list->id?>"><?=$this->transEsc('with_selected')?><i class="fa fa-caret-down"></i></button>
-      <div class="EIN-col-m-12 dropdown" id="listBulkDropdown<?=$list->id?>">
+      <? if (isset($hold) && (($hold == "ready") || ($hold == "transit"))): ?>
+        <button class="btn-default btn-wide bulkButton" onclick="CancelSelected($(this).parents('form'), '<?=$bulkID?>')">Cancel Selected</button>
+      <? else: ?>
+        <button class="btn-default btn-wide bulkButton" data-toggle="dropdown" data-target="#listBulkDropdown<?=$bulkID?>"><?=$this->transEsc('with_selected')?><i class="fa fa-caret-down"></i></button>
+      <? endif; ?>
+      <div class="EIN-col-m-12 dropdown" id="listBulkDropdown<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
-          <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form')); return false;" disabled>Hold</button></li>
-          <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$list->id?>').attr('name','delete');">Remove</button></li>
+          <? if (isset($list)): ?>
+<!--
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form')); return false;" disabled>Hold</button></li>
+-->
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','delete');bulkActionSubmit($(this).parents('form'));return false;">Remove...</button></li>
+            <hr class="stretchHR">
+            <? if( $lists = $user->getLists() ): ?>
+              <? foreach( $lists as $thisList ): ?>
+                <? if( $thisList->id != $list->id ): ?>
+                  <li><button class="btn-dropdown btn-standardDropdown" onclick="AddSelected($(this).parents('form'), '<?=$bulkID?>', <?=$thisList->id?>)"><?=$thisList->title?></button></li>
+                <? endif; ?>
+              <? endforeach; ?>
+            <? endif; ?>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="AddSelected($(this).parents('form'), '<?=$bulkID?>', 'NEW');return false;">New list...</button></li>
+            <hr class="stretchHR">
+            <li><span class="modalNote">Click a list name to add all selected titles.  Click 'Remove...' to remove selected titles from this list.</span></li>
+          <? elseif (isset($hold) && (($hold == "hold") || ($hold == "frozen"))): ?>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','changePickup');">Change Pickup</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', '<?=(($hold=='frozen')?'unfreeze':'freeze')?>')"><?=(($hold=='frozen')?'Unfreeze':'Freeze')?></button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', 'cancel')">Cancel</button></li>
+          <? endif; ?>
         </ul>
       </div>
     </div>
@@ -51,13 +116,4 @@
 </div>
 <div class="EIN-col-m-12">
   <hr style="margin:5px 0">
-</div>
-<div class="btn-group" style="display:none">
-  <? if ($this->userlist()->getMode() !== 'disabled' && isset($list)): ?>
-    <? if ($list->isBookCart()): ?>
-      <input id="ribbon-save" class="btn btn-default modal-link" type="submit" name="saveList" title="<?=$this->transEsc('bookbag_save_selected')?>" value="<?=$this->transEsc('Add to List')?>"/>
-    <? else: ?>
-      <input type="submit" class="btn btn-default" name="add" value="<?=$this->transEsc('Add to Book Cart')?>"/>
-    <? endif; ?>
-  <? endif; ?>
 </div>

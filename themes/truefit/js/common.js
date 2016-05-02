@@ -120,11 +120,6 @@ function phoneNumberFormHandler(numID, regionCode) {
 function bulkActionSubmit($form) {
   var button = $form.find('[type="submit"][clicked=true]');
   var submit = button.attr('name');
-  var checks = $form.find('input.checkbox-select-item:checked');
-  if(checks.length == 0 && submit != 'empty') {
-    Lightbox.displayError(vufindString['bulk_noitems_advice']);
-    return false;
-  }
   if (submit == 'print') {
     //redirect page
     var url = path+'/Records/Home?print=true';
@@ -153,13 +148,6 @@ function registerLightboxEvents() {
   $('.back-to-login').click(function() {
     Lightbox.getByUrl(Lightbox.openingURL);
     return false;
-  });
-  // Select all checkboxes
-  $(modal).find('.checkbox-select-all').change(function() {
-    $(this).closest('.modal-body').find('.checkbox-select-item').prop('checked', this.checked);
-  });
-  $(modal).find('.checkbox-select-item').change(function() {
-    $(this).closest('.modal-body').find('.checkbox-select-all').prop('checked', false);
   });
   // Highlight which submit button clicked
   $(modal).find("form [type=submit]").click(function() {
@@ -388,14 +376,6 @@ $(document).ready(function() {
     var $lookfor = $(this).closest('.searchForm').find('.searchForm_lookfor[name]');
     var query = $lookfor.val();
     $lookfor.focus().typeahead('val', '').typeahead('val', query);
-  });
-
-  // Checkbox select all
-  $('.checkbox-select-all').change(function() {
-    $(this).closest('form').find('.checkbox-select-item').prop('checked', this.checked);
-  });
-  $('.checkbox-select-item').change(function() {
-    $(this).closest('form').find('.checkbox-select-all').prop('checked', false);
   });
 
   // handle QR code links

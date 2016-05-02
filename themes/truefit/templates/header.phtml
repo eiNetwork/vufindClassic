@@ -46,7 +46,7 @@
     <? endif; ?>
   <? endforeach; ?>
         <li class="loggedInName"><?= $displayName ?></li>
-        <li><button class="btn-dropdown btn-whiteDropdown">Message Center<span class="badge">2</span></button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown">Message Center</button></li>
         <li><a href="<?=$this->url('myresearch-mylist')?>"><button class="btn-dropdown btn-whiteDropdown">Lists<? if($listCount>0): ?><span class="badge"><?=$listCount?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-bookcart')?>"><button class="btn-dropdown btn-whiteDropdown">Book Cart<? if($bookCartCount>0): ?><span class="badge"><?=$bookCartCount?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds</button></a></li>

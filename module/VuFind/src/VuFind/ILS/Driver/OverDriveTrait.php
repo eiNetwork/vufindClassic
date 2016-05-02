@@ -417,6 +417,9 @@ trait OverDriveTrait {
         if (isset($response->holds)){
             foreach ($response->holds as $curTitle){
                 $hold = array();
+                $hold['status'] = isset($curTitle->actions->checkout) ? "i" : "-";
+                $hold['frozen'] = isset($curTitle->holdSuspension);
+                $hold['hold_id'] = "OverDrive" . $curTitle->reserveId;
                 $hold['overDriveId'] = $curTitle->reserveId;
                 $hold['notifyEmail'] = $curTitle->emailAddress;
                 $hold['holdQueueLength'] = $curTitle->numberOfHolds;
@@ -520,15 +523,11 @@ trait OverDriveTrait {
     /**
      * @param User $user
      * @param string $overDriveId
-     * @param string $format
      * @return array
      */
-/*
     public function cancelOverDriveHold($overDriveId, $user){
-        global $memcache;
-
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
-        $response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+        $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, null, 'DELETE');
 
         $cancelHoldResult = array();
         $cancelHoldResult['result'] = false;
@@ -539,10 +538,39 @@ trait OverDriveTrait {
         }else{
             $cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
         }
-        $memcache->delete('overdrive_summary_' . $user->id);
         return $cancelHoldResult;
     }
-*/
+
+    /**
+     * @param User $user
+     * @param string $overDriveId
+     * @param boolean $freeze
+     * @return array
+     */
+    public function freezeOverDriveHold($overDriveId, $user, $doFreeze){
+        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId . "/suspension";
+        if( $doFreeze ) {
+            $params = array(
+                "emailAddress" => $user["email"],
+                "suspensionType" => "indefinite"
+            );
+            $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, $params);
+        } else {
+            $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, null, 'DELETE');
+        }
+
+        $freezeHoldResult = array();
+        $freezeHoldResult['result'] = false;
+        $freezeHoldResult['message'] = '';
+
+        if ($response === true || ($doFreeze && ($response->reserveId == $overDriveId) && isset($response->holdSuspension))){
+            $freezeHoldResult['result'] = true;
+            $freezeHoldResult['message'] = 'Your hold was ' . ($doFreeze ? "" : "un") . 'frozen successfully.';
+        }else{
+            $freezeHoldResult['message'] = 'There was an error ' . ($doFreeze ? "" : "un") . 'freezing your hold.  ' . $response->message;
+        }
+        return $freezeHoldResult;
+    }
 
     /**
      *

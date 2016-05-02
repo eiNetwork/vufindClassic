@@ -249,9 +249,9 @@
                       <? foreach($thisHolding['items'] as $item): ?>
                         <? if($item['availability']): ?>
                           <tr class="availabilityRow">
-                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : json_encode($item))?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? $item['callnumber'] : "")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? $item['callnumber'] : "UNKNOWN")?></td>
                           </tr>
                         <? endif; ?>
                       <? endforeach; ?>
@@ -275,9 +275,9 @@
                       <? foreach($thisHolding['items'] as $item): ?>
                         <? if(!$item['availability']): ?>
                           <tr class="availabilityRow">
-                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : json_encode($item))?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['displayStatus']) ? $item['displayStatus'] : "")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN")?></td>
                           </tr>
                         <? endif; ?>
                       <? endforeach; ?>

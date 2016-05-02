@@ -1,10 +1,10 @@
 <?php
 /**
- * Factory for Truefit view helpers.
+ * Record driver view helper
  *
  * PHP version 5
  *
- * Copyright (C) Villanova University 2014.
+ * Copyright (C) Villanova University 2010.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -26,46 +26,52 @@
  * @link     http://vufind.org/wiki/vufind2:developer_manual Wiki
  */
 namespace VuFind\View\Helper\Truefit;
-use Zend\ServiceManager\ServiceManager;
 
 /**
- * Factory for Bootstrap view helpers.
+ * Record driver view helper
  *
  * @category VuFind2
  * @package  View_Helpers
  * @author   Demian Katz <demian.katz@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/vufind2:developer_manual Wiki
- *
- * @codeCoverageIgnore
  */
-class Factory extends \VuFind\View\Helper\Bootstrap3\Factory
+class Record extends \VuFind\View\Helper\Root\Record
 {
     /**
-     * Construct the Flashmessages helper.
+     * Render an entry for a hold on this item.
      *
-     * @param ServiceManager $sm Service manager.
+     * @param Object                  Object containing hold information
+     * @param \VuFind\Db\Row\User     $user Current logged in user (false if none)
      *
-     * @return Flashmessages
+     * @return string
      */
-    public static function getFlashmessages(ServiceManager $sm)
+    public function getHoldEntry($hold, $user = false)
     {
-        $messenger = $sm->getServiceLocator()->get('ControllerPluginManager')
-            ->get('FlashMessenger');
-        return new Flashmessages($messenger);
+        return $this->renderTemplate(
+            'hold-entry.phtml',
+            [
+                'driver' => $this->driver,
+                'hold' => $hold,
+                'user' => $user
+            ]
+        );
     }
 
     /**
-     * Construct the Record helper.
+     * Render an HTML checkbox control for the current record.
      *
-     * @param ServiceManager $sm Service manager.
+     * @param string $idPrefix Prefix for checkbox HTML ids
      *
-     * @return Record
+     * @return string
      */
-    public static function getRecord(ServiceManager $sm)
+    public function getHoldCheckbox($holdId)
     {
-        return new Record(
-            $sm->getServiceLocator()->get('VuFind\Config')->get('config')
+        static $checkboxCount = 0;
+        $context
+            = ['overruleId' => $holdId, 'count' => $checkboxCount++];
+        return $this->contextHelper->renderInContext(
+            'record/checkbox.phtml', $context
         );
     }
 }

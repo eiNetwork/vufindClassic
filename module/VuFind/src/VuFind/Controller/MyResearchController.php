@@ -358,17 +358,26 @@ class MyResearchController extends AbstractBase
         // User must be logged in at this point, so we can assume this is non-false:
         $user = $this->getUser();
 
+        // see whether we need to keep track of this or not
+        if( $referringSection = $this->params()->fromPost('profileSection', false) ) {
+            $this->session->lastProfileSection = $referringSection;
+        }
+
         // Process update parameters (if present):
         $notification = $this->params()->fromPost('notification', false);
         $preferredLibrary = $this->params()->fromPost('preferred_library', false);
         $alternateLibrary = $this->params()->fromPost('alternate_library', false);
         $phone = $this->params()->fromPost('phone', false);
         $email = $this->params()->fromPost('email', false);
+        $pin = $this->params()->fromPost('pin', false);
         $OD_eBook = $this->params()->fromPost('OD_eBook', false);
         $OD_audiobook = $this->params()->fromPost('OD_audiobook', false);
         $OD_video = $this->params()->fromPost('OD_video', false);
-        if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || 
+        if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || !empty($pin) || 
             !empty($email) || !empty($OD_eBook) || !empty($OD_audiobook) || !empty($OD_video) ) {
+            // save the profile section
+            $this->session->lastProfileSection = $referringSection;
+
             // grab this to compare it to what we've got now
             $catalog = $this->getILS();
             $profile = $catalog->getMyProfile($patron);
@@ -390,6 +399,9 @@ class MyResearchController extends AbstractBase
             if( !empty($email) && $profile["email"] != $email ) {
                 $updatedInfo["emails"] = [$email];
             }
+            if( !empty($pin) ) {
+                $updatedInfo["pin"] = $pin;
+            }
             if( !empty($OD_eBook) && intval($profile["OD_eBook"]) != $OD_eBook ) {
                 $updatedInfo["ebook"] = $OD_eBook;
             }
@@ -399,24 +411,52 @@ class MyResearchController extends AbstractBase
             if( !empty($OD_video) && intval($profile["OD_video"]) != $OD_video ) {
                 $updatedInfo["video"] = $OD_video;
             }
-            $this->getILS()->updateMyProfile($patron, $updatedInfo);
-            $this->getAuthManager()->updateSession($user);
-            $this->flashMessenger()->setNamespace('info')
-                ->addMessage('profile_update');
+            $results = $this->getILS()->updateMyProfile($patron, $updatedInfo);
+
+            // look for error
+            if( isset($results["success"]) && !$results["success"] && isset($updatedInfo["pin"]) ) {
+                $this->flashMessenger()->addMessage('illegal_pin', 'error');
+            } else {
+                $post = $this->getRequest()->getPost();
+                $post->username = $patron["cat_username"];
+                $post->password = isset($updatedInfo["pin"]) ? $updatedInfo["pin"] : $patron["cat_password"];
+                // Login to grab the new info
+                $this->getAuthManager()->login($this->getRequest());
+                $profile = $catalog->getMyProfile($patron, true);
+                $this->getAuthManager()->updateSession($user);
+                $this->flashMessenger()->addMessage('profile_update', 'info');
+            }
         }
 
         // Begin building view object:
         $view = $this->createViewModel();
+        if( isset($this->session->lastProfileSection) ) {
+            $view->showProfileSection = $this->session->lastProfileSection;
+        }
+        if( $suppression = $this->params()->fromPost("suppressFlashMessages", false) ) {
+            $view->suppressFlashMessages = $suppression;
+        }
+        if( $reloadParent = $this->params()->fromPost("reloadParent", false) ) {
+            $view->reloadParent = $reloadParent;
+        }
 
         // Obtain user information from ILS:
         $catalog = $this->getILS();
         $profile = $catalog->getMyProfile($patron);
         $profile['home_library'] = $user->home_library;
+
+        // show extra messages
+        if( strlen($profile["phone"]) != 12 || preg_match('/\d{3}-\d{3}-\d{4}/', $profile["phone"]) != 1 ) {
+            $this->flashMessenger()->addMessage('correct_phone_format', 'info');
+        }
+        if( !isset($profile["preferredlibrarycode"]) || !$profile["preferredlibrarycode"] ) {
+            $this->flashMessenger()->addMessage('set_preferred_library', 'info');
+        }
+
         $view->profile = $profile;
         try {
             $view->pickup = $catalog->getPickUpLocations($patron);
-            $view->defaultPickupLocation
-                = $catalog->getDefaultPickUpLocation($patron);
+            $view->defaultPickupLocation = $catalog->getDefaultPickUpLocation($patron);
         } catch (\Exception $e) {
             // Do nothing; if we're unable to load information about pickup
             // locations, they are not supported and we should ignore them.

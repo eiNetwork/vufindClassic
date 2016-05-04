@@ -151,9 +151,9 @@ class EINetwork extends Sierra2 implements
      * @throws ILSException
      * @return array          Array of the patron's profile data on success.
      */
-    public function getMyProfile($patron)
+    public function getMyProfile($patron, $forceReload=false)
     {
-        if( $this->session->patron ) {
+        if( !$forceReload && $this->session->patron ) {
             return $this->session->patron;
         }
 
@@ -406,9 +406,9 @@ class EINetwork extends Sierra2 implements
     }
 
     public function updateMyProfile($patron, $updatedInfo){
-        // update the phone and email
-        if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) ) {
-            parent::updateMyProfile($patron, $updatedInfo);
+        // update the phone, email, and/or notification setting
+        if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) || isset($updatedInfo['pin']) /*|| isset($updatedInfo['notices'])*/ ) {
+            return parent::updateMyProfile($patron, $updatedInfo);
         }
 
         // see whether they have given us an updated preferred library
@@ -437,7 +437,7 @@ class EINetwork extends Sierra2 implements
 
         // see whether they have given us the notification setting
         if( isset($updatedInfo['notices']) ) {
-/**
+/*
             //Login to the patron's account
             $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
             $success = false;
@@ -460,6 +460,7 @@ echo $curl_url. "<br>";
 echo $post_string. "<br>";
             curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
             $sresult = curl_exec($curl_connection);
+echo $sresult . "<br>";
 echo (strpos("PATTON", $sresult) ? "TRUE" : "FALSE") . "<br>";
 
 /*
@@ -473,10 +474,11 @@ echo (strpos("PATTON", $sresult) ? "TRUE" : "FALSE") . "<br>";
             $sresult = curl_exec($curl_connection);
 echo $curl_url . "<br>";
 echo $patronUpdateParams . "<br>";
-//echo $sresult . "<br>";
+echo $sresult . "<br>";
             curl_close($curl_connection);
             unlink($cookieJar);
 
+/*
         //$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
 
         //Should get Patron Information Updated on success
@@ -562,6 +564,9 @@ echo $patronUpdateParams . "<br>";
         }
 */
         }
+
+        unset($this->session->patron);
+        $this->getMyProfile($patron);
     }
 
     /**

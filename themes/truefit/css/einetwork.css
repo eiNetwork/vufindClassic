@@ -300,3 +300,9 @@ input:-webkit-autofill {-webkit-box-shadow: 0 0 0 1000px white inset;}
 
 i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 .confirmText{color:#3d3d3d}
+.fieldTitle{font-size:12px;font-weight:700;color:#3d3d3d;text-align:left}
+.fieldValue{font-size:18px;color:#3d3d3d;text-align:left}
+.clickable{cursor:pointer}
+.editProperty{width:100%}
+.userHasFocused{color:#3d3d3d}
+.registerDropdown{font-size:18px;color:#3d3d3d;height:40px;padding:5px 8px;margin-top:3px;outline:none;border-radius:4px;border:1px solid #949494}

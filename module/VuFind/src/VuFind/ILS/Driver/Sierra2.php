@@ -555,12 +555,13 @@ class Sierra2 extends Sierra implements
      *
      * @param array $patron     The patron to be updated
      * @param array $updateBody Specific parameters to change.  Consists of an array containing only keys in the following set: 
-     *                            ["emails", "names", "addresses", "phones"]
+     *                            ["emails", "names", "addresses", "phones", "pin"]
      */
     public function updateMyProfile($patron, $updateBody){
-        $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'], 
-                              \Zend\Http\Request::METHOD_PUT, 
-                              json_encode($updateBody));
+        $result = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'], 
+                                                    \Zend\Http\Request::METHOD_PUT, 
+                                                    json_encode($updateBody)));
+        return ["success" => (!isset($result->code) && !isset($result->specificCode))];
     }
 
     /**

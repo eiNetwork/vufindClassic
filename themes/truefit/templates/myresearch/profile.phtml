@@ -12,182 +12,224 @@
     $arrTemplate = '<tr><th>%%LABEL%%:</th><td> %%VALUE%%</td></tr>';
 ?>
 
-<div class="row">
-  <div class="<?=$this->layoutClass('mainbody')?>">
-    <div id="staticProfile">
-      <h2><?=$this->transEsc('Your Profile')?></h2>
-      <?=$this->flashmessages();?>
-      <table class="table table-striped">
-        <?
-          echo $this->renderArray(
-            $arrTemplate, $this->profile,
-            array(
-              $this->transEsc('First Name') => 'firstname',
-              $this->transEsc('Last Name') => 'lastname',
-              $this->transEsc('Notification Preference') => 'notification',
-              $this->transEsc('Library Card Number') => 'cat_username',
-              $this->transEsc('Card Expires') => 'expiration',
-              $this->transEsc('My Preferred Library') => 'preferredlibrary',
-              $this->transEsc('My Alternate Library') => 'alternatelibrary',
-              $this->transEsc('Address') => 'address1',
-              $this->transEsc('My Home Library') => 'homelibrary',
-              $this->transEsc('Phone Number') => 'phone',
-              $this->transEsc('Email') => 'email'
-            )
-          );
-        ?>
-      </table>
-      <h4>OverDrive E-Content Lending Options</h4>
-      <table class="table table-striped">
-        <?
-          echo $this->renderArray(
-            $arrTemplate, $this->profile,
-            array(
-              $this->transEsc('eBook') => 'OD_eBook',
-              $this->transEsc('Audiobook') => 'OD_audiobook',
-              $this->transEsc('Video') => 'OD_video'
-            )
-          );
-        ?>
-      </table>
-      <button onClick="showProfileType('dynamic');">Edit Profile</button>
+<?=($this->suppressFlashMessages) ? "" : $this->flashmessages()?>
+
+<div class="EIN-col-m-12 padded">
+  <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
+    <div class="facetTitle">Profile</div>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed"><?=$this->transEsc('profile_aboutMe')?></a>
+        <div class="openAccordionTab"></div>
+      </h4>
     </div>
-    <div id="dynamicProfile" style="display:none">
-      <form id="profile_form" class="form-inline" action="/vufind/MyResearch/Profile" method="post">
-        <h2><?=$this->transEsc('Edit Your Profile')?></h2>
-        <?=$this->flashmessages();?>
-        <table class="table table-striped">
-          <?
-            echo $this->renderArray(
-              $arrTemplate, $this->profile,
-              array(
-                $this->transEsc('First Name') => 'firstname',
-                $this->transEsc('Last Name') => 'lastname'
-              )
-            );
-           ?>
-            <tr><th><?=$this->transEsc('Notification Preference')?>:</th>
-            <?
-              $selected = (isset($this->profile['notification']) && $this->profile['notification'] != "")
-                  ? $this->profile['notification'] : '';
-            ?>
-            <td>
-              <select id="notification" name="notification" class="form-control">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed"><?=$this->transEsc('profile_card')?></a>
+        <div class="openAccordionTab"></div>
+      </h4>
+    </div>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed"><?=$this->transEsc('profile_security')?></a>
+        <div class="openAccordionTab"></div>
+      </h4>
+    </div>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed"><?=$this->transEsc('profile_libraries')?></a>
+        <div class="openAccordionTab"></div>
+      </h4>
+    </div>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed"><?=$this->transEsc('profile_overdrive')?></a>
+        <div class="openAccordionTab"></div>
+      </h4>
+    </div>
+    <div class="panel-heading"></div>
+  </div> 
+  <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9 panel-group" id="profileAccordion">
+    <h1 class="pageTitle EIN-hide-t EIN-hide">Profile</h1>
+    <div class="panel panel-default listAccordion">
+      <div class="panel-heading EIN-hide-t EIN-hide">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed"><?=$this->transEsc('profile_aboutMe')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+        </h4>
+      </div>
+      <div id="profile_aboutMe" class="panel-collapse collapse">
+        <div class="panel-body">
+          <div class="EIN-col-m-12" style="height:5px"></div>
+          <form class="form-inline" method="post" action="<?=$this->url('myresearch-profile')?>" target="loginFrame">
+            <input type="hidden" name="profileSection" value="aboutMe" />
+            <input type="hidden" name="suppressFlashMessages" value="true" />
+            <input type="hidden" name="reloadParent" value="true" />
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Name</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["firstname"] . " " . $this->profile["lastname"]?></div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Address</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["address1"]?></div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Email</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Email','propertyName':'email','currentValue':'<?=$this->profile["email"]?>'}})"><?=$this->profile["email"]?><i class="fa fa-pencil floatR"></i></div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Phone Number</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Phone Number','propertyName':'phone','currentValue':'<?=$this->profile["phone"]?>'}})"><?=$this->profile["phone"]?><i class="fa fa-pencil floatR"></i></div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Notification Preference</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue">
+              <?
+                $selected = (isset($this->profile['notificationCode']) && $this->profile['notificationCode'] != "") ? $this->profile['notificationCode'] : '';
+              ?>
+              <select id="notification" name="notification" class="form-control registerDropdown" onchange="$(this).parents('form').submit();" disabled>
                 <option value="z"<?=($selected == "Email")?' selected="selected"':''?>>Email</option>
                 <option value="p"<?=($selected == "Phone")?' selected="selected"':''?>>Phone</option>
               </select>
-            </td></tr>
-          <?
-            echo $this->renderArray(
-              $arrTemplate, $this->profile,
-              array(
-                $this->transEsc('Library Card Number') => 'cat_username',
-                $this->transEsc('Card Expires') => 'expiration'
-              )
-            );
-           ?>
-          <? if ($showHomeLibForm): ?>
-            <tr><th><?=$this->transEsc('My Preferred Library')?>:</th>
-            <?
-              $selected = (isset($this->profile['preferredlibrarycode']) && $this->profile['preferredlibrarycode'] != "")
-                  ? $this->profile['preferredlibrarycode'] : $this->defaultPickupLocation
-            ?>
-            <td>
-              <select id="preferred_library" name="preferred_library" class="form-control">
-                <? foreach ($this->pickup as $lib): ?>
-                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
-                <? endforeach; ?>
-              </select>
-            </td></tr>
-            <tr><th><?=$this->transEsc('My Alternate Library')?>:</th>
-            <?
-              $selected = (isset($this->profile['alternatelibrarycode']) && $this->profile['alternatelibrarycode'] != "")
-                  ? $this->profile['alternatelibrarycode'] : $this->defaultPickupLocation
-            ?>
-            <td>
-              <select id="alternate_library" name="alternate_library" class="form-control">
-                <? foreach ($this->pickup as $lib): ?>
-                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
-                <? endforeach; ?>
-              </select>
-            </td></tr>
-          <? endif; ?>
-          <?
-            echo $this->renderArray(
-              $arrTemplate, $this->profile,
-              array(
-                $this->transEsc('Address') => 'address1',
-                $this->transEsc('My Home Library') => 'homelibrary'
-              )
-            );
-          ?>
-          <tr><th><?=$this->transEsc('Phone Number')?>:</th>
-          <td><input type="text" id="phone" name="phone" value="<?=$this->escapeHtmlAttr($this->profile['phone'])?>" /></td></tr>
-          <tr><th><?=$this->transEsc('Email')?>:</th>
-          <td><input type="text" id="email" name="email" value="<?=$this->escapeHtmlAttr($this->profile['email'])?>" /></td></tr>
-        </table>
-        <h4>OverDrive E-Content Lending Options</h4>
-        <table class="table table-striped">
-          <tr><th><?=$this->transEsc('eBook')?>:</th>
-          <?
-            $selected = (isset($this->profile['OD_eBook']) && $this->profile['OD_eBook'] != "")
-                ? explode(" ", $this->profile['OD_eBook'])[0] : null;
-          ?>
-          <td>
-            <select id="OD_eBook" name="OD_eBook" class="form-control">
-              <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
-                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
-              <? endforeach; ?>
-            </select>
-          </td></tr>
-          <tr><th><?=$this->transEsc('Audiobook')?>:</th>
-          <?
-            $selected = (isset($this->profile['OD_audiobook']) && $this->profile['OD_audiobook'] != "")
-                ? explode(" ", $this->profile['OD_audiobook'])[0] : null;
-          ?>
-          <td>
-            <select id="OD_audiobook" name="OD_audiobook" class="form-control">
-              <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
-                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
-              <? endforeach; ?>
-            </select>
-          </td></tr>
-          <tr><th><?=$this->transEsc('Video')?>:</th>
-          <?
-            $selected = (isset($this->profile['OD_video']) && $this->profile['OD_video'] != "")
-                ? explode(" ", $this->profile['OD_video'])[0] : null;
-          ?>
-          <td>
-            <select id="OD_video" name="OD_video" class="form-control">
-              <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
-                <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
-              <? endforeach; ?>
-            </select>
-          </td></tr>
-        </table>
-        <input class="btn btn-default" type="submit" value="<?=$this->transEsc('Save')?>" />
-        <button type="button" onClick="showProfileType('static');">Cancel</button>
-      </form>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-  <script type="text/javascript">
-    function showProfileType(typeToShow)
-    {
-        if( typeToShow == "dynamic" )
-        {
-            $('#staticProfile').css('display','none'); 
-            $('#dynamicProfile').css('display','inline');
+    <div class="panel panel-default listAccordion">
+      <div class="panel-heading EIN-hide-t EIN-hide">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed"><?=$this->transEsc('profile_card')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+        </h4>
+      </div>
+      <div id="profile_card" class="panel-collapse collapse">
+        <div class="panel-body">
+          <div class="EIN-col-m-12" style="height:5px"></div>
+          <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Number</div>
+          <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["cat_username"]?></div>
+          <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+          <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Expiration</div>
+          <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["expiration"]?></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default listAccordion">
+      <div class="panel-heading EIN-hide-t EIN-hide">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed"><?=$this->transEsc('profile_security')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+        </h4>
+      </div>
+      <div id="profile_security" class="panel-collapse collapse">
+        <div class="panel-body" style="text-align:center">
+          <div class="EIN-col-m-12" style="height:5px"></div>
+          <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:20px"></div>
+          <button class="btn-default btnWide" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'security','property':'PIN','propertyName':'pin','currentValue':'<?=hash_hmac("sha256", $this->profile["cat_password"], "eiNetwork")?>','barcode':'<?=$this->profile["cat_username"]?>'}})">Change PIN</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default listAccordion">
+      <div class="panel-heading EIN-hide-t EIN-hide">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed"><?=$this->transEsc('profile_libraries')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+        </h4>
+      </div>
+      <div id="profile_libraries" class="panel-collapse collapse">
+        <div class="panel-body">
+          <div class="EIN-col-m-12" style="height:5px"></div>
+          <form class="form-inline" method="post" action="<?=$this->url('myresearch-profile')?>" target="loginFrame">
+            <input type="hidden" name="profileSection" value="libraries" />
+            <input type="hidden" name="suppressFlashMessages" value="true" />
+            <input type="hidden" name="reloadParent" value="true" />
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Preferred Library</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <? $selected = (isset($this->profile['preferredlibrarycode']) && $this->profile['preferredlibrarycode'] != "") ? $this->profile['preferredlibrarycode'] : $this->defaultPickupLocation ?>
+              <select id="preferred_library" name="preferred_library" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <? foreach ($this->pickup as $lib): ?>
+                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+                <? endforeach; ?>
+              </select>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Alternate Library</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <? $selected = (isset($this->profile['alternatelibrarycode']) && $this->profile['alternatelibrarycode'] != "") ? $this->profile['alternatelibrarycode'] : $this->defaultPickupLocation ?>
+              <select id="alternate_library" name="alternate_library" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <? foreach ($this->pickup as $lib): ?>
+                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
+                <? endforeach; ?>
+              </select>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Home Library</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["homelibrary"]?></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default listAccordion">
+      <div class="panel-heading EIN-hide-t EIN-hide">
+        <h4 class="panel-title">
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed"><?=$this->transEsc('profile_overdrive')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+        </h4>
+      </div>
+      <div id="profile_overdrive" class="panel-collapse collapse">
+        <div class="panel-body">
+          <div class="EIN-col-m-12" style="height:5px"></div>
+          <form class="form-inline" method="post" action="<?=$this->url('myresearch-profile')?>" target="loginFrame">
+            <input type="hidden" name="profileSection" value="overdrive" />
+            <input type="hidden" name="suppressFlashMessages" value="true" />
+            <input type="hidden" name="reloadParent" value="true" />
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('eBook')?></div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <? $selected = (isset($this->profile['OD_eBook']) && $this->profile['OD_eBook'] != "") ? explode(" ", $this->profile['OD_eBook'])[0] : null; ?>
+              <select id="OD_eBook" name="OD_eBook" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
+                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                <? endforeach; ?>
+              </select>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Audiobook')?></div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <? $selected = (isset($this->profile['OD_audiobook']) && $this->profile['OD_audiobook'] != "") ? explode(" ", $this->profile['OD_audiobook'])[0] : null; ?>
+              <select id="OD_audiobook" name="OD_audiobook" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
+                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                <? endforeach; ?>
+              </select>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Video')?></div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <? $selected = (isset($this->profile['OD_video']) && $this->profile['OD_video'] != "") ? explode(" ", $this->profile['OD_video'])[0] : null; ?>
+              <select id="OD_video" name="OD_video" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
+                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                <? endforeach; ?>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      $('.panel-heading a').on('click',function(e){
+        // prevent them from dismissing the last open section if we're in tablet or desktop layout
+        if($(document).width() >= 600) {
+          if($($(this).attr("href")).hasClass('in')){
+            e.stopPropagation();
+          }
+          // You can also add preventDefault to remove the anchor behavior that makes the page jump
+          e.preventDefault();
         }
-        else
-        {
-            $('#dynamicProfile').css('display','none'); 
-            $('#staticProfile').css('display','inline');
-        }
-        $('.alert-info').hide();
-    }
-  </script>
-
-  <div class="<?=$this->layoutClass('sidebar')?>">
-    <?=$this->context($this)->renderInContext("myresearch/menu.phtml", array('active' => 'profile'))?>
+      });
+      $('body').css({"overflow-y":"hidden"});
+      if($(document).width() >= <?=(isset($this->showProfileSection) ? 0 : 600)?>) {
+        <? if( isset($this->showProfileSection) ): ?>
+          $('#profile_<?=$this->showProfileSection?>').parents('.listAccordion').find('.panel-heading a').click();
+        <? else: ?>
+          $('.panel-heading a').first().click();
+        <? endif; ?>
+      }
+      $('body').css({"overflow-y":"auto"});
+      $('#profileAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+      <? if( isset($this->reloadParent) && $this->reloadParent ): ?>
+        parent.location.reload();
+      <? endif; ?>
+    </script>
   </div>
 </div>

@@ -832,6 +832,20 @@ $config['router']['routes']['record-overdrivedownload'] = [
         ]
     ]
 ];
+$config['router']['routes']['confirm-editproperty'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Confirm/EditProperty',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Confirm',
+            'action'     => 'EditProperty',
+        ]
+    ]
+];
 
 
 // Add the home route last

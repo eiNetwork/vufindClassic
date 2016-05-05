@@ -1,5 +1,5 @@
 <button id="loginModalLogin" class="btn-alternate btn-wide active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
-<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
+<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" <? /* ?>onclick="ToggleLoginModal(this);"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Register</button><br><br>
 <div id="loginModalLoginBody">
   <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
     <? $account = $this->auth()->getManager(); ?>

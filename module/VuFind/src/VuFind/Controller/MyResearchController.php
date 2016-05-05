@@ -506,6 +506,16 @@ class MyResearchController extends AbstractBase
     }
 
     /**
+     * Temporary action to wall off things not yet implemented
+     *
+     * @return mixed
+     */
+    public function comingsoonAction()
+    {
+        return $this->createViewModel();
+    }
+
+    /**
      * Action for sending all of a user's saved book cart items to the view
      *
      * @return mixed

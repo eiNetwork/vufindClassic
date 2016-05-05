@@ -89,9 +89,7 @@
       <div class="EIN-col-m-12 dropdown" id="listBulkDropdown<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
           <? if (isset($list)): ?>
-<!--
-            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form')); return false;" disabled>Hold</button></li>
--->
+            <li><button class="btn-dropdown btn-standardDropdown" <? /* ?>onclick="HoldSelected($(this).parents('form')); return false;"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Hold</button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','delete');bulkActionSubmit($(this).parents('form'));return false;">Remove...</button></li>
             <hr class="stretchHR">
             <? if( $lists = $user->getLists() ): ?>
@@ -105,7 +103,7 @@
             <hr class="stretchHR">
             <li><span class="modalNote">Click a list name to add all selected titles.  Click 'Remove...' to remove selected titles from this list.</span></li>
           <? elseif (isset($hold) && (($hold == "hold") || ($hold == "frozen"))): ?>
-            <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','changePickup');">Change Pickup</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" <? /* ?>onclick="$('#bulkAction<?=$bulkID?>').attr('name','changePickup');"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Change Pickup</button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', '<?=(($hold=='frozen')?'unfreeze':'freeze')?>')"><?=(($hold=='frozen')?'Unfreeze':'Freeze')?></button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', 'cancel')">Cancel</button></li>
           <? endif; ?>

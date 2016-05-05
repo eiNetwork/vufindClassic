@@ -74,7 +74,7 @@
         <? endif; ?>
 
         <tr>
-          <? $totalCopies = 0; $availableCopies = 0; $firstTime = true;?>
+          <? $totalCopies = 0; $availableCopies = 0; $firstTime = true; ?>
           <? foreach($this->holdings as $entry): ?>
             <? $firstTime = false; ?>
             <? foreach($entry["items"] as $item): ?>
@@ -85,11 +85,16 @@
               <? endif; ?>
             <? endforeach; ?>
           <? endforeach; ?>
+          <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
           <? $green = (($totalCopies > 0) && ($availableCopies > 0)); ?>
           <td class="EIN-hide-m itemDetailCategory">Availability:</td>
           <td style="padding-bottom:5px">
             <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? '<i class="fa fa-check"></i>Available' : "Unavailable")?></span>
-            <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+            <? if( $alwaysAvailable ): ?>
+              <span class="availableCopyText">Always Available</span>
+            <? else: ?>
+              <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+            <? endif; ?>
           </td>
         </tr>
       </table>
@@ -147,12 +152,18 @@
             <? if( $this->downloadFormats && count($this->downloadFormats) > 0 ): ?>
               <?
                 $streamingVideo = false;
+                $nookPeriodical = false;
                 foreach($this->downloadFormats as $thisFormat): 
                   $streamingVideo |= ($thisFormat["id"] == "video-streaming");
+                  $nookPeriodical |= ($thisFormat["id"] == "periodicals-nook");
                 endforeach;
               ?>
               <li>
-                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=$this->idArgs?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
+                <? if( $nookPeriodical ): ?>
+                  <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('MyResearch','comingsoon')">Download</button>
+                <? else: ?>
+                  <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=$this->idArgs?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
+                <? endif; ?>
               </li>
             <? endif; ?>
             <? if( $this->canReturn ): ?>
@@ -237,7 +248,7 @@
           <div id="details1" class="panel-collapse collapse">
             <div class="panel-body">
               <? if( $availableCopies > 0): ?>
-                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":"")?> (<?=$availableCopies?>)</h6>
+                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":"")?> (<?=$alwaysAvailable ? "Always Available" : $availableCopies?>)</h6>
                 <? if( !$isOverDrive ): ?>
                   <table class="EIN-col-m-12">
                     <tr class="availabilityHeaderRow">
@@ -259,10 +270,10 @@
                   </table>
                 <? endif; ?>
               <? endif; ?>
-              <? if( $totalCopies > 0 && $totalCopies != $availableCopies && $availableCopies > 0): ?>
+              <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies && $availableCopies > 0): ?>
                 <span class="accordionGap">&nbsp;</span>
               <? endif; ?>
-              <? if( $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
+              <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
                 <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
                 <? if( !$isOverDrive ): ?>
                   <table class="EIN-col-m-12">

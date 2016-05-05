@@ -32,6 +32,13 @@
   <? else: ?>
     <?=$this->auth()->getLogin()?>
   <? endif; ?>
+
+  <!-- see if we are in an iframe.  if so, we need to forward this on to our parent -->
+  <script type="text/javascript">
+    if( parent !== window ) {
+      $(document).ready( function() { parent.Lightbox.get('MyResearch', 'Login'); } );
+    }
+  </script>
 <? else: ?>
   <div class="EIN-col-m-12 loginWarning">You must be logged in to view this page.</div>
   <script type="text/javascript">

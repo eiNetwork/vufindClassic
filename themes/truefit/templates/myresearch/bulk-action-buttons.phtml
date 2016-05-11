@@ -5,9 +5,14 @@
 <? elseif (isset($hold)): ?>
   <? $bulkID = $hold; ?>
   <input type="hidden" name="confirm" value="0" />
+<? elseif (isset($checkout)): ?>
+  <? $bulkID = $checkout; ?>
+  <input type="hidden" name="confirm" value="0" />
+  <input type="hidden" name="checkoutType" value="<?=$this->escapeHtmlAttr($checkout)?>" />
 <? endif; ?>
 <input type="hidden" id="bulkAction<?=$bulkID?>" name="action" value="true" />
 <input type="hidden" id="bulkAction2<?=$bulkID?>" name="action2" value="true" />
+<input type="hidden" name="referrer" value="<?=$bulkID?>" />
 <? $user = $this->auth()->isLoggedIn(); ?>
 <script type="text/javascript">
   function ToggleAll(target) {
@@ -82,7 +87,9 @@
     <button class="btn-default btn-wide" onclick="ToggleAll($(this).siblings('.checkbox-select-all')); ScanBulkButton($(this).parents('form')); return false;"><?=$this->transEsc('select_page')?></button>
     <div class="floatR">
       <? if (isset($hold) && (($hold == "ready") || ($hold == "transit"))): ?>
-        <button class="btn-default btn-wide bulkButton" onclick="CancelSelected($(this).parents('form'), '<?=$bulkID?>')">Cancel Selected</button>
+        <button class="btn-default btn-wide bulkButton" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', 'cancel')">Cancel Selected</button>
+      <? elseif (isset($checkout)): ?>
+        <button class="btn-default btn-wide bulkButton" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>','renew')">Renew Selected</button>
       <? else: ?>
         <button class="btn-default btn-wide bulkButton" data-toggle="dropdown" data-target="#listBulkDropdown<?=$bulkID?>"><?=$this->transEsc('with_selected')?><i class="fa fa-caret-down"></i></button>
       <? endif; ?>

@@ -39,6 +39,25 @@ namespace VuFind\View\Helper\Truefit;
 class Record extends \VuFind\View\Helper\Root\Record
 {
     /**
+     * Render an entry for this item being checked out.
+     *
+     * @param \VuFind\Db\Row\User     $user Current logged in user (false if none)
+     *
+     * @return string
+     */
+    public function getCheckoutEntry($checkout, $user = false)
+    {
+        return $this->renderTemplate(
+            'checkout-entry.phtml',
+            [
+                'driver' => $this->driver,
+                'checkout' => $checkout,
+                'user' => $user
+            ]
+        );
+    }
+
+    /**
      * Render an entry for a hold on this item.
      *
      * @param Object                  Object containing hold information

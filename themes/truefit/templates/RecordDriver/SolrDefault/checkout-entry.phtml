@@ -1,0 +1,154 @@
+<?
+  // Set up some convenience variables:
+  $id = $this->driver->getUniqueId();
+  $source = $this->driver->getResourceSource();
+  if (isset($this->list) && is_object($this->list)) {
+    $list_id = $this->list->id;
+    $user_id = $this->list->user_id;
+  } else {
+    $list_id = null;
+    $user_id = $this->user ? $this->user->id : null;
+  }
+  $account = $this->auth()->getManager();
+  $user = $account->isLoggedIn();
+  $record = $this->record($this->driver);
+?>
+<div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
+  <table class="EIN-col-m-12"><tr>
+    <td class="EIN-col-m-1" style="margin:auto">
+      <? if( isset($this->checkout["checkout_id"]) ): ?>
+        <label class="pull-left flip"><?=$this->record($this->driver)->getHoldCheckbox($this->checkout["checkout_id"]) ?></label>
+        <input type="hidden" value="<?=$this->escapeHtmlAttr($this->checkout["checkout_id"])?>" class="hiddenId" />
+        <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
+      <? endif; ?>
+    </td>
+    <td class="EIN-col-m-3" style="vertical-align:top">
+      <div class="text-center" style="padding:10px">
+        <? /* Display thumbnail if appropriate: */ ?>
+        <? $largeThumb = $record->getThumbnail('large'); ?>
+        <? if ($largeThumb): ?>
+          <a href="<?=$this->recordLink()->getUrl($this->driver)?>">
+            <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
+          </a>
+        <? else: ?>
+          <img src="<?=$this->url('cover-unavailable')?>" class="recordcover" alt="<?=$this->transEsc('No Cover Image')?>"/>
+        <? endif; ?>
+      </div>
+    </td>
+    <td class="EIN-col-m-8" style="padding-right:10px">
+      <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+        <h1 property="name" class="itemTitle"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml(($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /")))?></a></h1>
+
+        <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
+        <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+          <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
+        <? endif; ?>
+
+        <table class="checkoutFormats">
+          <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
+            <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
+              <tr>
+                <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
+                <td style="padding-bottom:5px">
+                  <span class="formatTag"><?=$thisFormat?></span>
+
+                  <? if( $firstTime ): ?>
+                    <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
+                      <? foreach ($publications as $field): ?>
+                        <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
+                          <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
+                        <? endif; ?>
+                      <? endforeach; ?>
+                    <? endif; ?>
+                    <? $firstTime = false; ?>
+                  <? endif; ?>
+                </td>
+              </tr>
+            <? endforeach; ?>
+          <? endif; ?>
+
+          <tr>
+            <td class="EIN-hide-m itemDetailCategory">Return Date:</td>
+            <td style="padding-bottom:5px">
+              <span class="<?=(($this->checkout["dateDiff"]->invert == 0) ? "un" : "")?>availableTag">
+                <? if( $this->checkout["dateDiff"]->invert == 0 ): ?>
+                  Due <?=$this->checkout["dateDiff"]->days?> days ago!
+                <? elseif( $this->checkout["dateDiff"]->days <= 7 ): ?>
+                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> in <?=$this->checkout["dateDiff"]->days?> days!
+                <? else: ?>
+                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> <?= date_format(date_create($this->checkout["duedate"]), "m/d/Y")?>
+                <? endif; ?>
+              </span>
+              <? if( isset($this->checkout["numberOfRenewals"]) && ($this->checkout["numberOfRenewals"] > 0) ): ?>
+                &nbsp;<span class="publishDate">Renewed <?=$this->checkout["numberOfRenewals"]?> time<?=($this->checkout["numberOfRenewals"]==1)?"":"s"?></span>
+              <? endif; ?>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <?
+        if($user):
+          if( isset($this->checkout["overDriveId"]) ):
+            $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown" . $id . "\"";
+          else:
+            $thisType = ($this->checkout["dateDiff"]->invert == 0) ? 'overdue' : (($this->checkout["dateDiff"]->days <= 7) ? 'due_this_week' : 'other');
+            $holdClick = " onClick=\"Lightbox.get('MyResearch','CheckedOut', false, {'renew':'true','renewSelected':'true','confirm':'0','renewSelectedIDS[]':'" . $this->checkout["checkout_id"] . "','checkoutType':'" . $thisType . "'})\"";
+          endif;
+        else:
+          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+        endif;
+      ?>
+      <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
+        <div class="singleButtonGap">
+          <? if( isset($this->checkout["overDriveId"]) ): ?>
+            <button class="btn-default singleButton" <?=$holdClick?>>Actions<i class="fa fa-caret-down"></i></button>
+            <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown<?=$id?>">
+              <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+                <? if( isset($this->checkout["overdriveRead"]) && $this->checkout["overdriveRead"] && isset($this->checkout["overdriveReadUrl"]) && $this->checkout["overdriveReadUrl"] ): ?>
+                  <li>
+                    <a href="<?=$this->checkout["overdriveReadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+                  </li>
+                <? endif; ?>
+                <? if( isset($this->checkout["overdriveListen"]) && $this->checkout["overdriveListen"] && isset($this->checkout["overdriveListenUrl"]) && $this->checkout["overdriveListenUrl"] ): ?>
+                  <li>
+                    <a href="<?=$this->checkout["overdriveListenUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>
+                  </li>
+                <? endif; ?>
+                <? if( isset($this->checkout["streamingVideo"]) && $this->checkout["streamingVideo"] && isset($this->checkout["streamingVideoUrl"]) && $this->checkout["streamingVideoUrl"] ): ?>
+                  <li>
+                    <a href="<?=$this->checkout["streamingVideoUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Watch Now</button></a>
+                  </li>
+                <? endif; ?>
+                <? if( isset($this->checkout["formats"]) && count($this->checkout["formats"]) > 0 ): ?>
+                  <?
+                    $streamingVideo = false;
+                    $nookPeriodical = false;
+                    foreach($this->checkout["formats"] as $thisFormat): 
+                      $streamingVideo |= ($thisFormat["id"] == "video-streaming");
+                      $nookPeriodical |= ($thisFormat["id"] == "periodicals-nook");
+                    endforeach;
+                  ?>
+                  <li>
+                    <? if( $nookPeriodical ): ?>
+                      <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('MyResearch','comingsoon')">Download</button>
+                    <? else: ?>
+                      <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload','<?=$this->checkout["id"]?>')"><?=($streamingVideo?"Watch Now":"Download")?></button>
+                    <? endif; ?>
+                  </li>
+                <? endif; ?>
+                <? if( isset($this->checkout["earlyReturn"]) && $this->checkout["earlyReturn"] ): ?>
+                  <li><a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Return')?>" target="loginFrame">
+                    <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.singleButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')">Return</button>
+                  </a></li>
+                <? endif; ?>
+              </ul>
+            </div>
+          <? else: ?>
+            <button class="btn-default singleButton"<?=$holdClick?>>Renew</button>
+          <? endif; ?>
+        </div>
+      </div>
+    </td>
+  </tr></table>
+  <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+</div>

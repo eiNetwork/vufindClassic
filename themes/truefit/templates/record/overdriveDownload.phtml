@@ -17,7 +17,7 @@
           <tr>
             <td style="padding:5px"><span class="formatTag"><?=$format?></span></td>	
             <td class="lightboxText" style="padding:5px">
-              <?=($downloadId?("<a href=\"" . ($this->recordLink()->getActionUrl($this->driver, 'OverdriveDownload') . "?formatType=" . $downloadId . ($this->formatLocked?"":"&lockIn=true")) . "\" id=\"format-" . $downloadId ."\" target=\"" . (($downloadId=="periodicals-nook")?"_self":"loginFrame") . "\">"):"")?>
+              <?=($downloadId?("<a href=\"" . ($this->recordLink()->getActionUrl($this->driver, 'OverdriveDownload') . "?formatType=" . $downloadId . ($this->formatLocked?"":"&lockIn=true")) . "\" id=\"format-" . $downloadId ."\" target=\"" . (($downloadId=="periodicals-nook")?"_self":(($downloadId=="video-streaming") ? "_blank" : "loginFrame")) . "\">"):"")?>
                 <button class="btn-default"<?=($downloadId?"":" disabled")?>>Download</button>
               <?=($downloadId?"</a>":"")?>
             </td>

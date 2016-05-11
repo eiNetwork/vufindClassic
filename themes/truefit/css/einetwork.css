@@ -153,6 +153,8 @@ fa {
     .btn-whiteDropdown:hover,.btn-whiteDropdown:focus,.btn-whiteDropdown:active,.btn-whiteDropdown.active{background-color: #ededed}
     .whiteDropdown{left:auto;width:auto;right:0;margin:-6px 0 0 0;background-color:#fff;border-radius:4px;border:1px solid #949494;font-size:16px;font-weight:500}
 }
+.messageRow{background-color: #ffffff;cursor:pointer}
+.messageRow:hover,.messageRow:focus,.messageRow.active{background-color: #ededed}
 .standardDropdown{left:auto;width:auto;right:auto;margin:0;background-color:#fff;border-radius:4px;border:1px solid #949494;font-size:16px;font-weight:500}
 .searchDropdown{margin-top:2px}
 .manageListDropdown{margin-top:-2px;width:100%}
@@ -163,11 +165,14 @@ fa {
 .btn-pickupLocation:focus,.btn-pickupLocationPreferred:focus{outline:0}
 .sideBySideButtons{width:100%;margin-top:15px}
 .overUnderButtons{width:100%;margin-top:15px}
+.singleButtonGap{width:50%}
+.singleButton{width:100%}
 .leftButton{width:100%;border-radius:5px 0px 0px 5px}
 .rightButton{width:100%;border-radius:0px 5px 5px 0px;border-left:1px solid #fff}
 .rightButton:hover,.rightButton:focus,.rightButton:active{border-left:1px solid #fff}
 @media only screen and (min-width: 600px) {
     /* For tablets and desktops: */
+    .singleButtonGap{width:100%}
     .leftButton{width:100%;border-radius:5px 5px 0px 0px}
     .rightButton{width:100%;border-radius:0px 0px 5px 5px;border-top:1px solid #fff;border-left:inherit}
     .rightButton:hover,.rightButton:focus,.rightButton:active{border-top:1px solid #fff;border-left:inherit}
@@ -306,3 +311,9 @@ i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 .editProperty{width:100%}
 .userHasFocused{color:#3d3d3d}
 .registerDropdown{font-size:18px;color:#3d3d3d;height:40px;padding:5px 8px;margin-top:3px;outline:none;border-radius:4px;border:1px solid #949494}
+.renewHeading{font-size:18px;font-weight:700}
+.renewError{font-size:18px;color:#ed0000;padding:0}
+.loadTitle{font-size:18px;font-size:700;text-align:left;color:#3f51b5;padding-bottom:7px}
+.renewBlock{text-align:left;width:100%}
+.messageSubject{font-weight:700;font-size:24px;text-align:left;margin-bottom:10px}
+.messageText{font-size:18px;text-align:left}

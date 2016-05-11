@@ -333,6 +333,7 @@ trait OverDriveTrait {
                 //Load data from api
                 $bookshelfItem['overDriveId'] = $curTitle->reserveId;
                 $bookshelfItem['expiresOn'] = $curTitle->expires;
+                $bookshelfItem['duedate'] = substr($curTitle->expires, 0, 10);
                 $bookshelfItem['overdriveListen'] = false;
                 $bookshelfItem['overdriveRead'] = false;
                 $bookshelfItem['streamingVideo'] = false;                
@@ -495,6 +496,9 @@ trait OverDriveTrait {
      * @return array (result, message)
      */
     public function placeOverDriveHold($overDriveId, $user){
+        // invalidate the cache
+        unset($this->session->holds);
+
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
         $params = array(
             'reserveId' => $overDriveId,
@@ -526,6 +530,9 @@ trait OverDriveTrait {
      * @return array
      */
     public function cancelOverDriveHold($overDriveId, $user){
+        // invalidate the cache
+        unset($this->session->holds);
+
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
         $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, null, 'DELETE');
 
@@ -548,6 +555,9 @@ trait OverDriveTrait {
      * @return array
      */
     public function freezeOverDriveHold($overDriveId, $user, $doFreeze){
+        // invalidate the cache
+        unset($this->session->holds);
+
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId . "/suspension";
         if( $doFreeze ) {
             $params = array(
@@ -584,6 +594,8 @@ trait OverDriveTrait {
      * @return array results (result, message)
      */
     public function checkoutOverDriveItem($overDriveId, $user){
+        // invalidate the cache
+        unset($this->session->checkouts);
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
         $params = array(
@@ -622,6 +634,8 @@ trait OverDriveTrait {
 */
 
     public function returnOverDriveItem($overDriveId, $user){
+        // invalidate the cache
+        unset($this->session->checkouts);
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url, null, 'DELETE');
@@ -640,6 +654,8 @@ trait OverDriveTrait {
     }
 
     public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
+        // invalidate the cache
+        unset($this->session->checkouts);
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId . '/formats';
         $params = array(

@@ -33,10 +33,10 @@
     <?=$this->auth()->getLogin()?>
   <? endif; ?>
 
-  <!-- see if we are in an iframe.  if so, we need to forward this on to our parent -->
+  <? /* see if we are in an iframe.  if so, we need to forward this on to our parent. skip this step if we're already trying to log in */ ?>
   <script type="text/javascript">
     if( parent !== window ) {
-      $(document).ready( function() { parent.Lightbox.get('MyResearch', 'Login'); } );
+      $(document).ready( function() { if(!parent.Lightbox.shown) { parent.Lightbox.get('MyResearch', 'Login'); } } );
     }
   </script>
 <? else: ?>

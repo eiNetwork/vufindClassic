@@ -281,6 +281,10 @@ class MyResearchController extends AbstractBase
             $logoutTarget = rtrim($logoutTarget, '?');
         }
 
+        // clear out the patron info
+        unset($this->getILS()->session->patronLogin);
+        unset($this->getILS()->session->patron);
+
         return $this->redirect()
             ->toUrl($this->getAuthManager()->logout($logoutTarget));
     }
@@ -814,6 +818,7 @@ class MyResearchController extends AbstractBase
                 'confirm', $this->params()->fromQuery('confirm')
             );
             if ($confirm) {
+                $this->session->lastList = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
                 return $this->performDeleteFavorite($deleteId, $deleteSource);
             } else {
                 return $this->confirmDeleteFavorite($deleteId, $deleteSource);
@@ -1081,26 +1086,27 @@ class MyResearchController extends AbstractBase
             ? $this->holds()->cancelHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
+            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
         // Process freeze requests if necessary:
         $freezeStatus = $catalog->checkFunction('freezeHolds', compact('patron'));
-        $view = $this->createViewModel();
         $view->cancelResults = $freezeStatus
             ? $this->holds()->freezeHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
+            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
         // Process unfreeze requests if necessary:
         $unfreezeStatus = $catalog->checkFunction('freezeHolds', compact('patron'));
-        $view = $this->createViewModel();
         $view->cancelResults = $unfreezeStatus
             ? $this->holds()->unfreezeHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
+            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
@@ -1138,6 +1144,7 @@ class MyResearchController extends AbstractBase
             // locations, they are not supported and we should ignore them.
         }
         $view->holdList = $holdList;
+        $view->showHoldType = $this->session->lastHoldType;
         return $view;
     }
 
@@ -1280,65 +1287,47 @@ class MyResearchController extends AbstractBase
         $catalog = $this->getILS();
 
         // Get the current renewal status and process renewal form, if necessary:
+        $view = $this->createViewModel();
         $renewStatus = $catalog->checkFunction('Renewals', compact('patron'));
         $renewResult = $renewStatus
             ? $this->renewals()->processRenewals(
                 $this->getRequest()->getPost(), $catalog, $patron
             )
             : [];
+        // If we need to confirm
+        if (!is_array($renewResult)) {
+            return $renewResult;
+        // we processed some renewals
+        } else if( count($renewResult) > 0 ) {
+            // Get target URL for after deletion:
+            $checkoutType = $this->params()->fromPost('checkoutType');
+            $this->session->lastCheckoutType = $checkoutType;
 
-        // By default, assume we will not need to display a renewal form:
-        $renewForm = false;
+            // Process the renews:
+            $view = $this->createViewModel(['results' => $renewResult]);
+            $view->setTemplate('myresearch/renewResults');
+            return $view;
+        }
 
-        // Get checked out item details:
+        // tell the view if it needs to hide the flash messages
+        if( $this->params()->fromPost('suppressFlashMessages') ) {
+            $view->suppressFlashMessages = $this->params()->fromPost('suppressFlashMessages');
+        }
+
+        // Get held item details:
         $result = $catalog->getMyTransactions($patron);
+        $checkoutList = ['overdue' => [], 'due_this_week' => [], 'other' => []];
+        foreach ($result as $current) {
+            $current["dateDiff"] = date_diff(date_create($current["duedate"]), date_create(date("Y-m-d")));
 
-        // Get page size:
-        $config = $this->getConfig();
-        $limit = isset($config->Catalog->checked_out_page_size)
-            ? $config->Catalog->checked_out_page_size : 50;
-
-        // Build paginator if needed:
-        if ($limit > 0 && $limit < count($result)) {
-            $adapter = new \Zend\Paginator\Adapter\ArrayAdapter($result);
-            $paginator = new \Zend\Paginator\Paginator($adapter);
-            $paginator->setItemCountPerPage($limit);
-            $paginator->setCurrentPageNumber($this->params()->fromQuery('page', 1));
-            $pageStart = $paginator->getAbsoluteItemNumber(1) - 1;
-            $pageEnd = $paginator->getAbsoluteItemNumber($limit) - 1;
-        } else {
-            $paginator = false;
-            $pageStart = 0;
-            $pageEnd = count($result);
+            // Build record driver:
+            $current["driver"] = $this->getDriverForILSRecord($current);
+            $checkoutList[($current["dateDiff"]->invert == 0) ? 'overdue' : (($current["dateDiff"]->days <= 7) ? 'due_this_week' : 'other')][] = $current;
         }
 
-        $transactions = $hiddenTransactions = [];
-        foreach ($result as $i => $current) {
-            // Add renewal details if appropriate:
-            $current = $this->renewals()->addRenewDetails(
-                $catalog, $current, $renewStatus
-            );
-            if ($renewStatus && !isset($current['renew_link'])
-                && $current['renewable']
-            ) {
-                // Enable renewal form if necessary:
-                $renewForm = true;
-            }
-
-            // Build record driver (only for the current visible page):
-            if ($i >= $pageStart && $i <= $pageEnd) {
-                $transactions[] = $this->getDriverForILSRecord($current);
-            } else {
-                $hiddenTransactions[] = $current;
-            }
-        }
-
-        return $this->createViewModel(
-            compact(
-                'transactions', 'renewForm', 'renewResult', 'paginator',
-                'hiddenTransactions'
-            )
-        );
+        $view->checkoutList = $checkoutList;
+        $view->showCheckoutType = $this->session->lastCheckoutType;
+        return $view;
     }
 
     /**
@@ -1657,5 +1646,31 @@ class MyResearchController extends AbstractBase
         if (!empty($method)) {
             $this->getAuthManager()->setAuthMethod($method);
         }
+    }
+
+    /**
+     * Show patron a list of notifications
+     *
+     * @return view
+     */
+    public function notificationsAction()
+    {
+        // Stop now if the user does not have valid catalog credentials available:
+        if (!is_array($patron = $this->catalogLogin())) {
+            return $patron;
+        }
+
+        // see whether they want to see a single message or not
+        $catalog = $this->getILS();
+        $profile = $catalog->getMyProfile($patron);
+        $view = $this->createViewModel();
+        if( $this->params()->fromPost('showMessage') ) {
+            $view->setTemplate('myresearch/showMessage');
+            $view->subject = $this->params()->fromPost('subject');
+            $view->message = $this->params()->fromPost('message');
+        } else {
+            $view->notifications = $catalog->getNotifications($profile);
+        }
+        return $view;
     }
 }

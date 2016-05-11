@@ -180,16 +180,19 @@ class Sierra2 extends Sierra implements
     {
 /** BP => Client Credentials Grant **/
         $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . 
-                                                      "?fields=names,addresses,fixedFields,phones,emails"), true );
+                                                      "?fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
 /** BP => Authorization Code Grant **
         $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/find?barcode=" . $patron['barcode'] . 
-                                                      "&fields=names,addresses,fixedFields,phones,emails"), true );
+                                                      "&fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
 //        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/2865172"), true );
 /** **/
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
             $patron['firstname'] = $names[1];
             $patron['lastname'] = $names[0];
+        }
+        if(isset($profile['moneyOwed'])) {
+            $patron['moneyOwed'] = $profile['moneyOwed'];
         }
         if(isset($profile['emails'])) {
             $patron['email'] = $profile['emails'][0];
@@ -266,7 +269,10 @@ class Sierra2 extends Sierra implements
             // fill in properties
             $thisItem['source'] = "Solr";
             $thisItem['renewable'] = true;
+            $thisItem['numberOfRenewals'] = $jsonVals->entries[$i]->numberOfRenewals;
             $thisItem['duedate'] = $jsonVals->entries[$i]->dueDate;
+            $arr = explode("/", $jsonVals->entries[$i]->id);
+            $thisItem['checkout_id'] = $arr[count($arr)-1];
 
             // get the bib id
             $arr = explode("/", $jsonVals->entries[$i]->item);
@@ -394,7 +400,13 @@ class Sierra2 extends Sierra implements
      * null on unsuccessful login.
      */
     public function renewMyItems($items){
-        return [];
+        $responses = [];
+        foreach($items["details"] as $checkoutID) {
+            $reply = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/checkouts/" . $checkoutID . "/renewal", 
+                                                       \Zend\Http\Request::METHOD_POST));
+            $responses[$checkoutID] = (isset($reply->code) && isset($reply->specificCode)) ? $reply->description : true;
+        }
+        return ["details" => $responses];
     }
 
     /**

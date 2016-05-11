@@ -50,7 +50,7 @@ class EINetwork extends Sierra2 implements
         // TODO: if username is a barcode, test to make sure it fits proper format
         if ($this->config['PATRONAPI']['enabled'] == 'true') {
 
-            if( $cachedInfo = $this->session->{'username' . base64_encode($username . ":" . $password)} ) {
+            if( $cachedInfo = $this->session->patronLogin ) {
                 return $cachedInfo;
             }
 
@@ -122,7 +122,7 @@ class EINetwork extends Sierra2 implements
             // Only if agency module is enabled.
             $ret['region'] = $api_data['AGENCY'];
 
-            $this->session->{'username' . base64_encode($username . ":" . $password)} = $ret;
+            $this->session->patronLogin = $ret;
             return $ret;
         } else {
             // TODO: use screen scrape
@@ -166,10 +166,10 @@ class EINetwork extends Sierra2 implements
         $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
         $patron['preferredlibrarycode'] = $user->preferred_library;
         $location = $this->getDbTable('location')->getByCode($patron['preferredlibrarycode']);
-        $patron['preferredlibrary'] = $location->displayName;
+        $patron['preferredlibrary'] = ($location != null) ? $location->displayName : null;
         $patron['alternatelibrarycode'] = $user->alternate_library;
         $location = $this->getDbTable('location')->getByCode($patron['alternatelibrarycode']);
-        $patron['alternatelibrary'] = $location->displayName;
+        $patron['alternatelibrary'] = ($location != null) ? $location->displayName : null;
 
         // overdrive info
         $lendingOptions = $this->getOverDriveLendingOptions($patron);
@@ -651,6 +651,10 @@ echo $sresult . "<br>";
      * null on unsuccessful login.
      */
     public function getMyHolds($patron) {
+        if( isset($this->session->holds) ) {
+            return $this->session->holds;
+        }
+
         $sierraHolds = parent::getMyHolds($patron);
         $overDriveHolds = $this->getOverDriveHolds((object)$patron);
         foreach($overDriveHolds as $hold) {
@@ -662,7 +666,8 @@ echo $sresult . "<br>";
                 $sierraHolds[] = $hold;
             }
         }
-        return $sierraHolds;
+        $this->session->holds = $sierraHolds;
+        return $this->session->holds;
     }
 
     /**
@@ -676,6 +681,10 @@ echo $sresult . "<br>";
      * @return array         Associative array of checked out items.
      */
     public function getMyTransactions($patron){
+        if( isset($this->session->checkouts) ) {
+            return $this->session->checkouts;
+        }
+
         $sierraTransactions = parent::getMyTransactions($patron);
         $overDriveTransactions = $this->getOverDriveCheckedOutItems((object)$patron);
         foreach($overDriveTransactions as $item) {
@@ -687,7 +696,8 @@ echo $sresult . "<br>";
                 $sierraTransactions[] = $item;
             }
         }
-        return $sierraTransactions;
+        $this->session->checkouts = $sierraTransactions;
+        return $this->session->checkouts;
     }
 
     /**
@@ -725,6 +735,27 @@ echo $sresult . "<br>";
     }
 
     /**
+     * Place Hold
+     *
+     * Attempts to place a hold or recall on a particular item and returns
+     * an array with result details or throws an exception on failure of support
+     * classes
+     *
+     * @param array $details An array of item and patron data
+     *
+     * @throws ILSException
+     * @return mixed An array of data on the request including
+     * whether or not it was successful and a system message (if available)
+     */
+    public function placeHold($details)
+    {
+        // invalidate the cached data
+        unset($this->session->holds);
+
+        return parent::placeHold($details);
+    }
+
+    /**
      * Cancel Holds
      *
      * This is responsible for cancelling a patron's holds.
@@ -736,6 +767,9 @@ echo $sresult . "<br>";
      * null on unsuccessful login.
      */
     public function cancelHolds($holds){
+        // invalidate the cached data
+        unset($this->session->holds);
+
         $success = true;
         $overDriveHolds = [];
         for($i=0; $i<count($holds["details"]); $i++ )
@@ -773,6 +807,9 @@ echo $sresult . "<br>";
      * null on unsuccessful login.
      */
     public function freezeHolds($holds, $doFreeze){
+        // invalidate the cached data
+        unset($this->session->holds);
+
         $success = true;
         $overDriveHolds = [];
         for($i=0; $i<count($holds["details"]); $i++ )
@@ -796,5 +833,33 @@ echo $sresult . "<br>";
         }
 
         return ["success" => $success];
+    }
+
+    /**
+     * Get notifications
+     *
+     * This is responsible for grabbing a few static notifications based on a patron's profile information.
+     *
+     * @param array  $profile  The patron's info
+     *
+     * @return array           Associative array of notifications
+     */
+    public function getNotifications($profile){
+        $notifications = [];
+        if( $profile["moneyOwed"] > 0 ) {
+            $notifications[] = "You owe too much money";
+        }
+        if( $profile["preferredlibrarycode"] == null ) {
+            $notifications[] = ["subject" => "Choose a preferred library", "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical " .
+                                                                                        "items much easier, since your preferred library is used as the default pickup location.  You can " .
+                                                                                        "assign a preferred library on the profile page."];
+        }
+        if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->invert == 0 ) {
+            $notifications[] = ["subject" => "Card expired", "message" => "Your library card is expired. Please visit your local library to renew your card to ensure access to all online services."];
+        } else if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->days <= 30 ) {
+            $notifications[] = ["subject" => "Card expiration approaching", "message" => "Your library card is due to expire within the next 30 days. Please visit your local library to " .
+                                                                                         "renew your card to ensure access to all online services."];
+        }
+        return $notifications;
     }
 }

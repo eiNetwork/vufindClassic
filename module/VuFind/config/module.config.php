@@ -749,7 +749,7 @@ $staticRoutes = [
     'MyResearch/Email', 'MyResearch/BookCart', 'MyResearch/Fines',
     'MyResearch/Holds', 'MyResearch/Home',
     'MyResearch/ILLRequests', 'MyResearch/Logout', 'MyResearch/MyList',
-    'MyResearch/NewPassword', 'MyResearch/Profile',
+    'MyResearch/NewPassword', 'MyResearch/Notifications', 'MyResearch/Profile',
     'MyResearch/Recover', 'MyResearch/SaveSearch',
     'MyResearch/StorageRetrievalRequests', 'MyResearch/UserLogin',
     'MyResearch/Verify',

@@ -79,8 +79,12 @@
           }
       });
       $('body').css({"overflow-y":"hidden"});
-        if($(document).width() >= 600) {
-          $('.panel-heading a').first().click();
+        if($(document).width() >= <?=(isset($this->showHoldType) ? 0 : 600)?>) {
+          <? if( isset($this->showHoldType) ): ?>
+            $('#details_<?=$this->showHoldType?>').parents('.listAccordion').find('.panel-heading a').click();
+          <? else: ?>
+            $('.panel-heading a').first().click();
+          <? endif; ?>
         }
         $('body').css({"overflow-y":"auto"});
         $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});

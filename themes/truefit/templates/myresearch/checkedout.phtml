@@ -20,14 +20,16 @@
     <div class="facetTitle">Checked Out</div>
     <? foreach($order as $checkoutType): ?>
       <? $totalCheckouts += count($this->checkoutList[$checkoutType]); ?>
-      <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
-        <div class="panel-heading">
-          <h4 class="panel-title">
-            <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed"<? /** ?> onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"<? /**/ ?>><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
-            <div class="openAccordionTab"></div>
-          </h4>
-        </div>
-      <? endif; ?>
+      <div class="panel-heading">
+        <h4 class="panel-title">
+          <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
+            <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
+          <? else: ?>
+            <a data-toggle="collapse" class="collapsed disabled" onclick="return false;"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
+          <? endif; ?>
+          <div class="openAccordionTab"></div>
+        </h4>
+      </div>
     <? endforeach; ?>
     <div class="panel-heading"></div>
   </div> 
@@ -39,13 +41,17 @@
       <div class="EIN-col-m-12" style="height:50px"></div>
     <? else: ?>
       <? foreach($order as $checkoutType): ?>
-        <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
-          <div class="panel panel-default listAccordion">
-            <div class="panel-heading EIN-hide-t EIN-hide">
-              <h4 class="panel-title">
-                <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed"<? /** ?> onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"<? /**/ ?>><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
-              </h4>
-            </div>
+        <div class="panel panel-default listAccordion">
+          <div class="panel-heading EIN-hide-t EIN-hide">
+            <h4 class="panel-title">
+              <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
+                <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+              <? else: ?>
+                <a data-toggle="collapse" class="collapsed disabled"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+              <? endif; ?>
+            </h4>
+          </div>
+          <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
             <div id="details_<?=$checkoutType?>" class="panel-collapse collapse">
               <div class="panel-body">
                 <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>">
@@ -63,8 +69,8 @@
                 <? endforeach; ?>
               </div>
             </div>
-          </div>
-        <? endif; ?>
+          <? endif; ?>
+        </div>
       <? endforeach; ?>
       <script type="text/javascript">
         $('.panel-heading a').on('click',function(e){
@@ -82,7 +88,7 @@
           <? if( isset($this->showCheckoutType) ): ?>
             $('#details_<?=$this->showCheckoutType?>').parents('.listAccordion').find('.panel-heading a').click();
           <? else: ?>
-            $('.panel-heading a').first().click();
+            $('.panel-heading a.active').first().click();
           <? endif; ?>
         }
         $('body').css({"overflow-y":"auto"});

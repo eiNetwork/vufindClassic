@@ -1,23 +1,24 @@
 <?
+  // Convenience variable:
+  $account = $this->auth()->getManager();
+  $user = $this->auth()->isLoggedIn();
+  $isBookCart = (count($this->results) == 1) && ($this->results[0]["list"]->title == "Book Cart");
+
   // Set up page title:
-  $this->headTitle((count($this->results) == 1) ? $this->results[0]["list"]->title : $this->translate('Lists'));
+  $this->headTitle($isBookCart ? $this->results[0]["list"]->title : $this->translate('Lists'));
 
   // Set up breadcrumbs:
-  $currPage = (count($this->results) == 1) ? 'List' : 'Favorites';
+  $currPage = $isBookCart ? 'List' : 'Favorites';
   $this->layout()->breadcrumbs = '<li><a href="' .  $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc($currPage) . '</li>';
 
   // Load Javascript dependencies into header:
   $this->headScript()->appendFile("check_item_statuses.js");
-
-  // Convenience variable:
-  $account = $this->auth()->getManager();
-  $user = $this->auth()->isLoggedIn();
 ?>
 
 <?=$this->flashmessages()?>
 
 <div class="EIN-col-m-12 padded">
-  <? if( count($this->results) != 1 ): ?>
+  <? if( count($this->results) > 0 && !$isBookCart ): ?>
     <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
       <div class="facetTitle">Lists</div>
       <? foreach($this->results as $thisResult): ?>
@@ -35,21 +36,21 @@
       <div class="panel-heading"></div>
     </div>
     <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9">
-      <h1 class="pageTitle EIN-hide-t EIN-hide"><?=((count($this->results) == 1) ? ($this->results[0]["list"]->title) : "Lists")?></h1>
+      <h1 class="pageTitle EIN-hide-t EIN-hide"><?=($isBookCart ? ($this->results[0]["list"]->title) : "Lists")?></h1>
   <? else: ?>
     <div class="EIN-col-m-12">
+      <h1 class="pageTitle"><?=($isBookCart ? ($this->results[0]["list"]->title) : "Lists")?></h1>
   <? endif; ?>
     <? if( count($this->results) == 0 ): ?>
-      <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:20px"></div>
       <div class="EIN-col-m-12" style="height:20px"></div>
       <div class="center">You have not created any lists yet.</div>
     <? else: ?>
-      <? if( count($this->results) > 1 ): ?>
+      <? if( !$isBookCart ): ?>
         <div class="panel-group" id="listAccordion">
       <? endif; ?>
       <? foreach($this->results as $thisResult): ?>
         <? $list = $thisResult["list"]; ?>
-        <? if( count($this->results) > 1 ): ?>
+        <? if( !$isBookCart ): ?>
           <div class="panel panel-default listAccordion">
             <div class="panel-heading EIN-hide-t EIN-hide">
               <h4 class="panel-title">
@@ -59,9 +60,6 @@
             <div id="details<?=$list->id?>" class="panel-collapse collapse">
         <? endif; ?>
         <div class="panel-body">
-          <? if( count($this->results) == 1 ): ?>
-            <h1 class="pageTitle"><?=$list->title?></h1>
-          <? endif; ?>
           <? if ($list && !empty($list->description)): ?>
             <p><?=$this->escapeHtml($list->description)?></p>
           <? endif; ?>
@@ -100,12 +98,12 @@
             <? endif; ?>
           <? endif; ?>
         </div>
-        <? if( count($this->results) > 1 ): ?>
+        <? if( !$isBookCart ): ?>
             </div>
           </div>
         <? endif; ?>
       <? endforeach; ?>
-      <? if( count($this->results) > 1 ): ?>
+      <? if( !$isBookCart ): ?>
         <script type="text/javascript">
           $('.panel-heading a').on('click',function(e){
             // prevent them from dismissing the last open section if we're in tablet or desktop layout
@@ -130,12 +128,20 @@
         </script>
       <? endif; ?>
     <? endif; ?>
-    <? if( count($this->results) != 1 ): ?>
-      <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:20px"></div>
-      <div class="EIN-col-m-12 EIN-hide-t EIN-hide center">
+    <? if( $isBookCart ): ?>
+      <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
+    <? elseif( count($this->results) == 0 ): ?>
+      <div class="EIN-col-m-12" style="height:20px"></div>
+      <div class="EIN-col-m-12 center">
         <button class="btn-default btn-wide" onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})">Create New List</button>
       </div>
+      <div class="EIN-col-m-12" style="height:10px"></div>
+    <? else: ?>
+      <div class="EIN-col-m-12 EIN-hide-t EIN-hide center">
+        <div class="EIN-col-m-12" style="height:20px"></div>
+        <button class="btn-default btn-wide" onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})">Create New List</button>
+        <div class="EIN-col-m-12" style="height:10px"></div>
+      </div>
     <? endif; ?>
-    <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
   </div>
 </div>

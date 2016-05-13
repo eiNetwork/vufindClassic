@@ -847,7 +847,7 @@ echo $sresult . "<br>";
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $notifications[] = "You owe too much money";
+            $notifications[] = ["subject" => "You have fines!", "message" => "Your account currently has $" . number_format($profile["moneyOwed"],2) . " worth of fines applied to it.  Please pay this as soon as possible!"];
         }
         if( $profile["preferredlibrarycode"] == null ) {
             $notifications[] = ["subject" => "Choose a preferred library", "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical " .

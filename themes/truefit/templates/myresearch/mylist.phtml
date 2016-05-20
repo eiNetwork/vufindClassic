@@ -114,17 +114,19 @@
               // You can also add preventDefault to remove the anchor behavior that makes the page jump
               e.preventDefault();
             }
-        });
-        $('body').css({"overflow-y":"hidden"});
-          if($(document).width() >= <?=(isset($this->showList) ? 0 : 600)?>) {
-            <? if( isset($this->showList) ): ?>
-              $('input[name="listID"][value="<?=$this->showList?>"]').parents('.listAccordion').find('.panel-heading a').click();
-            <? else: ?>
-              $('.panel-heading a').first().click();
-            <? endif; ?>
-          }
-          $('body').css({"overflow-y":"auto"});
-          $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+          });
+          jQuery(document).ready(function() {
+            $('body').css({"overflow-y":"hidden"});
+            if($(document).width() >= <?=(isset($this->showList) ? 0 : 600)?>) {
+              <? if( isset($this->showList) ): ?>
+                $('input[name="listID"][value="<?=$this->showList?>"]').parents('.listAccordion').find('.panel-heading a').click();
+              <? else: ?>
+                $('.panel-heading a').first().click();
+              <? endif; ?>
+            }
+            $('body').css({"overflow-y":"auto"});
+            $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+          } );
         </script>
       <? endif; ?>
     <? endif; ?>

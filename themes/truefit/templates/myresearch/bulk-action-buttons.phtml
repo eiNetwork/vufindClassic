@@ -110,7 +110,7 @@
             <hr class="stretchHR">
             <li><span class="modalNote">Click a list name to add all selected titles.  Click 'Remove...' to remove selected titles from this list.</span></li>
           <? elseif (isset($hold) && (($hold == "hold") || ($hold == "frozen"))): ?>
-            <li><button class="btn-dropdown btn-standardDropdown" <? /* ?>onclick="$('#bulkAction<?=$bulkID?>').attr('name','changePickup');"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Change Pickup</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','changePickup');">Change Pickup</button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', '<?=(($hold=='frozen')?'unfreeze':'freeze')?>')"><?=(($hold=='frozen')?'Unfreeze':'Freeze')?></button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', 'cancel')">Cancel</button></li>
           <? endif; ?>

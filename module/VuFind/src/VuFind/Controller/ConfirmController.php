@@ -49,7 +49,7 @@ class ConfirmController extends AbstractBase
     public function confirmAction()
     {
         // Get Data from the route
-        $data = $this->params()->fromRoute('data');
+        $data = $this->params()->fromRoute('data', $this->params()->fromQuery('data'));
 
         // Assign Flash Messages
         if (isset($data['messages'])) {

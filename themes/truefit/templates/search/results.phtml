@@ -130,3 +130,8 @@
     <? /* End Main Listing */ ?>
   </div>
 </div>
+<script type="text/javascript">
+  $('#saveSearchButton').prop('disabled', false);
+  $('#saveSearchButton').parents().removeClass('disabled');
+  $('#saveSearchButton').parents().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
+</script>

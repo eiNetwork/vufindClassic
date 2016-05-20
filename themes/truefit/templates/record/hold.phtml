@@ -1,4 +1,4 @@
-<h2><?=$this->transEsc("Pickup Location")?></h2>
+<h2><?=$this->transEsc(($this->changePickup?"Change ":"")."Pickup Location")?></h2>
 <div class="hold-form">
   <table class="pickupLocationTable">
     <tr><td colspan="2" class="modalSubheading center">Preferred</td></tr>
@@ -54,6 +54,13 @@
       <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
       <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
       <input type="hidden" name="placeHold" value="1">
+      <? if( $this->changePickup ): ?>
+        <input type="hidden" name="changePickup" value="true">
+        <input type="hidden" name="referrer" value="<?=$this->referrer?>">
+        <? foreach( $this->ids as $id ): ?>
+          <input type="hidden" name="updateIDs[]" value="<?=$id?>">
+        <? endforeach; ?>
+      <? endif; ?>
       <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?> onclick="$('#holdFooter').css('display', 'none');$('#loadingFooter').css('display', 'block');">Okay</button>
     </form>
   </div>

@@ -137,30 +137,17 @@ trait HoldsTrait
                 $results = $catalog->$function($holdDetails);
 
                 // Success: Go to Display Holds
-                if (isset($results['success']) && $results['success'] == true) {
-                    $msg = [
-                        'html' => true,
-                        'msg' => 'hold_place_success_html',
-                        'tokens' => [
-                            '%%url%%' => $this->url()->fromRoute('myresearch-holds')
-                        ],
-                    ];
-                    $this->flashMessenger()->addMessage($msg, 'info');
-                    $view = $this->createViewModel(['skip' => true, 'title' => 'Hold Item', 'reloadParent' => true]);
-                    $view->setTemplate('blankModal');
-                    return $view;
-                } else {
-                    // Failure: use flash messenger to display messages, stay on
-                    // the current form.
-                    if (isset($results['status'])) {
-                        $this->flashMessenger()
-                            ->addMessage($results['status'], 'error');
-                    }
-                    if (isset($results['sysMessage'])) {
-                        $this->flashMessenger()
-                            ->addMessage($results['sysMessage'], 'error');
-                    }
-                }
+                $msg = [
+                    'html' => true,
+                    'msg' => (isset($results['success']) && $results['success'] == true) ? 'hold_place_success_html' : 'hold_place_failure_html',
+                    'tokens' => [
+                        '%%url%%' => $this->url()->fromRoute('myresearch-holds')
+                    ],
+                ];
+                $this->flashMessenger()->addMessage($msg, (isset($results['success']) && $results['success'] == true) ? 'info' : 'error');
+                $view = $this->createViewModel(['skip' => true, 'title' => 'Hold Item', 'reloadParent' => true]);
+                $view->setTemplate('blankModal');
+                return $view;
             }
         }
 

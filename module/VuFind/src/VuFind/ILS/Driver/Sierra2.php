@@ -439,14 +439,16 @@ class Sierra2 extends Sierra implements
      */
     public function placeHold($details)
     {
+        $success = true;
         $body = array('recordType' => substr($details["id"], 1, 1), 
                       'recordNumber' => (int)substr($details["id"], 2, -1), 
                       'pickupLocation' => $details['pickUpLocation'], 
                       'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));
-        $reply = json_encode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $details['patron']['id'] . "/holds/requests", 
-                                                    \Zend\Http\Request::METHOD_POST, 
-                                                    json_encode($body)) );
-        return ['success' => true];
+        $jsonVals = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $details['patron']['id'] . "/holds/requests", 
+                                                       \Zend\Http\Request::METHOD_POST, 
+                                                       json_encode($body)) );
+        $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
+        return ['success' => $success];
     }
 
     /**
@@ -487,6 +489,30 @@ class Sierra2 extends Sierra implements
         for($i=0; $i<count($holds["details"]); $i++ )
         {
             $body = json_encode(array('freeze' => $doFreeze));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i], 
+                                                          \Zend\Http\Request::METHOD_PUT, 
+                                                          $body));
+            $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
+        }
+        return ['success' => $success];
+    }
+
+    /**
+     * Update Holds
+     *
+     * This is responsible for changing the location of a patron's holds.
+     *
+     * @param array  $holds  The holds to update
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function updateHolds($holds){
+        $success = true;
+        for($i=0; $i<count($holds["details"]); $i++ )
+        {
+            $body = json_encode(array('pickupLocation' => $holds["newLocation"]));
             $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i], 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));

@@ -56,7 +56,7 @@
         <li><a href="<?=$this->url('myresearch-bookcart')?>"><button class="btn-dropdown btn-whiteDropdown">Book Cart<? if($bookCartCount>0): ?><span class="badge"><?=$bookCartCount?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds<? if(count($holds)>0): ?><span class="badge"><?=count($holds)?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-checkedout')?>"><button class="btn-dropdown btn-whiteDropdown">Checked Out<? if(count($checkouts)>0): ?><span class="badge"><?=count($checkouts)?></span><? endif; ?></button></a></li>
-        <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Saved Searches</button></li>
+        <li><a href="<?=$this->url('search-history')?>"><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></a></li>
         <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Reading History</button></li>
         <li><a href="<?=$this->url('myresearch-profile')?>"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
         <hr class="stretchHR">
@@ -72,8 +72,8 @@
     </div>
     <div class="EIN-col-m-12 dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
-        <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Saved Searches</button></li>
-        <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Advanced Search</button></li>
+        <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
+        <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown">Advanced Search</button></a></li>
       </ul>
     </div>
   </div>

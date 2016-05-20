@@ -836,6 +836,36 @@ echo $sresult . "<br>";
     }
 
     /**
+     * Update Holds
+     *
+     * Attempts to update the pickup location for an array of holds and returns
+     * an array with result details or throws an exception on failure of support
+     * classes
+     *
+     * @param array $holds The holds to update and the location to change them to
+     *
+     * @throws ILSException
+     * @return mixed An array of data on the request including
+     * whether or not it was successful and a system message (if available)
+     */
+    public function updateHolds($holds)
+    {
+        // invalidate the cached data
+        unset($this->session->holds);
+
+        // weed out overdrive holds, there's nothing we can do there
+        for($i=0; $i<count($holds["details"]); $i++ )
+        {
+            if( substr($holds["details"][$i], 0, 9) == "OverDrive" ) {
+                $overDriveHolds[] = substr(array_splice($holds["details"], $i, 1)[0], 9);
+                $i--;
+            }
+        }
+
+        return parent::updateHolds($holds);
+    }
+
+    /**
      * Get notifications
      *
      * This is responsible for grabbing a few static notifications based on a patron's profile information.

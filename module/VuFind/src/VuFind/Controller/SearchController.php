@@ -66,6 +66,7 @@ class SearchController extends AbstractSearch
                 $specialFacets['checkboxes'], $view->saved
             );
         }
+        $view->formatCategories = $this->getConfig()->FormatCategories;
         $view->ranges = $this->getAllRangeSettings($specialFacets, $view->saved);
         $view->hierarchicalFacets = $this->getHierarchicalFacets();
 
@@ -262,6 +263,9 @@ class SearchController extends AbstractSearch
 
                     // We don't want to remember the last search after a purge:
                     $this->getSearchMemory()->forgetSearch();
+
+                    // let them know about it
+                    $this->flashMessenger()->addMessage('search_purge_success', 'info');
                 } else {
                     // Otherwise add to the list
                     $unsaved[] = $minSO->deminify($this->getResultsManager());

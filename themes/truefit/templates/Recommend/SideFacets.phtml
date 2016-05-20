@@ -196,6 +196,7 @@
                     <i class="fa fa-square-o facetToggleOn" onClick="ToggleCategory($(this));CleanChecks(false);"></i>
                     <?=$this->escapeHtml("Other")?>
                   </li>
+                  <? usort($inputVals, function($format1,$format2) { return strcmp($format1["displayText"], $format2["displayText"]); } ); ?>
                   <? foreach( $inputVals as $thisFacet ): ?>
                     <li class="facetOffset1">
                       <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>

@@ -15,7 +15,7 @@
 <? endforeach; ?>
 <div class="modal-footer">
   <div id="confirmFooter">
-    <form id="confirmForm" action="<?=$this->escapeHtmlAttr($this->confirm)?>" method="post">
+    <form id="confirmForm" action="<?=$this->escapeHtmlAttr($this->confirm)?>" method="<?=isset($this->formMethod) ? $this->formMethod : "post"?>" target="_blank">
       <input type="hidden" name="suppressFlashMessages" value="true">
       <input type="hidden" name="confirm" value="true">
       <? if (isset($this->extras)): ?>
@@ -42,7 +42,7 @@
   function SubmitConfirmation() {
     $('#confirmFooter').css('display','none');
     $('#loadingFooter').css('display','block');
-    Lightbox.submit($('#confirmForm'), function(html) { location.reload() } );
+    Lightbox.submit($('#confirmForm'), function(html) { location.reload(); } );
   }
 </script>
 

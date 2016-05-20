@@ -346,10 +346,53 @@ class Holds extends AbstractRequestBase
                     $flashMsg->addMessage($msg, 'info');
                 } else {
                     $msg = $this->getController()
-                        ->translate((count($details) == 1) ? 'hold_un_fail_single' : 'hold_unfreeze_fail_multiple');
+                        ->translate((count($details) == 1) ? 'hold_unfreeze_fail_single' : 'hold_unfreeze_fail_multiple');
                     $flashMsg->addMessage($msg, 'error');
                 }
                 return $unfreezeResults;
+            }
+        } else {
+             $flashMsg->addMessage('hold_empty_selection', 'error');
+        }
+        return [];
+    }
+
+    /**
+     * Process update requests.
+     *
+     * @param \VuFind\ILS\Connection $catalog ILS connection object
+     * @param array                  $patron  Current logged in patron
+     *
+     * @return array                          The result of the update, an
+     * associative array keyed by item ID (empty if no unfreezes performed)
+     */
+    public function updateHolds($catalog, $patron)
+    {
+        // Retrieve the flashMessenger helper:
+        $flashMsg = $this->getController()->flashMessenger();
+        $params = $this->getController()->params();
+
+        // Pick IDs to update based on which button was pressed:
+        $details = $params->fromPost('updateIDs');
+
+        if (!empty($details)) {
+            // Add Patron Data to Submitted Data
+            $updateResults = $catalog->updateHolds(
+                ['details' => $details, 'patron' => $patron, 'newLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"]]
+            );
+            if ($updateResults == false) {
+                $flashMsg->addMessage('hold_update_fail', 'error');
+            } else {
+                if ($updateResults['success']) {
+                    $msg = $this->getController()
+                        ->translate((count($details) == 1) ? 'hold_update_success_single' : 'hold_update_success_multiple');
+                    $flashMsg->addMessage($msg, 'info');
+                } else {
+                    $msg = $this->getController()
+                        ->translate((count($details) == 1) ? 'hold_update_fail_single' : 'hold_update_fail_multiple');
+                    $flashMsg->addMessage($msg, 'error');
+                }
+                return $updateResults;
             }
         } else {
              $flashMsg->addMessage('hold_empty_selection', 'error');

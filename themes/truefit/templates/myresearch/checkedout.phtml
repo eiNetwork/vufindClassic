@@ -36,9 +36,9 @@
   <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9 panel-group" id="checkoutAccordion">
     <h1 class="pageTitle EIN-hide-t EIN-hide">Checked Out</h1>
     <? if( $totalCheckouts == 0 ): ?>
-      <div class="EIN-col-m-12" style="height:50px"></div>
+      <div class="EIN-col-m-12" style="height:110px"></div>
       <div class="center">You don't currently have any items checked out.</div>
-      <div class="EIN-col-m-12" style="height:50px"></div>
+      <div class="EIN-col-m-12" style="height:110px"></div>
     <? else: ?>
       <? foreach($order as $checkoutType): ?>
         <div class="panel panel-default listAccordion">
@@ -82,17 +82,19 @@
             // You can also add preventDefault to remove the anchor behavior that makes the page jump
             e.preventDefault();
           }
-      });
-      $('body').css({"overflow-y":"hidden"});
-        if($(document).width() >= <?=(isset($this->showCheckoutType) ? 0 : 600)?>) {
-          <? if( isset($this->showCheckoutType) ): ?>
-            $('#details_<?=$this->showCheckoutType?>').parents('.listAccordion').find('.panel-heading a').click();
-          <? else: ?>
-            $('.panel-heading a.active').first().click();
-          <? endif; ?>
-        }
-        $('body').css({"overflow-y":"auto"});
-        $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+        });
+        jQuery(document).ready(function() {
+          $('body').css({"overflow-y":"hidden"});
+          if($(document).width() >= <?=(isset($this->showCheckoutType) ? 0 : 600)?>) {
+            <? if( isset($this->showCheckoutType) ): ?>
+              $('#details_<?=$this->showCheckoutType?>').parents('.listAccordion').find('.panel-heading a').click();
+            <? else: ?>
+              $('.panel-heading a.active').first().click();
+            <? endif; ?>
+          }
+          $('body').css({"overflow-y":"auto"});
+          $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+        } );
       </script>
     <? endif; ?>
   </div>

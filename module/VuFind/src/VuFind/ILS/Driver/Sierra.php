@@ -194,12 +194,14 @@ class Sierra extends AbstractBase implements TranslatorAwareInterface
             throw new ILSException('Configuration needs to be set.');
         }
         try {
-            $conn_string = "host=" . $this->config['Catalog']['dna_url']
-                . " port=" . $this->config['Catalog']['dna_port']
-                . " dbname=" . $this->config['Catalog']['dna_db']
-                . " user=" . $this->config['Catalog']['dna_user']
-                . " password=" . $this->config['Catalog']['dna_password'];
-            $this->db = pg_connect($conn_string);
+            if( !isset($this->db) ) {
+                $conn_string = "host=" . $this->config['Catalog']['dna_url']
+                    . " port=" . $this->config['Catalog']['dna_port']
+                    . " dbname=" . $this->config['Catalog']['dna_db']
+                    . " user=" . $this->config['Catalog']['dna_user']
+                    . " password=" . $this->config['Catalog']['dna_password'];
+                $this->db = pg_connect($conn_string);
+            }
         } catch (\Exception $e) {
             throw new ILSException($e->getMessage());
         }

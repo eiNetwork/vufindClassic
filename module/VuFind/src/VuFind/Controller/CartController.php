@@ -154,6 +154,9 @@ class CartController extends AbstractBase
         } else if (strlen($this->params()->fromPost('delete', '')) > 0) {
             $controller = 'MyResearch';
             $action = 'Delete';
+        } else if (strlen($this->params()->fromPost('history', '')) > 0) {
+            $controller = 'MyResearch';
+            $action = 'ReadingHistory';
         } else if (strlen($this->params()->fromPost('addBulk', '')) > 0) {
             $controller = 'MyResearch';
             $action = 'AddBulk';

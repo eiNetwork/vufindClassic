@@ -846,6 +846,20 @@ $config['router']['routes']['confirm-editproperty'] = [
         ]
     ]
 ];
+$config['router']['routes']['myresearch-readinghistory'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/MyResearch/ReadingHistory',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'MyResearch',
+            'action'     => 'ReadingHistory',
+        ]
+    ]
+];
 
 
 // Add the home route last

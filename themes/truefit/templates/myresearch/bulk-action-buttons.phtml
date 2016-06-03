@@ -5,6 +5,10 @@
 <? elseif (isset($hold)): ?>
   <? $bulkID = $hold; ?>
   <input type="hidden" name="confirm" value="0" />
+<? elseif (isset($history)): ?>
+  <? $bulkID = $history; ?>
+  <input type="hidden" name="confirm" value="0" />
+  <input type="hidden" name="readingHistoryAction" value="deleteMarked">
 <? elseif (isset($checkout)): ?>
   <? $bulkID = $checkout; ?>
   <input type="hidden" name="confirm" value="0" />
@@ -90,10 +94,12 @@
         <button class="btn-default btn-wide bulkButton" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>', 'cancel')">Cancel Selected</button>
       <? elseif (isset($checkout)): ?>
         <button class="btn-default btn-wide bulkButton" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>','renew')">Renew Selected</button>
+      <? elseif (isset($history)): ?>
+        <button class="btn-default btn-wide bulkButton" onclick="ConfirmSelected($(this).parents('form'), '<?=$bulkID?>','history')">Delete Selected</button>
       <? else: ?>
         <button class="btn-default btn-wide bulkButton" data-toggle="dropdown" data-target="#listBulkDropdown<?=$bulkID?>"><?=$this->transEsc('with_selected')?><i class="fa fa-caret-down"></i></button>
       <? endif; ?>
-      <div class="EIN-col-m-12 dropdown" id="listBulkDropdown<?=$bulkID?>">
+      <div class="dropdown" id="listBulkDropdown<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
           <? if (isset($list)): ?>
             <li><button class="btn-dropdown btn-standardDropdown" <? /* ?>onclick="HoldSelected($(this).parents('form')); return false;"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Hold</button></li>

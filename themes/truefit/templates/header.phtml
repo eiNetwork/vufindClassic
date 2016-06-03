@@ -22,7 +22,7 @@
           <i class="fa fa-bars"></i>
         </button>
       </div>
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('MyResearch','comingsoon'); return false;"><span class="headerLink">Help</span></button>
+      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('Help','Home')"><span class="headerLink">Help</span></button>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none"><span class="headerLink">Locations</span></button>
 <? if ($user): ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
@@ -57,20 +57,20 @@
         <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds<? if(count($holds)>0): ?><span class="badge"><?=count($holds)?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-checkedout')?>"><button class="btn-dropdown btn-whiteDropdown">Checked Out<? if(count($checkouts)>0): ?><span class="badge"><?=count($checkouts)?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('search-history')?>"><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></a></li>
-        <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Reading History</button></li>
+        <li><a href="<?=$this->url('myresearch-readinghistory')?>"><button class="btn-dropdown btn-whiteDropdown">Reading History</button></a></li>
         <li><a href="<?=$this->url('myresearch-profile')?>"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
         <hr class="stretchHR">
-        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown EIN-hide" onclick="Lightbox.get('Help','Home')">Help</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown EIN-hide" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none">Locations</button></li>
         <li><a href="<?=$this->url('myresearch-logout')?>"><button class="btn-dropdown btn-whiteDropdown"><i class="fa fa-sign-out"></i>Log Out</button></a></li>
 <? else: ?>
-        <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Help</button></li>
+        <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('Help','Home')">Help</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none">Locations</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown" onClick="Lightbox.get('MyResearch', 'Login')">Log In or Register</button></li>
 <? endif; ?>
       </ul>
     </div>
-    <div class="EIN-col-m-12 dropdown" id="searchBoxDropdown">
+    <div class="dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
         <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
         <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown">Advanced Search</button></a></li>

@@ -1,0 +1,97 @@
+<?
+  // Convenience variable:
+  $account = $this->auth()->getManager();
+  $user = $this->auth()->isLoggedIn();
+
+  // Set up page title:
+  $this->headTitle($this->translate('Reading History'));
+?>
+
+<?=$this->flashmessages()?>
+
+<div class="EIN-col-m-12 padded">
+  <div class="EIN-col-m-12 panel-body" style="padding:0">
+    <h1 class="pageTitle">Reading History</h1>
+    <? if( $this->readingHistory["numTitles"] == 0 ): ?>
+      <div>You do not have any items in your reading list. It may take up to 3 hours for your reading history to be updated after you start recording your history.</div>
+    <? else: ?>
+      <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>" target="loginFrame">
+        <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => 'delete', 'history' => 'history'))?>
+        <div style="display:none">
+          <? foreach ($this->readingHistory["titles"] as $i=>$current): ?>
+            <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"])?>
+          <? endforeach; ?>
+        </div>
+      </form>
+      <table class="ajaxItem readingHistoryTable" style="width:100%">
+        <tr class="historyHeaderRow">
+          <td>&nbsp;</td>
+          <td>Title</td>
+          <td>Format</td>
+          <td style="text-align:right">Checked Out</td>
+        </tr>
+        <? $lastIndex = -1; ?>
+        <? foreach( $this->readingHistory["titles"] as $item ): ?>
+          <? if( isset($item["driver"]) ): ?>
+            <? $record = $this->record($item["driver"]); ?>
+            <? $lastIndex = (isset($item["itemindex"]) && ($item["itemindex"] > $lastIndex)) ? $item["itemindex"] : $lastIndex; ?>
+            <tr class="historyItem">
+              <td style="margin:auto">
+                <label class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></label>
+                <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getUniqueId())?>" class="hiddenId" />
+                <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getResourceSource())?>" class="hiddenSource" />
+              </td>
+              <td style="padding:15px 5px" class="itemTitle">
+                <a href="<?=$this->recordLink()->getUrl($item["driver"])?>"><?=$this->escapeHtml(trim($item["driver"]->getTitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getTitleSection(),"\0\t\n\x0B\r /"))?></a>
+                <? $authors = $item["driver"]->getDeduplicatedAuthors(); ?>
+                <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+                  <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
+                <? endif; ?>
+              </td>
+              <td>
+                <? $formats = $item["driver"]->getFormats(); if (!empty($formats)): ?>
+                  <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
+                    <div style="padding-bottom:5px">
+                      <span class="formatTag"><?=$thisFormat?></span>
+                    </div>
+                  <? endforeach; ?>
+                <? endif; ?>
+              </td>
+              <td style="text-align:right"><?=$item["checkout"]?></td>
+            </tr>
+          <? endif; ?>
+        <? endforeach; ?>
+      </table>
+    <? endif; ?>
+    <? if( $this->readingHistory["numTitles"] > 0 && $lastIndex != -1 && ($lastIndex + $this->indexOffset) < $this->readingHistory["total_records"] ): ?>
+      <div class="center" style="margin:20px 0px">
+        <button class="btn-default btn-wide historyShowMore" onclick="LoadMoreHistory()"><i class='fa fa-repeat'></i>&nbsp;<?=$this->transEsc("reading_history_load_more")?></button>
+      </div>
+    <? endif; ?>
+    <div class="center" style="margin:20px 0px">
+      <form method="post">
+        <input type="hidden" name="readingHistoryAction" value="<?=($this->readingHistory["historyActive"] ? "optOut" : "optIn")?>">
+        <button class="btn-default btn-wide"><?=$this->transEsc($this->readingHistory["historyActive"] ? "reading_history_disable" : "reading_history_enable")?></button>
+      </form>
+    </div>
+    <div class="historyNote">The library takes seriously the privacy of your library records. Therefore, we do not keep track of what you borrow after you return it. However, our automated system 
+      has a feature called "My Reading History" that allows you to track items you check out. Participation in the feature is entirely voluntary. You may start or stop using it, as well as delete 
+      all entries in "My Reading History" at any time. If you choose to start recording "My Reading History", you agree to allow our automated system to store this data. The library staff does not
+      have access to your "My Reading History", however, it is subject to all applicable local, state, and federal laws, and under those laws, could be examined by law enforcement authorities 
+      without your permission. If this is of concern to you, you should not use the "My Reading History" feature.
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var pageNum = 2;
+  function LoadMoreHistory() {
+    $('#loginFrame').attr("src", "<?=$this->url('myresearch-readinghistory')?>?pageNum=" + pageNum);
+    $('#loginFrame').load( function() { 
+      $(this).contents().find('.readingHistoryTable tr').not('.historyHeaderRow').each( function() {
+        $(this).clone().insertAfter($('.readingHistoryTable tr:last'));
+      });
+      $('.historyShowMore').css('display', ($(this).contents().find('.historyShowMore').length > 0) ? 'inline-block' : 'none');
+    } );
+    pageNum++;
+  }
+</script>

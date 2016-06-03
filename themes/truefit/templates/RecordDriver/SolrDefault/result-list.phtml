@@ -73,7 +73,7 @@
     <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
         <button class="btn-default leftButton"<?=$holdClick?> disabled><i class="fa fa-spinner"></i>&nbsp;Loading...</button>
-        <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
+        <div class="dropdown" id="holdButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
           </ul>
         </div>
@@ -90,7 +90,7 @@
       ?>
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
         <button class="btn-default rightButton"<?=$saveClick?>><?=($hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-        <div class="EIN-col-m-12 dropdown" id="saveButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
+        <div class="dropdown" id="saveButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if($user):  foreach($myLists as $list): ?>
               <li>

@@ -81,10 +81,14 @@
               <?
                 $selected = (isset($this->profile['notificationCode']) && $this->profile['notificationCode'] != "") ? $this->profile['notificationCode'] : '';
               ?>
-              <select id="notification" name="notification" class="form-control registerDropdown" onchange="$(this).parents('form').submit();" disabled>
-                <option value="z"<?=($selected == "Email")?' selected="selected"':''?>>Email</option>
-                <option value="p"<?=($selected == "Phone")?' selected="selected"':''?>>Phone</option>
-              </select>
+              <button class="btn-alternate EIN-col-m-12" id="notificationButton" data-toggle="dropdown" data-target="#notificationButtonDropdown"><span><?=($selected == 'p')?'Phone':'Email'?></span><i class="fa fa-caret-down"></i></button>
+              <div class="EIN-col-m-12 dropdown" id="notificationButtonDropdown">
+                <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','z');$('#notificationButton span').html('Email');"><?=$this->transEsc('Email')?></button></li>
+                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','p');$('#notificationButton span').html('Phone');"><?=$this->transEsc('Phone')?></button></li>
+                </ul>
+              </div>
+              <input id="notification" name="notification" value="<?=$selected?>" class="hidden">
             </div>
           </form>
         </div>
@@ -137,21 +141,41 @@
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Preferred Library</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
               <? $selected = (isset($this->profile['preferredlibrarycode']) && $this->profile['preferredlibrarycode'] != "") ? $this->profile['preferredlibrarycode'] : $this->defaultPickupLocation ?>
-              <select id="preferred_library" name="preferred_library" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
-                <? foreach ($this->pickup as $lib): ?>
-                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
-                <? endforeach; ?>
-              </select>
+              <? $caption = ""; ?>
+              <? foreach ($this->pickup as $lib): ?>
+                <? if( ($caption == "") || ($lib['locationID'] == $selected) ): ?>
+                  <? $caption = $lib['locationDisplay']; ?>
+                <? endif; ?>
+              <? endforeach; ?>
+              <button class="btn-alternate EIN-col-m-12" id="preferredLibraryButton" data-toggle="dropdown" data-target="#preferredLibraryButtonDropdown"><span><?=$caption?></span><i class="fa fa-caret-down"></i></button>
+              <div class="EIN-col-m-12 dropdown" id="preferredLibraryButtonDropdown">
+                <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                  <? foreach ($this->pickup as $lib): ?>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#preferred_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');$('#preferredLibraryButton span').html('<?=$this->escapeHtml($lib['locationDisplay'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
+                  <? endforeach; ?>
+                </ul>
+              </div>
+              <input id="preferred_library" name="preferred_library" value="<?=$selected?>" class="hidden">
             </div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Alternate Library</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
               <? $selected = (isset($this->profile['alternatelibrarycode']) && $this->profile['alternatelibrarycode'] != "") ? $this->profile['alternatelibrarycode'] : $this->defaultPickupLocation ?>
-              <select id="alternate_library" name="alternate_library" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
-                <? foreach ($this->pickup as $lib): ?>
-                  <option value="<?=$this->escapeHtmlAttr($lib['locationID'])?>"<?=($selected == $lib['locationID'])?' selected="selected"':''?>><?=$this->escapeHtml($lib['locationDisplay'])?></option>
-                <? endforeach; ?>
-              </select>
+              <? $caption = ""; ?>
+              <? foreach ($this->pickup as $lib): ?>
+                <? if( ($caption == "") || ($lib['locationID'] == $selected) ): ?>
+                  <? $caption = $lib['locationDisplay']; ?>
+                <? endif; ?>
+              <? endforeach; ?>
+              <button class="btn-alternate EIN-col-m-12" id="alternateLibraryButton" data-toggle="dropdown" data-target="#alternateLibraryButtonDropdown"><span><?=$caption?></span><i class="fa fa-caret-down"></i></button>
+              <div class="EIN-col-m-12 dropdown" id="alternateLibraryButtonDropdown">
+                <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                  <? foreach ($this->pickup as $lib): ?>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#alternate_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');$('#alternateLibraryButton span').html('<?=$this->escapeHtml($lib['locationDisplay'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
+                  <? endforeach; ?>
+                </ul>
+              </div>
+              <input id="alternate_library" name="alternate_library" value="<?=$selected?>" class="hidden">
             </div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Home Library</div>
@@ -168,41 +192,77 @@
       </div>
       <div id="profile_overdrive" class="panel-collapse collapse">
         <div class="panel-body">
-          <div class="EIN-col-m-12" style="height:5px"></div>
-          <form class="form-inline" method="post" action="<?=$this->url('myresearch-profile')?>" target="loginFrame">
-            <input type="hidden" name="profileSection" value="overdrive" />
-            <input type="hidden" name="suppressFlashMessages" value="true" />
-            <input type="hidden" name="reloadParent" value="true" />
-            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('eBook')?></div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <? $selected = (isset($this->profile['OD_eBook']) && $this->profile['OD_eBook'] != "") ? explode(" ", $this->profile['OD_eBook'])[0] : null; ?>
-              <select id="OD_eBook" name="OD_eBook" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+          <? if( ($this->profile['OD_eBook'] != "") && ($this->profile['OD_audiobook'] != "") && ($this->profile['OD_video'] != "") ): ?>
+            <div class="EIN-col-m-12" style="height:5px"></div>
+            <form class="form-inline" method="post" action="<?=$this->url('myresearch-profile')?>" target="loginFrame">
+              <input type="hidden" name="profileSection" value="overdrive" />
+              <input type="hidden" name="suppressFlashMessages" value="true" />
+              <input type="hidden" name="reloadParent" value="true" />
+              <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('eBook')?></div>
+              <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+                <? $selected = (isset($this->profile['OD_eBook']) && $this->profile['OD_eBook'] != "") ? explode(" ", $this->profile['OD_eBook'])[0] : null; ?>
+                <? $caption = ""; ?>
                 <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
-                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                  <? if( ($caption == "") || ($renewOption == $selected) ): ?>
+                    <? $caption = $renewOption; ?>
+                  <? endif; ?>
                 <? endforeach; ?>
-              </select>
-            </div>
-            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
-            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Audiobook')?></div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <? $selected = (isset($this->profile['OD_audiobook']) && $this->profile['OD_audiobook'] != "") ? explode(" ", $this->profile['OD_audiobook'])[0] : null; ?>
-              <select id="OD_audiobook" name="OD_audiobook" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <button class="btn-alternate EIN-col-m-12" id="ODeBookButton" data-toggle="dropdown" data-target="#ODeBookButtonDropdown"><span><?=$caption?></span> days<i class="fa fa-caret-down"></i></button>
+                <div class="EIN-col-m-12 dropdown" id="ODeBookButtonDropdown">
+                  <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                    <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_eBook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODeBookButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                    <? endforeach; ?>
+                  </ul>
+                </div>
+                <input id="OD_eBook" name="OD_eBook" value="<?=$selected?>" class="hidden">
+              </div>
+              <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+              <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Audiobook')?></div>
+              <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+                <? $selected = (isset($this->profile['OD_audiobook']) && $this->profile['OD_audiobook'] != "") ? explode(" ", $this->profile['OD_audiobook'])[0] : null; ?>
+                <? $caption = ""; ?>
                 <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
-                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                  <? if( ($caption == "") || ($renewOption == $selected) ): ?>
+                    <? $caption = $renewOption; ?>
+                  <? endif; ?>
                 <? endforeach; ?>
-              </select>
-            </div>
-            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
-            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Video')?></div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <? $selected = (isset($this->profile['OD_video']) && $this->profile['OD_video'] != "") ? explode(" ", $this->profile['OD_video'])[0] : null; ?>
-              <select id="OD_video" name="OD_video" class="form-control registerDropdown" onchange="$(this).parents('form').submit();">
+                <button class="btn-alternate EIN-col-m-12" id="ODaudiobookButton" data-toggle="dropdown" data-target="#ODaudiobookButtonDropdown"><span><?=$caption?></span> days<i class="fa fa-caret-down"></i></button>
+                <div class="EIN-col-m-12 dropdown" id="ODaudiobookButtonDropdown">
+                  <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                    <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_audiobook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODaudiobookButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                    <? endforeach; ?>
+                  </ul>
+                </div>
+                <input id="OD_audiobook" name="OD_audiobook" value="<?=$selected?>" class="hidden">
+              </div>
+              <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+              <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle"><?=$this->transEsc('Video')?></div>
+              <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+                <? $selected = (isset($this->profile['OD_video']) && $this->profile['OD_video'] != "") ? explode(" ", $this->profile['OD_video'])[0] : null; ?>
+                <? $caption = ""; ?>
                 <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
-                  <option value="<?=$this->escapeHtmlAttr($renewOption)?>"<?=($selected == $renewOption)?' selected="selected"':''?>><?=$this->escapeHtml($renewOption)?> days</option>
+                  <? if( ($caption == "") || ($renewOption == $selected) ): ?>
+                    <? $caption = $renewOption; ?>
+                  <? endif; ?>
                 <? endforeach; ?>
-              </select>
-            </div>
-          </form>
+                <button class="btn-alternate EIN-col-m-12" id="ODvideoButton" data-toggle="dropdown" data-target="#ODvideoButtonDropdown"><span><?=$caption?></span> days<i class="fa fa-caret-down"></i></button>
+                <div class="EIN-col-m-12 dropdown" id="ODvideoButtonDropdown">
+                  <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
+                    <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_video').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODvideoButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                    <? endforeach; ?>
+                  </ul>
+                </div>
+                <input id="OD_video" name="OD_video" value="<?=$selected?>" class="hidden">
+              </div>
+            </form>
+          <? else: ?>
+            <div class="EIN-col-m-12" style="height:5px"></div>
+            <div class="EIN-col-m-12">You have not yet signed in and activated OverDrive.  Please visit <a href="<?=$this->overDriveURL?>/SignIn.htm?URL=Default%2ehtm" target="_blank">their site</a> and enter your 14-digit barcode to create your OverDrive account.</div>
+            <div class="EIN-col-m-12" style="height:5px"></div>
+          <? endif; ?>
         </div>
       </div>
     </div>

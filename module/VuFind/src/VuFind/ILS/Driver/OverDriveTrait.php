@@ -359,17 +359,17 @@ trait OverDriveTrait {
                         // OverDrive Read - access online instead of download
                         if ($format->formatType == 'ebook-overdrive') {
                             if (isset($curFormat['downloadUrl'])){
-                                $bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+                                $bookshelfItem['overdriveReadUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'ebook-overdrive', $user);
                             }
                         // Streaming Video - access online instead of download
                         }elseif ($format->formatType == 'video-streaming') {
                             if (isset($curFormat['downloadUrl'])){
-                                $bookshelfItem['streamingVideoUrl'] = $curFormat['downloadUrl'];
+                                $bookshelfItem['streamingVideoUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'video-streaming', $user);
                             }
                         // Overdrive Listen - access online instead of download
                         }elseif ($format->formatType == 'audiobook-overdrive') {
                             if (isset($curFormat['downloadUrl'])){
-                                $bookshelfItem['overdriveListenUrl'] = $curFormat['downloadUrl'];
+                                $bookshelfItem['overdriveListenUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'audiobook-overdrive', $user);
                             }
                         // Downloadable formats
                         } else {

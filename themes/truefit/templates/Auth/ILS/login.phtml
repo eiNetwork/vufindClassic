@@ -1,8 +1,9 @@
 <button id="loginModalLogin" class="btn-alternate btn-wide active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
-<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" <? /* ?>onclick="ToggleLoginModal(this);"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Register</button><br><br>
+<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
 <div id="loginModalLoginBody">
   <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
     <? $account = $this->auth()->getManager(); ?>
+    <div style="margin:auto">
     <div class="textBoxContainer">
       <input type="text" name="username" id="login_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
@@ -13,12 +14,101 @@
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="login_passwordError" class="formError"></span>
     </div>
+    </div>
     <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
-    <input type="hidden" name="authorization_code" id="authorization_code" value="">
     <input type="hidden" name="authorization_code" id="authorization_code" value="">
   </form>
 </div>
-<div id="loginModalRegisterBody" style="color:#3f51b5;display:none">REGISTER</div>
+<div id="loginModalRegisterBody" class="registerBody" style="color:#3f51b5;display:none">
+  <form role="login" method="post" action="<?=$this->url('myresearch-account')?>" name="registerForm" id="registerForm" autocomplete="off" target="loginFrame">
+    <div class="EIN-col-m-12">
+      <div class="EIN-col-m-12 fieldTitle">Name</div>
+      <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+        <input type="text" name="firstname" id="register_firstname" value="First Name" onfocus="ClearFormError(this); if (this.value=='First Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_firstnameError" class="formError"></span>
+      </div>
+      <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+        <input type="text" name="lastname" id="register_lastname" value="Last Name" onfocus="ClearFormError(this); if (this.value=='Last Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_lastnameError" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-col-m-12 fieldTitle">Email</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="email" id="register_email" value="Enter your email address" onfocus="ClearFormError(this); if (this.value=='Enter your email address') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_emailError" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-col-m-12 fieldTitle">Phone</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="phone" id="register_phone" value="123-456-7890" onfocus="ClearFormError(this); if (this.value=='123-456-7890') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_phoneError" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-col-m-12 fieldTitle">Address</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="address1" id="register_address1" value="Street or PO Box" onfocus="ClearFormError(this); if (this.value=='Street or PO Box') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_address1Error" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="address2" id="register_address2" value="Apt # or Suite" onfocus="ClearFormError(this); if (this.value=='Apt # or Suite') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_address2Error" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12">
+      <div class="EIN-col-m-6 EIN-col-t-6 EIN-col-6">
+        <div class="textBoxContainer EIN-col-m-12">
+          <input type="text" name="city" id="register_city" value="City" onfocus="ClearFormError(this); if (this.value=='City') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <i class="fa fa-exclamation-circle formErrorIcon"></i>
+          <span id="regsister_cityError" class="formError"></span>
+        </div>
+      </div>
+      <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
+        <div class="textBoxContainer EIN-col-m-12">
+          <input type="text" name="state" id="register_state" value="State" onfocus="ClearFormError(this); if (this.value=='State') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        </div>
+      </div>
+      <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
+        <div class="textBoxContainer EIN-col-m-12">
+          <input type="text" name="zip" id="register_zip" value="Zip" onfocus="ClearFormError(this); if (this.value=='Zip') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        </div>
+      </div>
+      <span id="register_cityError" class="formError"></span>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-col-m-12 fieldTitle">Security</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="pin" id="register_pin" value="4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_pinError" class="formError"></span>
+      </div>
+    </div>
+    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+      <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
+      <div class="textBoxContainer EIN-col-m-12">
+        <input type="text" name="confirmpin" id="register_confirmpin" value="Confirm 4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='Confirm 4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
+        <i class="fa fa-exclamation-circle formErrorIcon"></i>
+        <span id="register_confirmpinError" class="formError"></span>
+      </div>
+    </div>
+    <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
+    <input type="hidden" name="confirm" value="true">
+    <input type="hidden" name="registerAttempt" value="true">
+  </form>
+</div>
 <div class="modal-footer">
   <div id="loginModalLoginFooter">
     <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
@@ -26,7 +116,7 @@
   </div>
   <div id="loginModalRegisterFooter" style="display:none">
     <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
-    <button class="btn-default btn-wide" onclick="document.getElementById('loginForm').submit()">Register</button>
+    <button class="btn-default btn-wide" onclick="SubmitRegister()">Register</button>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
     <span><i class="fa fa-spinner"></i></span>
@@ -51,6 +141,7 @@
     document.getElementById(loginToggle).classList.add('active');
     document.getElementById(loginToggle + "Body").style.display = "block";
     document.getElementById(loginToggle + "Footer").style.display = "block";
+    sizeModal();
   }
 
   // make the switcher buttons more responsive
@@ -122,6 +213,198 @@
     }
   }
 
+  // process an attempted registration
+  function SubmitRegister() {
+    // can't do anything while we're processing
+    if( processingLogin ) {
+      return;
+    }
+
+    // we need to give this a few frames to load before we test for error messages
+    $('#loginFrame').load( function() { setTimeout( function() { 
+      var frame = document.getElementById("loginFrame");
+      frame.onload = null;
+
+      var messages = frame.contentDocument.getElementById("registerFlashMessages");
+      // success, reload this page
+      if( messages == null || messages.children.length == 0 ) {
+        location.reload(true);
+      // failure, find the error message and display it in the modal
+      } else {
+        processingLogin = false;
+        document.getElementById(loginToggle + "Footer").style.display = "block";
+        document.getElementById("loadingFooter").style.display = "none";
+        document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;
+      }
+    }, 100); } );
+
+    // make sure they've given us all the relevant info
+    var firstname = document.getElementById("register_firstname");
+    var lastname = document.getElementById("register_lastname");
+    var email = document.getElementById("register_email");
+    var phone = document.getElementById("register_phone");
+    var street = document.getElementById("register_address1");
+    var address2 = document.getElementById("register_address2");
+    var city = document.getElementById("register_city");
+    var state = document.getElementById("register_state");
+    var zip = document.getElementById("register_zip");
+    var pin = document.getElementById("register_pin");
+    var confirmpin = document.getElementById("register_confirmpin");
+    if( firstname.value == "" || firstname.value == "First Name" ) {
+      document.getElementById("register_firstnameError").style.display = "block";
+      document.getElementById("register_firstnameError").innerHTML = "Please enter your first name above.";
+      if( "classList" in firstname ) {
+        firstname.classList.add("textBoxError");
+      } else {
+        firstname.className += " textBoxError";
+      }
+      firstname.nextElementSibling.style.display = "block";
+    } else if( lastname.value == "" || lastname.value == "Last Name" ) {
+      document.getElementById("register_lastnameError").style.display = "block";
+      document.getElementById("register_lastnameError").innerHTML = "Please enter your last name above.";
+      if( "classList" in lastname ) {
+        lastname.classList.add("textBoxError");
+      } else {
+        lastname.className += " textBoxError";
+      }
+      lastname.nextElementSibling.style.display = "block";
+    } else if( email.value == "" || email.value == "Enter your email address" ) {
+      document.getElementById("register_emailError").style.display = "block";
+      document.getElementById("register_emailError").innerHTML = "Please enter your email address above.";
+      if( "classList" in email ) {
+        email.classList.add("textBoxError");
+      } else {
+        email.className += " textBoxError";
+      }
+      email.nextElementSibling.style.display = "block";
+    } else if( phone.value == "" || phone.value == "123-456-7890" ) {
+      document.getElementById("register_phoneError").style.display = "block";
+      document.getElementById("register_phoneError").innerHTML = "Please enter your phone number above.";
+      if( "classList" in phone ) {
+        phone.classList.add("textBoxError");
+      } else {
+        phone.className += " textBoxError";
+      }
+      phone.nextElementSibling.style.display = "block";
+    } else if( phone.value.length != 12 || phone.value.match(/\d{3}-\d{3}-\d{4}/) == null ) {
+      document.getElementById("register_phoneError").style.display = "block";
+      document.getElementById("register_phoneError").innerHTML = "Phone numbers must be in the format XXX-XXX-XXXX.";
+      if( "classList" in phone ) {
+        phone.classList.add("textBoxError");
+      } else {
+        phone.className += " textBoxError";
+      }
+      phone.nextElementSibling.style.display = "block";
+    } else if( phone.value == "" || phone.value == "123-456-7890" ) {
+      document.getElementById("register_phoneError").style.display = "block";
+      document.getElementById("register_phoneError").innerHTML = "Please enter your phone number above.";
+      if( "classList" in phone ) {
+        phone.classList.add("textBoxError");
+      } else {
+        phone.className += " textBoxError";
+      }
+      phone.nextElementSibling.style.display = "block";
+    } else if( street.value == "" || street.value == "Street or PO Box" ) {
+      document.getElementById("register_address1Error").style.display = "block";
+      document.getElementById("register_address1Error").innerHTML = "Please enter your street address (or PO Box) above.";
+      if( "classList" in street ) {
+        street.classList.add("textBoxError");
+      } else {
+        street.className += " textBoxError";
+      }
+      street.nextElementSibling.style.display = "block";
+    } else if( city.value == "" || city.value == "City" ) {
+      document.getElementById("register_cityError").style.display = "block";
+      document.getElementById("register_cityError").innerHTML = "Please enter your city above.";
+      if( "classList" in city ) {
+        city.classList.add("textBoxError");
+      } else {
+        city.className += " textBoxError";
+      }
+      city.nextElementSibling.style.display = "block";
+    } else if( state.value == "" || state.value == "State" ) {
+      document.getElementById("register_cityError").style.display = "block";
+      document.getElementById("register_cityError").innerHTML = "Please enter your state's postal abbreviation above.";
+      if( "classList" in state ) {
+        state.classList.add("textBoxError");
+      } else {
+        state.className += " textBoxError";
+      }
+      state.nextElementSibling.style.display = "block";
+    } else if( state.value.length != 2 || state.value.match(/[A-Z]{2}/) == null ) {
+      document.getElementById("register_cityError").style.display = "block";
+      document.getElementById("register_cityError").innerHTML = "You must enter your state's postal abbreviation (2 capital letters).";
+      if( "classList" in state ) {
+        state.classList.add("textBoxError");
+      } else {
+        state.className += " textBoxError";
+      }
+      state.nextElementSibling.style.display = "block";
+    } else if( zip.value == "" || zip.value == "Zip" ) {
+      document.getElementById("register_cityError").style.display = "block";
+      document.getElementById("register_cityError").innerHTML = "Please enter your 5-digit zip code above.";
+      if( "classList" in zip ) {
+        zip.classList.add("textBoxError");
+      } else {
+        zip.className += " textBoxError";
+      }
+      zip.nextElementSibling.style.display = "block";
+    } else if( zip.value.length != 5 || zip.value.match(/\d{5}/) == null ) {
+      document.getElementById("register_cityError").style.display = "block";
+      document.getElementById("register_cityError").innerHTML = "You must enter your 5-digit zip code.";
+      if( "classList" in zip ) {
+        zip.classList.add("textBoxError");
+      } else {
+        zip.className += " textBoxError";
+      }
+      zip.nextElementSibling.style.display = "block";
+    } else if( pin.value == "" || pin.value == "4-digit PIN #" ) {
+      document.getElementById("register_pinError").style.display = "block";
+      document.getElementById("register_pinError").innerHTML = "Please enter your 4-digit PIN number above.";
+      if( "classList" in pin ) {
+        pin.classList.add("textBoxError");
+      } else {
+        pin.className += " textBoxError";
+      }
+      pin.nextElementSibling.style.display = "block";
+    } else if( pin.value.length != 4 || pin.value.match(/\d{4}/) == null ) {
+      document.getElementById("register_pinError").style.display = "block";
+      document.getElementById("register_pinError").innerHTML = "Your PIN must be exactly 4 digits.";
+      if( "classList" in pin ) {
+        pin.classList.add("textBoxError");
+      } else {
+        pin.className += " textBoxError";
+      }
+      pin.nextElementSibling.style.display = "block";
+    } else if( confirmpin.value == "" || confirmpin.value == "Confirm 4-digit PIN #" ) {
+      document.getElementById("register_confirmpinError").style.display = "block";
+      document.getElementById("register_confirmpinError").innerHTML = "Please confirm your 4-digit pin number above.";
+      if( "classList" in confirmpin ) {
+        confirmpin.classList.add("textBoxError");
+      } else {
+        confirmpin.className += " textBoxError";
+      }
+      confirmpin.nextElementSibling.style.display = "block";
+    } else if( pin.value != confirmpin.value ) {
+      document.getElementById("register_confirmpinError").style.display = "block";
+      document.getElementById("register_confirmpinError").innerHTML = "Your confirmation does not match the selected PIN.";
+      if( "classList" in confirmpin ) {
+        confirmpin.classList.add("textBoxError");
+      } else {
+        confirmpin.className += " textBoxError";
+      }
+      confirmpin.nextElementSibling.style.display = "block";
+    } else {
+      processingLogin = true;
+      if( address2.value == "Apt # or Suite" ) {
+        address2.value = "";
+      }
+      document.getElementById(loginToggle + "Footer").style.display = "none";
+      document.getElementById("loadingFooter").style.display = "block";
+      document.getElementById("registerForm").submit();
+    }
+  }
+
   // clean out the error problems
   function ClearFormError(element) {
     if( "classList" in element ) {
@@ -129,7 +412,7 @@
     } else {
       element.className = element.className.replace("textBoxError", "");
     }
-    document.getElementById(element.id + "Error").style.display = "none";
+    document.getElementById((((element.id == "register_state") || (element.id == "register_zip")) ? "register_city" : element.id) + "Error").style.display = "none";
     element.nextElementSibling.style.display = "none";
   }
 

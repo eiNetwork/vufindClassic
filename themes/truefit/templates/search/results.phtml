@@ -104,7 +104,7 @@
 
     <div class="EIN-col-m-12">
       <? if ($recordTotal < 1): ?>
-        <p>
+        <p style="padding:8px">
           <? if (isset($this->overrideEmptyMessage)): ?>
             <?=$this->overrideEmptyMessage?>
           <? else: ?>
@@ -132,6 +132,6 @@
 </div>
 <script type="text/javascript">
   $('#saveSearchButton').prop('disabled', false);
-  $('#saveSearchButton').parents().removeClass('disabled');
-  $('#saveSearchButton').parents().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
+  $('#saveSearchButton').parent().removeClass('disabled');
+  $('#saveSearchButton').parent().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
 </script>

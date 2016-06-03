@@ -7,7 +7,7 @@
      endforeach; ?>
   <div class="EIN-col-m-4" style="display:inline;float:none;white-space:nowrap">
     <button class="btn-alternate" id="sortButton<?=$this->id?>" data-toggle="dropdown" data-target="#sortButtonDropdown<?=$this->id?>"><?=$caption?><i class="fa fa-caret-down"></i></button>
-    <div class="EIN-col-m-12 dropdown" id="sortButtonDropdown<?=$this->id?>" style="position:absolute">
+    <div class="dropdown" id="sortButtonDropdown<?=$this->id?>" style="position:absolute">
       <ul role="navigation" class="dropdown-menu standardDropdown">
         <? foreach ($list as $sortType => $sortData): ?>
           <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="submitSortForm('<?=$this->escapeHtmlAttr($sortType)?>')"><?=$this->transEsc($sortData['desc'])?></button></li>

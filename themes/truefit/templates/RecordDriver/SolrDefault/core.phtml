@@ -132,7 +132,7 @@
         <? if($holdLink != null): ?>
           </a>
         <? endif; ?>
-        <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown">
+        <div class="dropdown" id="holdButtonDropdown">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if( $this->ODread && $this->ODread["result"] ): ?>
               <li>
@@ -178,7 +178,7 @@
       </div>
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
         <button class="btn-default rightButton"<?=$saveClick?>><?=($this->hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-        <div class="EIN-col-m-12 dropdown" id="saveButtonDropdown">
+        <div class="dropdown" id="saveButtonDropdown">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if($this->myLists): ?>
               <? foreach($this->myLists as $list): ?>

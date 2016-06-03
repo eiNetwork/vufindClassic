@@ -59,10 +59,12 @@ class Sierra2 extends Sierra implements
      * @throws ILSException
      * @return void
      */
+/*
     public function init()
     {
         // this function does nothing, but it's necessary to override the Sierra init() function that creates a postgres connection
     }
+*/
 
     /**
      * Make an HTTP request
@@ -609,7 +611,7 @@ class Sierra2 extends Sierra implements
      *
      * @return character
      */
-    protected function getCheckDigit($id)
+    public function getCheckDigit($id)
     {
         // pull off the item type if they included it
         if( !is_numeric($id) ) {

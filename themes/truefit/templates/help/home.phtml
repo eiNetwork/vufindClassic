@@ -1,0 +1,392 @@
+<h2><?=$this->translate('Catalog Help')?></h2>
+<div class="EIN-col-m-12">
+  <div>
+    <div class="helpSectionHeader">Search for:&nbsp;
+      <input type="text" onkeyup="SearchHelp(this);" value="Enter a term" class="formControl textBox" onfocus="if (this.value=='Enter a term') {this.value = '';this.style.color='#3d3d3d';}" />
+    </div>
+  </div>
+  <div style="height:20px"></div>
+  <div class="panel panel-advSearchAccordion">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a data-toggle="collapse" href="#quickJumpMenu" class="facetAccordionTitle collapsed">Quick Jump Menu<i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+      </h4>
+    </div>
+    <div id="quickJumpMenu" class="panel-collapse collapse facetAccordionContent">
+      <div class="panel-body">
+        <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
+          <a href="#section1" class="helpLink">Searching Tips</a><br>
+          <a href="#section1-1" class="helpLink subsection">Phrase Searches</a><br>
+          <a href="#section1-2" class="helpLink subsection">Wildcard Searches</a><br>
+          <a href="#section1-3" class="helpLink subsection">Fuzzy Searches</a><br>
+          <a href="#section1-4" class="helpLink subsection">Promixity Searches</a><br>
+          <a href="#section1-5" class="helpLink subsection">Range Searches</a><br>
+          <a href="#section1-6" class="helpLink subsection">Boosting a Term</a><br>
+          <a href="#section1-7" class="helpLink subsection">Boolean Operators</a><br>
+          <a href="#section1-8" class="helpLink subsection">OR Operator</a><br>
+          <a href="#section1-9" class="helpLink subsection">AND Operator</a><br>
+          <a href="#section1-10" class="helpLink subsection">+ Operator</a><br>
+          <a href="#section1-11" class="helpLink subsection">NOT Operator</a><br>
+          <a href="#section1-12" class="helpLink subsection">- Operator</a><br>
+        </div>
+        <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
+          <a href="#section2" class="helpLink">Filtering My Search Results</a><br>
+          <a href="#section2-1" class="helpLink subsection">Using Filters</a><br>
+          <a href="#section2-2" class="helpLink subsection">Can Filters Be Combined?</a><br>
+          <a href="#section2-3" class="helpLink subsection">Using the Sort Function</a><br>
+          <a href="#section2-4" class="helpLink subsection">Location Filter</a><br>
+          <a href="#section2-5" class="helpLink subsection">Material Type Filter</a><br>
+          <a href="#section2-6" class="helpLink subsection">Age Group Filter</a><br>
+          <a href="#section2-7" class="helpLink subsection">Literary Form Filter</a><br>
+          <a href="#section2-8" class="helpLink subsection">Subject Filter</a><br>
+          <a href="#section2-9" class="helpLink subsection">Author Filter</a><br>
+          <a href="#section2-10" class="helpLink subsection">Language Filter</a><br>
+        </div>
+        <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
+          <a href="#section3" class="helpLink">My Account</a><br>
+          <a href="#section3-1" class="helpLink subsection">Using the Book Cart</a><br>
+          <a href="#section3-2" class="helpLink subsection">Preferred Libraries</a><br>
+          <a href="#section3-3" class="helpLink subsection">Renewing Items</a><br>
+          <a href="#section3-4" class="helpLink subsection">Freezing Requests</a><br>
+<!--
+          <a href="#section3-5" class="helpLink subsection">Paying Fines</a><br>
+-->
+        </div>
+        <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
+          <a href="#section4" class="helpLink">Online Content</a><br>
+          <a href="#section4-1" class="helpLink subsection">Online Content</a><br>
+          <a href="#section4-2" class="helpLink subsection">OverDrive</a><br>
+          <a href="#section4-3" class="helpLink subsection">OneClickdigital</a><br>
+          <a href="#section4-4" class="helpLink subsection">Other Online Resources</a><br>
+        </div>
+        <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
+          <a href="#section5" class="helpLink">Advanced Searching Tips</a><br>
+          <a href="#section5-1" class="helpLink subsection">Search Fields</a><br>
+          <a href="#section5-2" class="helpLink subsection">Search Groups</a><br>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height:20px"></div>
+  <div class="helpSection" id="section1">
+    <div class="helpSectionHeader">Searching Tips</div>
+    <div class="helpSubsection" id="section1-1">
+      <div class="helpSubsectionHeader">Phrase Searches</div>
+      <div class="helpContent">To perform a phrase search wrap the entire search phrase in quotes.<br><br>
+        By putting double quotes around a set of words, you are telling the catalog to consider the exact words in that exact order without any change.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-2">
+      <div class="helpSubsectionHeader">Wildcard Searches</div>
+      <div class="helpContent">To perform a single character wildcard search use the <span class="helpEmphasis">?</span> symbol.  For example, to search for "text" or "test" you can use the search:<br><br>
+        <span class="helpEmphasis">te?t</span><br><br>
+        To perform a multiple character, 0 or more, wildcard search use the <span class="helpEmphasis">*</span> symbol.  For example, to search for test, tests or tester, you can use the search:<br><br>
+        <span class="helpEmphasis">test*</span><br><br>
+        You can also use the wildcard searches in the middle of a term.<br><br>
+        <span class="helpEmphasis">te*t</span><br><br>
+        Note: You cannot use a <span class="helpEmphasis">*</span> or <span class="helpEmphasis">?</span> symbol as the first character of a search.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-3">
+      <div class="helpSubsectionHeader">Fuzzy Searches</div>
+      <div class="helpContent">Use the tilde <span class="helpEmphasis">~</span> symbol at the end of a Single word Term. For example to search for a term similar in spelling to "roam" use the fuzzy search:<br><br>
+        <span class="helpEmphasis">roam~</span><br><br>
+        This search will find terms like foam and roams.<br><br>
+        An additional parameter can specify the required similarity. The value is between 0 and 1, with a value closer to 1 only terms with a higher similarity will be matched. For example:<br><br>
+        <span class="helpEmphasis">roam~0.8</span><br><br>
+        The default that is used if the parameter is not given is 0.5.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-4">
+      <div class="helpSubsectionHeader">Promixity Searches</div>
+      <div class="helpContent">Use the tilde <span class="helpEmphasis">~</span> symbol at the end of a Multiple word Term. For example, to search for economics and keynes that are within 10 words apart:<br><br>
+        <span class="helpEmphasis">"economics Keynes"~10</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-5">
+      <div class="helpSubsectionHeader">Range Searches</div>
+      <div class="helpContent">To perform a range search you can use the <span class="helpEmphasis">{ }</span> characters. For example to search for a term that starts with either A, B, or C:<br><br>
+        <span class="helpEmphasis">{A TO C}</span><br><br>
+        The same can be done with numeric fields such as the Year:<br><br>
+        <span class="helpEmphasis">[2002 TO 2003]</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-6">
+      <div class="helpSubsectionHeader">Boosting a Term</div>
+      <div class="helpContent">To apply more value to a term, you can use the <span class="helpEmphasis">^</span> character. For example, you can try the following search:<br><br>
+        <span class="helpEmphasis">economics Keynes^5</span><br><br>
+        Which will give more value to the term "Keynes"
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-7">
+      <div class="helpSubsectionHeader">Boolean Operators</div>
+      <div class="helpContent">Boolean operators allow terms to be combined with logic operators. The following operators are allowed: <span class="helpEmphasis">AND</span>, <span class="helpEmphasis">+</span>, 
+        <span class="helpEmphasis">OR</span>, <span class="helpEmphasis">NOT</span> and <span class="helpEmphasis">-</span>.<br><br>
+        Note: Boolean operators must be ALL CAPS
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-8">
+      <div class="helpSubsectionHeader">OR Operator</div>
+      <div class="helpContent">The <span class="helpEmphasis">OR</span> operator is the default conjunction operator. This means that if there is no Boolean operator between two terms, the 
+        <span class="helpEmphasis">OR</span> operator is used. The <span class="helpEmphasis">OR</span> operator links two terms and finds a matching record if either of the terms exist in a record.<br><br>
+        To search for documents that contain either "economics Keynes" or just "Keynes" use the query:<br><br>
+        <span class="helpEmphasis">"economics Keynes" Keynes</span><br><br>
+        or<br><br>
+        <span class="helpEmphasis">"economics Keynes" OR Keynes</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-9">
+      <div class="helpSubsectionHeader">AND Operator</div>
+      <div class="helpContent">The <span class="helpEmphasis">AND</span> operator matches records where both terms exist anywhere in the field of a record.<br><br>
+        To search for records that contain "economics" and "Keynes" use the query:<br><br>
+        <span class="helpEmphasis">"economics" AND "Keynes"</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-10">
+      <div class="helpSubsectionHeader">+ Operator</div>
+      <div class="helpContent">The <span class="helpEmphasis">+</span> or required operator requires that the term after the <span class="helpEmphasis">+</span> symbol exist somewhere in the field of a record.<br><br>
+        To search for records that must contain "economics" and may contain "Keynes" use the query:<br><br>
+        <span class="helpEmphasis">+economics Keynes</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-11">
+      <div class="helpSubsectionHeader">NOT Operator</div>
+      <div class="helpContent">The <span class="helpEmphasis">NOT</span> operator excludes records that contain the term after <span class="helpEmphasis">NOT</span>.<br><br>
+        To search for documents that contain "economics" but not "Keynes" use the query:<br><br>
+        <span class="helpEmphasis">"economics" NOT "Keynes"</span><br><br>
+        Note: The <span class="helpEmphasis">NOT</span> operator cannot be used with just one term. For example, the following search will return no results:<br><br>
+        <span class="helpEmphasis">NOT "economics"</span>
+      </div>
+    </div>
+    <div class="helpSubsection" id="section1-12">
+      <div class="helpSubsectionHeader">- Operator</div>
+      <div class="helpContent">The <span class="helpEmphasis">-</span> or prohibit operator excludes documents that contain the term after the <span class="helpEmphasis">-</span> symbol.<br><br>
+        To search for documents that contain "economics" but not "Keynes" use the query:<br><br>
+        <span class="helpEmphasis">"economics" -"Keynes"</span>
+      </div>
+    </div>
+  </div>
+  <div class="EIN-col-m-12 helpSection" id="section2">
+    <div class="helpSectionHeader">Filtering My Search Results</div>
+    <div class="helpSubsection" id="section2-1">
+      <div class="helpSubsectionHeader">Using Filters</div>
+      <div class="helpContent">You can narrow your search results using filters that are shown in the left column of the search results page (or the <span class="helpEmphasis">Filter Results</span> modal when 
+        using the mobile interface).  Clicking one or more of the options listed will limit your search based on the criteria selected. The number shown in parentheses next to each option indicates the quantity 
+        of items available for a given category.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-2">
+      <div class="helpSubsectionHeader">Can Filters Be Combined?</div>
+      <div class="helpContent">Yes. Clicking on several filters will further narrow your results set. For example, choosing <span class="helpEmphasis">Print book</span> as a material type and 
+        <span class="helpEmphasis">Fiction</span> as a literary form will limit your results to items that satisfy both criteria.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-3">
+      <div class="helpSubsectionHeader">Using the Sort Function</div>
+      <div class="helpContent">Using the sort dropdown, which is located to the right of the total number of the search results, it is possible to order your search results in five different ways.<br><br>
+        The default sort is by <span class="helpEmphasis">Relevance</span>, which displays your results in order of their relevance to your search criteria. In other words, items that most closely match your 
+        criteria are displayed first.<br><br>
+        You can also sort by <span class="helpEmphasis">Date Descending</span> or <span class="helpEmphasis">Date Ascending</span>, which orders your results from most current or oldest publication date.<br><br>
+        Choosing to Sort by <span class="helpEmphasis">Author</span> will arrange your results alphabetically by author last name. Likewise, <span class="helpEmphasis">Title</span> sorts alphabetically by Title, 
+        omitting leading articles such as "A" and "The". 
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-4">
+      <div class="helpSubsectionHeader">Location Filter</div>
+      <div class="helpContent">The <span class="helpEmphasis">Location</span> filter will limit your search results to the library locations selected. More than one location can be selected.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-5">
+      <div class="helpSubsectionHeader">Material Type Filter</div>
+      <div class="helpContent">Limits your search results to the <span class="helpEmphasis">Material Type</span> selected. For example, DVD or Blu-Ray. You can select multiple material types or a group of material
+        types to include in your search results. To select an entire group of material types, click on the checkbox for that group. For example, clicking the <span class="helpEmphasis">Music</span> checkbox will 
+        select <span class="helpEmphasis">Music CD</span>, <span class="helpEmphasis">Music LP/Cassette</span>, and <span class="helpEmphasis">Music Score</span> material types.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-6">
+      <div class="helpSubsectionHeader">Age Group Filter</div>
+      <div class="helpContent">Allows you to limit your search results to one of three age groups: <span class="helpEmphasis">Children</span>, <span class="helpEmphasis">Teen</span>, and 
+        <span class="helpEmphasis">Adult</span>. These groups are based on shelving locations, so items may fall into multiple categories due to differences in shelving by library locations. Some items may not
+        fall into any category if they are only shelved in general interest locations.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-7">
+      <div class="helpSubsectionHeader">Literary Form Filter</div>
+      <div class="helpContent">Allows you to limit your search results to either <span class="helpEmphasis">Fiction</span> or <span class="helpEmphasis">Non Fiction</span> material, based on shelving location. 
+        Since most of the items shelved specifically as fiction or non-fiction are print books, this filter is effective primarily for print books. Other types of material (i.e. music, video, magazines) are 
+        not usually shelved as fiction or non-fiction and are generally not included in this filter.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-8">
+      <div class="helpSubsectionHeader">Subject Filter</div>
+      <div class="helpContent">Allows you to limit your search results according to specific <span class="helpEmphasis">Subject</span> terms. The Subject terms contained in a title's bibliographic record belong 
+        to a controlled vocabulary called the Library of Congress Subject Headings. Controlled vocabularies group similar items by subject, which makes them ideal for filtering your search results.<br><br>
+        Because this list is designed to be browsed, it contains only a small subset of broad subject terms and not every possible subject is represented here. Combining a keyword search with the use of 
+        <span class="helpEmphasis">Subject</span> filters may help narrow your results to a more specific subject.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-9">
+      <div class="helpSubsectionHeader">Author Filter</div>
+      <div class="helpContent">Limits your search results to materials by a particular <span class="helpEmphasis">Author</span> based on your search term.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section2-10">
+      <div class="helpSubsectionHeader">Language Filter</div>
+      <div class="helpContent">Limits your search results to materials available in a specified <span class="helpEmphasis">Language</span> based on your search term.
+      </div>
+    </div>
+  </div>
+  <div class="EIN-col-m-12 helpSection" id="section3">
+    <div class="helpSectionHeader">My Account</div>
+    <div class="helpSubsection" id="section3-1">
+      <div class="helpSubsectionHeader">Using the Book Cart</div>
+      <div class="helpContent">The <span class="helpEmphasis">Book Cart</span> enables you to save items of interest while you continue to browse the library catalog. These items will remain in your book cart from 
+        session to session. To save an item to your book cart, simply click the <span class="helpEmphasis">Add to List</span> button found to the right of the item on the search
+        results or the item detail page, then select <span class="helpEmphasis">Book Cart</span> from the menu. If you have not already
+        logged in to your account, you will be prompted to enter your library card number and PIN. Once you log in, the item will be added to your cart.<br><br>
+        To view items in your cart, click the <span class="helpEmphasis">Book Cart</span> button found in the dropdown menu under the main navigation button (either <span class="helpEmphasis">Account</span> or the 
+        <span class="helpEmphasis"><i class="fa fa-bars"></i></span> icon, depending which interface you are using) in the upper corner of the page. From your cart, you can remove or request items you have added. To 
+        remove a single item, click the <span class="helpEmphasis">Manage Lists</span> button, then click the list name to remove the item from that list.  To request a single item, click the 
+        <span class="helpEmphasis">Hold</span> button.  It is also possible to remove or request multiple items in your book cart at one time by using the checkboxes to the left and the 
+        <span class="helpEmphasis">Manage Selected</span> button at the top of the page.  Book Carts are limited to 300 items, and Lists are limited to 300 items for each list.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section3-2">
+      <div class="helpSubsectionHeader">Preferred Libraries</div>
+      <div class="helpContent">As a patron, you have the option to select two <span class="helpEmphasis">Preferred Libraries</span> (in order of preference) where you would like to pick up your requested items. When
+        these choices are specified, your first choice becomes the default pickup location for your holds.<br><br>
+        To make these selections, go the the <span class="helpEmphasis">Profile</span> page from the main navigation menu.  Click on the <span class="helpEmphasis">Preferred Libraries</span> section and make your 
+        Preferred and Alternative Library selections.  After choosing your preferences from the drop down menus, the catalog will save your settings and refresh the page.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section3-3">
+      <div class="helpSubsectionHeader">Renewing Items</div>
+      <div class="helpContent">The number of renewals permitted for an item varies by library. If you can't renew your item online, there may be several reasons why. Your books may be overdue, you may have an 
+        outstanding fine, someone else may have requested the item, or you've already reached the maximum number of renewals. Please call your local library to find out how to resolve your problem.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section3-4">
+      <div class="helpSubsectionHeader">Freezing Requests</div>
+      <div class="helpContent">Freezing requests offers a way to avoid having your requested items expire when you are out of town or otherwise unable to them up from the library. If your request reaches 
+        the top of the queue while it is frozen, it will be skipped so that requests placed by other patrons can be filled. When you reactivate your request, you will be placed at the front of the queue.<br><br>
+        There are two situations in which a request cannot be frozen:<br><br>
+        1.  The hold is more than 255 days old.<br><br>
+        OR<br><br>
+        2.  The hold is about the be filled (this means the item is either on the holdshelf or in transit to the holdshelf.<br><br>
+        To freeze a request, go to the <span class="helpEmphasis">Holds</span> page from the main navigation menu.  You can freeze requests by checking the appropriate boxes in the 
+        <span class="helpEmphasis">Pending</span> section and choosing the <span class="helpEmphasis">Freeze</span> option from the <span class="helpEmphasis">Manage Selected</span> dropdown.
+      </div>
+    </div>
+<!--
+    <div class="helpSubsection" id="section3-5">
+      <div class="helpSubsectionHeader">Paying Fines</div>
+      <div class="helpContent">If you owe more than $2.00, you can use a Visa, Master Card or Discover Card to pay fines and replacement fees online.<br><br>
+        When you log in to My account, you will receive a pop-up notification in the upper right hand corner letting you know that you owe fines. The notice includes a button labeled "Pay Fine". Clicking that 
+        button redirects you to the Classic Catalog (the old library catalog) where will be asked to log in again before you can make a payment.<br><br>
+        Click here for instructions on how to pay fines in the Classic Catalog.
+      </div>
+    </div>
+-->
+  </div>
+  <div class="EIN-col-m-12 helpSection" id="section4">
+    <div class="helpSectionHeader">Online Content</div>
+    <div class="helpSubsection" id="section4-1">
+      <div class="helpSubsectionHeader">Online Content</div>
+      <div class="helpContent">Your library card enables you to access eBooks, Audiobooks, music downloads and many other types of eResources from various sources. For more information, including access
+        details, supported devices, and more, visit the <a class="helpLink" href="http://eresources.einetwork.net/">Allegheny County Library Association's eResources page</a>.<br><br>
+        Some of these items, including OverDrive and OneClickdigital resources, can be discovered by searching the library catalog but require you to set up a free account on another site in order to 
+        access them. See below for information on accessing these items through the online catalog.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section4-2">
+      <div class="helpSubsectionHeader">OverDrive</div>
+      <div class="helpContent">Click the Checkout button to the right of the item information on the search results or item detail page. If you are not already logged in to your account, you will be prompted 
+        to enter your library card number and PIN. If your checkout has been successful, a message banner will appear at the top of the page letting you know that the item has been checked out and available
+        for download from your <span class="helpEmphasis">Checked Out</span> page.  You can go to this page at any time by clicking the link from the main navigation menu.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section4-3">
+      <div class="helpSubsectionHeader">OneClickdigital</div>
+      <div class="helpContent">Accessing OneClickdigital items requires setting up a free OneClickdigital account. It is recommended that you do this before searching the catalog for OneClickdigital items. 
+        To do this, <a class="helpLink" href="http://carnegielbyofpittpa.oneclickdigital.com/Home/Featured.aspx">click here</a> to go to the OneClickdigital site and click the Create New Account link in the
+        upper right hand corner.<br><br>
+        To access OneClickdigital items from the library catalog, click the Access Online button to the right of the item record on either the search results page or the item detail page. This will take you to the 
+        OneClickdigital item information page. From there click Checkout Now! and you will be prompted to log in with your OneClickdigital credentials.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section4-4">
+      <div class="helpSubsectionHeader">Other Online Resources</div>
+      <div class="helpContent">You might also encounter materials such as digitized images, government documents, and public domain eBooks in your library catalog search results. These items can be accessed by 
+        clicking the Access Online button to the right of the item information on the search results or item detail page, or by navigating to the item detail page and clicking the link at the bottom of the 
+        record. Some of these items may require you to hold a valid library card for access.<br><br>
+        <a class="helpLink" href="http://eresources.einetwork.net/">Click here</a> for more information about these and other eResources available from your library.
+      </div>
+    </div>
+  </div>
+  <div class="EIN-col-m-12 helpSection" id="section5">
+    <div class="helpSectionHeader">Advanced Searching Tips</div>
+    <div class="helpSubsection" id="section5-1">
+      <div class="helpSubsectionHeader">Search Fields</div>
+      <div class="helpContent">When you first visit the <span class="helpEmphasis">Advanced Search</span> page, you are presented with several search fields. In each field, you can type the keywords you want to 
+        search for. Search operators are allowed.<br><br>
+        Each field is accompanied by a drop-down that lets you specify the type of data (title, author, etc.) you are searching for. You can mix and match search types however you like.<br><br>
+        The <span class="helpEmphasis">Match</span> setting lets you specify how multiple search fields should be handled.<br><br>
+        <span class="helpEmphasis">ALL Terms</span> - Return only records that match every search field.<br>
+        <span class="helpEmphasis">ANY Terms</span> - Return any records that match at least one search field.<br>
+        <span class="helpEmphasis">NO Terms</span> -- Return all records EXCEPT those that match search fields.<br><br>
+        The <span class="helpEmphasis">Add Search Field</span> button may be used to add additional search fields to the form. You may use as many search fields as you wish.
+      </div>
+    </div>
+    <div class="helpSubsection" id="section5-2">
+      <div class="helpSubsectionHeader">Search Groups</div>
+      <div class="helpContent">For certain complex searches, a single set of search fields may not be enough. For example, suppose you want to find books about the history of China or India. If you did an 
+        <span class="helpEmphasis">ALL Terms</span> search for China, India, and History, you would only get books about China AND India. If you did an <span class="helpEmphasis">ANY Terms</span> search, you 
+        would get books about history that had nothing to do with China or India.<br><br>
+        Search Groups provide a way to build searches from multiple groups of search fields. Every time you click the <span class="helpEmphasis">Add Search Group</span> button, a new group of fields is added. 
+        Once you have multiple search groups, you can remove unwanted groups with the <span class="helpEmphasis">X</span> button in the top right corner, and you can specify whether you want to match on 
+        <span class="helpEmphasis">ANY</span> or <span class="helpEmphasis">ALL</span> search groups.<br><br>
+        In the history of China or India example described above, you could solve the problem using search groups like this:<br><br>
+        In the first search group, enter "India" and "China" and make sure that the <span class="helpEmphasis">Match</span> setting is <span class="helpEmphasis">ANY Terms</span>.<br>
+        Add a second search group and enter "history."<br>
+        Make sure the match setting next to the <span class="helpEmphasis">Add Search Group</span> button is set to <span class="helpEmphasis">ALL Groups</span>.
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  function CheckForResize(item) {
+    if( $(item).parents('.modal').length > 0 ) {
+      sizeModal();
+    }
+  }
+
+  function SearchHelp(searchBox) {
+    // hide all the sections, undo this later if they have a child which is shown
+    $('.helpSection').css("display", "none");
+    $('.helpLink').addClass("disabled");
+
+    $('.helpContent').each( function() {
+      if( $(this).html().indexOf(searchBox.value) != -1 ) {
+        $(this).parents('.helpSection').css("display", "block");
+        $(this).parents('.helpSubsection').css("display", "block");
+        $('#quickJumpMenu a[href="#' + $(this).parents('.helpSubsection').attr('id') + '"]').removeClass("disabled").attr('onclick','setTimeout(sizeModal, 50)');
+        $('#quickJumpMenu a[href="#' + $(this).parents('.helpSection').attr('id') + '"]').removeClass("disabled").attr('onclick','setTimeout(sizeModal, 50)');
+      } else {
+        $(this).parents('.helpSubsection').css("display", "none");
+        $('#quickJumpMenu a[href="#' + $(this).parents('.helpSubsection').attr('id') + '"]').addClass("disabled").attr('onclick','return false;');
+      }
+    } );
+
+    sizeModal();
+  }
+
+  $(document).ready( function() {
+    $('.helpLink').attr('onclick','setTimeout(sizeModal, 50)');
+    $('#quickJumpMenu').on('hidden.bs.collapse', sizeModal);
+    $('#quickJumpMenu').on('shown.bs.collapse', sizeModal);
+    setTimeout(sizeModal, 100);
+  } );
+</script>
+<div class="modal-footer">
+  <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()"><?=$this->transEsc('Close')?></button>
+</div>

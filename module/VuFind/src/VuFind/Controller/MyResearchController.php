@@ -153,48 +153,27 @@ class MyResearchController extends AbstractBase
     {
         // If the user is already logged in, don't let them create an account:
         if ($this->getAuthManager()->isLoggedIn()) {
-            return $this->redirect()->toRoute('myresearch-home');
-        }
-        // If authentication mechanism does not support account creation, send
-        // the user away!
-        $method = trim($this->params()->fromQuery('auth_method'));
-        if (!$this->getAuthManager()->supportsCreation($method)) {
-            return $this->forwardTo('MyResearch', 'Home');
+            $this->flashMessenger()->addMessage('register_logged_in', 'error');
+            return $this->createViewModel();
         }
 
-        // We may have come in from a lightbox.  In this case, a prior module
-        // will not have set the followup information.  We should grab the referer
-        // so the user doesn't get lost.
-        // i.e. if there's already a followup url, keep it; otherwise set one.
-        if (!$this->getFollowupUrl()) {
-            $this->setFollowupUrlToReferer();
-        }
+        $catalog = $this->getILS();
+        $params = ["firstName" => $this->params()->fromPost('firstname'),
+                   "lastName" => $this->params()->fromPost('lastname'),
+                   "email" => $this->params()->fromPost('email'),
+                   "phone" => $this->params()->fromPost('phone'),
+                   "address1" => $this->params()->fromPost('address1') . (($this->params()->fromPost('address2')!='') ? (" ".$this->params()->fromPost('address2')) : ""),
+                   "cityStateZip" => $this->params()->fromPost('city') . ", " . $this->params()->fromPost('state') . " " . $this->params()->fromPost('zip'),
+                   "pin" => $this->params()->fromPost('pin')];
+        $result = $this->getILS()->selfRegister($params);
 
-        // Make view
-        $view = $this->createViewModel();
-        // Password policy
-        $view->passwordPolicy = $this->getAuthManager()
-            ->getPasswordPolicy($method);
-        // Set up reCaptcha
-        $view->useRecaptcha = $this->recaptcha()->active('newAccount');
-        // Pass request to view so we can repopulate user parameters in form:
-        $view->request = $this->getRequest()->getPost();
-        // Process request, if necessary:
-        if ($this->formWasSubmitted('submit', $view->useRecaptcha)) {
-            try {
-                $this->getAuthManager()->create($this->getRequest());
-                return $this->forwardTo('MyResearch', 'Home');
-            } catch (AuthException $e) {
-                $this->flashMessenger()->addMessage($e->getMessage(), 'error');
-            }
+        if( $result["success"] ) {
+            $this->flashMessenger()->setNamespace('info')->addMessage(["msg" => "register_success", "html" => true, "tokens" => ["%%%barcode%%%" => $result["barcode"]]]);
+            return $this->createViewModel(["suppressFlashMessages" => true, "reloadParent" => true]);
         } else {
-            // If we are not processing a submission, we need to simply display
-            // an empty form. In case ChoiceAuth is being used, we may need to
-            // override the active authentication method based on request
-            // parameters to ensure display of the appropriate template.
-            $this->setUpAuthenticationFromRequest();
+            $this->flashMessenger()->setNamespace('error')->addMessage("register_failure");
+            return $this->createViewModel();
         }
-        return $view;
     }
 
     /**
@@ -223,6 +202,15 @@ class MyResearchController extends AbstractBase
             ) {
                 $this->getRequest()->getPost()->set('processLogin', true);
                 return $this->forwardTo('MyResearch', 'Home');
+            }
+        }
+
+        // see whether they have just registered
+        foreach($this->flashMessenger()->getInfoMessages() as $msg) {
+            if( isset($msg["msg"]) && $msg["msg"] == "register_success" ) {
+                // if so, don't try to force them to log in, they'll miss their temp barcode!  just redirect them to the splash page
+                $this->flashMessenger()->clearCurrentMessages('error');
+                return $this->forwardTo('Search', 'Home');
             }
         }
 
@@ -457,6 +445,7 @@ class MyResearchController extends AbstractBase
             $this->flashMessenger()->addMessage('set_preferred_library', 'info');
         }
 
+        $view->overDriveURL = $this->getILS()->getConfigVar("OverDrive","url");
         $view->profile = $profile;
         try {
             $view->pickup = $catalog->getPickUpLocations($patron);
@@ -1693,6 +1682,76 @@ class MyResearchController extends AbstractBase
         } else {
             $view->notifications = $catalog->getNotifications($profile);
         }
+        return $view;
+    }
+
+    /**
+     * Show patron their reading history
+     *
+     * @return view
+     */
+    public function readingHistoryAction()
+    {
+        // Stop now if the user does not have valid catalog credentials available:
+        if (!is_array($patron = $this->catalogLogin())) {
+            return $patron;
+        }
+
+        // see if they're trying to submit an action
+        $catalog = $this->getILS();
+        if( $action = $this->params()->fromPost('readingHistoryAction') ) {
+            $selectedIDs = $this->params()->fromPost('ids');
+            if( $action == "deleteMarked" && !$this->params()->fromPost('confirm') ) {
+                $replacement = ((count($selectedIDs) > 1) ? (count($selectedIDs) . " items") : "item") . " from your reading history?<br>";
+                foreach($this->params()->fromPost('holdTitles') as $title) {
+                    $replacement .= "<br><span class=\"bold\">Title: </span>" . urldecode($title);
+                }
+                $msg = [['msg' => 'confirm_history_delete_selected_text', 
+                         'html' => true, 
+                         'tokens' => ['%%deleteData%%' => $replacement]]];
+                return $this->confirm(
+                    'reading_history_delete_selected',
+                    $this->url()->fromRoute('myresearch-readinghistory'),
+                    $this->url()->fromRoute('myresearch-readinghistory'),
+                    $msg,
+                    [
+                        'history' => 'History',
+                        'readingHistoryAction' => 'deleteMarked',
+                        'ids' => $selectedIDs
+                    ]
+                );
+            }
+            $result = $catalog->doReadingHistoryAction($patron, $action, $selectedIDs);
+            if( $action == "optIn" ) {
+                $this->flashMessenger()->addMessage('reading_history_enabled_success', 'info');
+            } else if( $action == "optOut" ) {
+                if( strpos( $result, "You cannot optout while there is reading history" ) !== false ) {
+                    $this->flashMessenger()->addMessage('reading_history_disabled_failure_delete_all', 'error');
+                } else {
+                    $this->flashMessenger()->addMessage('reading_history_disabled_success', 'info');
+                }
+            } else if( $action == "deleteMarked" ) {
+                $this->flashMessenger()->addMessage((count($this->params()->fromPost('ids')) > 1) ? 'reading_history_delete_success_multiple' : 'reading_history_delete_success_single', 'info');
+                $view = $this->createViewModel();
+                $view->setTemplate('blankModal');
+                $view->suppressFlashMessages = true;
+                $view->reloadParent = true;
+                return $view;
+            }
+        }
+
+        $readingHistory = $catalog->getReadingHistory($patron, ($this->params()->fromQuery("pageNum") ? $this->params()->fromQuery("pageNum") : 1));
+        foreach( $readingHistory["titles"] as $key => $item ) {
+            try{
+            $item["driver"] = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($item['id'] . $catalog->getCheckDigit(substr($item['id'], 2)), 'VuFind');
+            } catch(RecordMissingException $e) {
+            }
+            $readingHistory["titles"][$key] = $item;
+        }
+        
+        $view = $this->createViewModel();
+        $view->readingHistory = $readingHistory;
+        $view->indexOffset = ($this->params()->fromQuery("pageNum") ? (($this->params()->fromQuery("pageNum") - 1) * 50) : 0) + 1;
         return $view;
     }
 }

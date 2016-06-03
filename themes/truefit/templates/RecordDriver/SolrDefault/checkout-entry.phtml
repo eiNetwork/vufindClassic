@@ -102,21 +102,21 @@
         <div class="singleButtonGap">
           <? if( isset($this->checkout["overDriveId"]) ): ?>
             <button class="btn-default singleButton" <?=$holdClick?>>Actions<i class="fa fa-caret-down"></i></button>
-            <div class="EIN-col-m-12 dropdown" id="holdButtonDropdown<?=$id?>">
+            <div class="dropdown" id="holdButtonDropdown<?=$id?>">
               <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
                 <? if( isset($this->checkout["overdriveRead"]) && $this->checkout["overdriveRead"] && isset($this->checkout["overdriveReadUrl"]) && $this->checkout["overdriveReadUrl"] ): ?>
                   <li>
-                    <a href="<?=$this->checkout["overdriveReadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+                    <a href="<?=$this->checkout["overdriveReadUrl"]["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
                   </li>
                 <? endif; ?>
                 <? if( isset($this->checkout["overdriveListen"]) && $this->checkout["overdriveListen"] && isset($this->checkout["overdriveListenUrl"]) && $this->checkout["overdriveListenUrl"] ): ?>
                   <li>
-                    <a href="<?=$this->checkout["overdriveListenUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>
+                    <a href="<?=$this->checkout["overdriveListenUrl"]["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>
                   </li>
                 <? endif; ?>
                 <? if( isset($this->checkout["streamingVideo"]) && $this->checkout["streamingVideo"] && isset($this->checkout["streamingVideoUrl"]) && $this->checkout["streamingVideoUrl"] ): ?>
                   <li>
-                    <a href="<?=$this->checkout["streamingVideoUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Watch Now</button></a>
+                    <a href="<?=$this->checkout["streamingVideoUrl"]["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Watch Now</button></a>
                   </li>
                 <? endif; ?>
                 <? if( isset($this->checkout["formats"]) && count($this->checkout["formats"]) > 0 ): ?>
@@ -132,7 +132,7 @@
                     <? if( $nookPeriodical ): ?>
                       <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('MyResearch','comingsoon')">Download</button>
                     <? else: ?>
-                      <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload','<?=$this->checkout["id"]?>')"><?=($streamingVideo?"Watch Now":"Download")?></button>
+                      <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',{'id':'<?=$this->checkout["id"]?>'})"><?=($streamingVideo?"Watch Now":"Download")?></button>
                     <? endif; ?>
                   </li>
                 <? endif; ?>

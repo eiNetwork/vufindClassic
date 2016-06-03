@@ -8,6 +8,7 @@ namespace VuFind\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
 use Zend\Session\Container as SessionContainer;
+use DateTime;
 
 class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
@@ -28,8 +29,14 @@ class EINetwork extends Sierra2 implements
      */
     public function init()
     {
+        parent::init();
+
         // create the session
         $this->session = new SessionContainer("EINetwork");
+    }
+
+    public function getConfigVar($section, $name) {
+        return $this->config[$section][$name];
     }
 
     /**
@@ -891,5 +898,299 @@ echo $sresult . "<br>";
                                                                                          "renew your card to ensure access to all online services."];
         }
         return $notifications;
+    }
+
+
+
+    /**
+     * Screen Scraping functionality
+     * 
+     * The functions after this point leverage the screen scraping functionality from our previous iteration of the catalog.
+     * These actions should eventually be available via the Sierra API (and as such be implemented in the Sierra2 driver), 
+     * but our current version of the API does not have them available at this point.
+     */
+
+
+
+    public function selfRegister($params){
+        $curl_url = $this->config['Catalog']['classic_url'] . "/selfreg~S1";
+
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+        $post_data = array();
+        $post_data['nfirst'] = $params["firstName"];
+        $post_data['nlast'] = $params["lastName"];
+        $post_data['stre_aaddress'] = $params["address1"];
+        $post_data['city_aaddress'] = $params["cityStateZip"];
+        $post_data['zemailaddr'] = $params["email"];
+        $post_data['tphone1'] = $params["phone"];
+        foreach ($post_data as $key => $value) {
+            $post_items[] = $key . '=' . urlencode($value);
+        }
+        $post_string = implode ('&', $post_items);
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+        $sresult = curl_exec($curl_connection);
+
+        curl_close($curl_connection);
+
+        //Parse the library card number from the response
+        if (preg_match('/Your temporary library card number is :.*?(\\d+)<\/(b|strong|span)>/si', $sresult, $matches)) {
+            $barcode = $matches[1];
+
+            // it worked, so now we should update their profile to include the pin
+            $this->updateMyProfile(["id" => $barcode], ["pin" => $params["pin"]]);
+
+            return array('success' => true, 'barcode' => $barcode);
+        } else {
+            return array('success' => false, 'barcode' => null);
+        }
+    }
+
+    public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "date") {
+        $paging = 'readinghistory&page=' . $page . '&sort=' . $sortOption;
+        $pageContents = $this->_fetchPatronInfoPage($patron, $paging);
+
+        $sresult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
+        $s = substr($sresult, stripos($sresult, 'patFunc'));
+        $s = substr($s,strpos($s,">")+1);
+        $s = substr($s,0,stripos($s,"</table"));
+
+        $s = preg_replace ("/<br \/>/","", $s);
+
+        $srows = preg_split("/<tr([^>]*)>/",$s);
+        $scount = 0;
+        $skeys = array_pad(array(),10,"");
+        $readingHistoryTitles = array();
+        $itemindex = 0;
+
+        // check to see if paging is switched on. Increment scrape index
+        if (strpos($pageContents, 'Result page:') > 0){
+            $scrape_row_index = 5;
+        } else {
+            $scrape_row_index = 4;	
+        }
+
+        foreach ($srows as $srow) {
+            $scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+            $historyEntry = array();
+            for ($i=0; $i < sizeof($scols); $i++) {
+                $scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
+                $scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
+                $scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
+                if ($scount < $scrape_row_index) {
+                    $skeys[$i] = $scols[$i];
+
+                    if (stripos($skeys[1],"Reading History") > -1) {
+
+                        if (preg_match_all ("/.*?\\d+.*?\\d+.*?(\\d+)/is", $skeys[1], $matches)){
+                            $total_records = $matches[1][0];
+                          }
+                    }
+
+                } elseif ($scount >= 4){
+                    if (stripos($skeys[$i],"Mark") > -1) {
+                        if(preg_match('@id="([^"]*)"@', $scols[$i], $m)){
+                            $historyEntry['rsh'] = $m[1];
+                        }
+                        $historyEntry['deletable'] = "BOX";
+                    }
+
+                    if (stripos($skeys[$i],"Title") > -1) {
+
+                        if (strpos($scols[$i],'is no longer available') !== false){
+
+                            if ($c=preg_match_all ("/.*?((?:[a-z][a-z]*[0-9]+[a-z0-9]*))/is", $scols[$i], $matches)){
+                                $shortId = $matches[1][0];
+                                $bibid = '.' . $matches[1][0];
+                                $title = 'Title is no longer available';
+                            }
+
+                        } elseif (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+                            $shortId = $matches[1];
+                            $bibid = '.' . $matches[1];
+                            $title = $matches[2];
+                        }
+
+                        $historyEntry['id'] = $bibid;
+                        $historyEntry['shortId'] = $shortId;
+                        $historyEntry['title'] = $title;
+                    }
+
+                    if (stripos($skeys[$i],"Author") > -1) {
+                        $historyEntry['author'] = strip_tags($scols[$i]);
+                    }
+
+                    if (stripos($skeys[$i],"Checked Out") > -1) {
+                        $checkoutTime = DateTime::createFromFormat('m-d-Y', strip_tags($scols[$i]));
+                        $historyEntry['checkout'] = strftime('%m/%e/%y', $checkoutTime->getTimestamp());
+                        $historyEntry['checkout'] = str_replace(" ","",$historyEntry['checkout']);
+                        if( strpos($historyEntry['checkout'], "0") === 0 ) {
+                            $historyEntry['checkout'] = substr($historyEntry['checkout'], 1);
+                        }
+                    }
+                    if (stripos($skeys[$i],"Details") > -1) {
+                        $historyEntry['details'] = strip_tags($scols[$i]);
+                    }
+
+                    $historyEntry['borrower_num'] = $patron['id']; 
+                } //Done processing column
+                
+            } //Done processing row
+
+            if ($scount > 2 && isset($historyEntry['title'])){
+
+                $historyEntry['title_sort'] = strtolower($historyEntry['title']);
+
+                $historyEntry['itemindex'] = $itemindex++;
+                $titleKey = '';
+                if ($sortOption == "title"){
+                    $titleKey = $historyEntry['title_sort'];
+                }elseif ($sortOption == "author"){
+                    $titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+                }elseif ($sortOption == "date" || $sortOption == "returned"){
+                    $checkoutTime = DateTime::createFromFormat('m/d/y', $historyEntry['checkout']);
+                    $titleKey = /*$checkoutTime->getTimestamp()*/ "1" . "_" . $historyEntry['title_sort'];
+                }elseif ($sortOption == "format"){
+                    $titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+                }else{
+                    $titleKey = $historyEntry['title_sort'];
+                }
+                $titleKey .= '_' . $scount;
+                $readingHistoryTitles[$titleKey] = $historyEntry;
+            }
+            
+            $scount++;
+        }//processed all rows in the table
+
+        $numTitles = count($readingHistoryTitles);
+
+        //The history is active if there is an opt out link.
+        $historyActive = (strpos($pageContents, 'OptOut') > 0);
+        return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles, 'total_records' => $total_records);
+    }
+
+    /**
+     * Do an update or edit of reading history information.  Current actions are:
+     * deleteMarked
+     * deleteAll
+     * exportList
+     * optOut
+     *
+     * @param   array   $patron         The patron array
+     * @param   string  $action         The action to perform
+     * @param   array   $selectedTitles The titles to do the action on if applicable
+     */
+    function doReadingHistoryAction($patron, $action, $selectedTitles){
+        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/readinghistory";
+
+        $cookie = tempnam ("/tmp", "CURLCOOKIE");
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+        curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+        curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+        curl_setopt($curl_connection, CURLOPT_POST, true);
+        $post_string = 'code=' . $patron['cat_username'] . '&pin=' . $patron['cat_password'] . '&submit=submit';//implode ('&', $post_items);
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+        $sresult = curl_exec($curl_connection);
+
+        if ($action == 'deleteMarked'){
+            //Load patron page readinghistory/rsh with selected titles marked
+            if (!isset($selectedTitles) || count($selectedTitles) == 0){
+                return;
+            }
+            $titles = array();
+            foreach ($selectedTitles as $titleId){
+                $titles[] = $titleId . '=1';
+            }
+            $title_string = implode ('&', $titles);
+            //Issue a get request to delete the item from the reading history.
+            //Note: Millennium really does issue a malformed url, and it is required
+            //to make the history delete properly.
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/readinghistory/rsh&" . $title_string;
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+            $sresult = curl_exec($curl_connection);
+        }elseif ($action == 'deleteAll'){
+            //load patron page readinghistory/rah
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/readinghistory/rah";
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+            $sresult = curl_exec($curl_connection);
+        }elseif ($action == 'exportList'){
+            //Leave this unimplemented for now.
+        }elseif ($action == 'optOut'){
+            //load patron page readinghistory/OptOut
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/readinghistory/OptOut";
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+            $sresult = curl_exec($curl_connection);
+        }elseif ($action == 'optIn'){
+            //load patron page readinghistory/OptIn
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1}/" . $patron['id'] ."/readinghistory/OptIn";
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+            $sresult = curl_exec($curl_connection);
+        }
+        curl_close($curl_connection);
+
+        return $sresult;
+    }
+
+    /**
+     * Uses CURL to fetch a page from millenium and return the raw results
+     * for further processing.
+     *
+     * Performs minimal processing on it's own to remove HTML comments.
+     *
+     * @param array  $patronInfo information about a patron fetched from millenium
+     * @param string $page       The page to load within millenium
+     *
+     * @return string the result of the page load.
+     */
+    private function _fetchPatronInfoPage($patronInfo, $page, $additionalGetInfo = array(), $additionalPostInfo = array(), $cookieJar = null, $admin = false, $startNewSession = true, $closeSession = true, $forceReload = false)
+    {
+        $forceReload = true;
+        if (isset($page)){
+            $patronInfoDump = $this->session->{'patron_info_dump_' . $page};
+        }
+			
+        if (!$patronInfoDump || $forceReload){
+            $cookieJar = tempnam("/tmp", "CURLCOOKIE");
+
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patronInfo['id'] ."/$page";
+            $this->curl_connection = curl_init($curl_url);
+
+            curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+            curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+            curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
+
+            $post_string = 'code=' . $patronInfo['cat_username'] . '&pin=' . $patronInfo['cat_password'] . '&submit=submit';//implode ('&', $post_items);
+            curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+            $patronInfoDump = curl_exec($this->curl_connection);
+
+            curl_close($this->curl_connection);
+
+            $this->session->{'patron_info_dump_' . $page} = $patronInfoDump;
+        }
+
+        //Strip HTML comments
+        $patronInfoDump = preg_replace("/<!--([^(-->)]*)-->/"," ",$patronInfoDump);
+        return $patronInfoDump;
     }
 }

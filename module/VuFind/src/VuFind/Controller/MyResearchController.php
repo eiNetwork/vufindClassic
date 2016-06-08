@@ -1091,6 +1091,39 @@ class MyResearchController extends AbstractBase
             }
         }
 
+        // see if we are trying to do a bulk hold
+        if( $this->params()->fromPost('bulkHold') ) {
+            if( $this->params()->fromPost('placeHold') ) {
+                $view->updateResults = $this->holds()->createHolds($catalog, $patron);
+                $view->setTemplate('blankModal');
+                $view->suppressFlashMessages = true;
+                $view->reloadParent = true;
+                return $view;
+            } else {
+                $view->setTemplate('record/hold');
+                $view->referrer = $this->params()->fromPost('referrer');
+                $view->bulkHold = true;
+                $view->skip = true;
+                $view->pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
+                $view->homeLibrary = $this->getUser()->home_library;
+                $view->preferredLibrary = $this->getUser()->preferred_library;
+                $view->alternateLibrary = $this->getUser()->alternate_library;
+                $rawIds = $this->params()->fromPost('ids');
+                $ids = [];
+                foreach($rawIds as $id) {
+                    $ids[] = explode("|", $id)[1];
+                }
+                $view->ids = $ids;
+                $rawTitles = $this->params()->fromPost('holdTitles');
+                $titles = [];
+                foreach($rawTitles as $title) {
+                    $titles[] = explode("|", $title, 2)[1];
+                }
+                $view->titles = $titles;
+                return $view;
+            }
+        }
+
         // Process cancel requests if necessary:
         $cancelStatus = $catalog->checkFunction('cancelHolds', compact('patron'));
         $view->cancelResults = $cancelStatus
@@ -1743,7 +1776,7 @@ class MyResearchController extends AbstractBase
         $readingHistory = $catalog->getReadingHistory($patron, ($this->params()->fromQuery("pageNum") ? $this->params()->fromQuery("pageNum") : 1));
         foreach( $readingHistory["titles"] as $key => $item ) {
             try{
-            $item["driver"] = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($item['id'] . $catalog->getCheckDigit(substr($item['id'], 2)), 'VuFind');
+                $item["driver"] = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($item['id'] . $catalog->getCheckDigit(substr($item['id'], 2)), 'VuFind');
             } catch(RecordMissingException $e) {
             }
             $readingHistory["titles"][$key] = $item;
@@ -1753,5 +1786,23 @@ class MyResearchController extends AbstractBase
         $view->readingHistory = $readingHistory;
         $view->indexOffset = ($this->params()->fromQuery("pageNum") ? (($this->params()->fromQuery("pageNum") - 1) * 50) : 0) + 1;
         return $view;
+    }
+
+    /**
+     * Handle the response from the OverDrive API
+     *
+     * @return view
+     */
+    public function overdriveHandlerAction()
+    {
+        if( $this->params()->fromQuery('ErrorCode') ) {
+            $this->flashMessenger()->addMessage('overdrive_request_error', 'error');
+        } else {
+            $this->flashMessenger()->addMessage('overdrive_request_success', 'info');
+            $this->getILS()->clearSessionVar("checkouts");
+        }
+        $targetURL = $this->getILS()->getSessionVar("parentURL");
+        $this->getILS()->clearSessionVar("parentURL");
+        return $this->redirect()->toUrl($targetURL);
     }
 }

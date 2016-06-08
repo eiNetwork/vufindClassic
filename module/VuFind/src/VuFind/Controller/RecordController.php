@@ -279,16 +279,15 @@ class RecordController extends AbstractRecord
               }
 
               // download it
-              $downloadLink = $catalog->getDownloadLink($overDriveId, $format, $user, (($format == "periodicals-nook") ? $this->getLightboxAwareUrl('record-home', ["id"=>$this->loadRecord()->getUniqueID()]) : null));
+              $downloadLink = $catalog->getDownloadLink($overDriveId, $format, $user, (($format == "periodicals-nook") ? $this->params()->fromQuery('parentURL') : null));
               if($downloadLink["result"]) {
                 return $this->redirect()->toUrl($downloadLink["downloadUrl"]);
               }
               $this->flashMessenger()->setNamespace('error')->addMessage($downloadLink["message"]);
-              $view = $this->createViewModel(['skip' => true, 'title' => 'Download Item', 'reloadParent' => true]);
-              $view->setTemplate('blankModal');
-              return $view;
+              return $this->redirect()->toUrl($this->params()->fromQuery('parentURL'));
             } else {
               $view = $this->createViewModel();
+              $view->parentURL = $this->params()->fromQuery('parentURL');
               $view->setTemplate('record/overdriveDownload');
               return $view;
             }

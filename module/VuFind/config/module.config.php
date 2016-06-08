@@ -860,6 +860,20 @@ $config['router']['routes']['myresearch-readinghistory'] = [
         ]
     ]
 ];
+$config['router']['routes']['myresearch-overdrivehandler'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/MyResearch/OverdriveHandler',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'MyResearch',
+            'action'     => 'OverdriveHandler',
+        ]
+    ]
+];
 
 
 // Add the home route last

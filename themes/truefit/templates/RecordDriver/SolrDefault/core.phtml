@@ -154,16 +154,12 @@
                 $streamingVideo = false;
                 $nookPeriodical = false;
                 foreach($this->downloadFormats as $thisFormat): 
-                  $streamingVideo |= ($thisFormat["id"] == "video-streaming");
-                  $nookPeriodical |= ($thisFormat["id"] == "periodicals-nook");
+                  $streamingVideo |= (strval($thisFormat["id"]) == "video-streaming");
+                  $nookPeriodical |= (strval($thisFormat["id"]) == "periodicals-nook");
                 endforeach;
               ?>
               <li>
-                <? if( $nookPeriodical ): ?>
-                  <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('MyResearch','comingsoon')">Download</button>
-                <? else: ?>
-                  <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=$this->idArgs?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
-                <? endif; ?>
+                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=str_replace("}", (",'parentURL':'" . $this->CurrentPath() . "'}"), $this->idArgs)?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
               </li>
             <? endif; ?>
             <? if( $this->canReturn ): ?>

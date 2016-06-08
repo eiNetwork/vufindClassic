@@ -364,7 +364,7 @@ class Holds extends AbstractRequestBase
      * @param array                  $patron  Current logged in patron
      *
      * @return array                          The result of the update, an
-     * associative array keyed by item ID (empty if no unfreezes performed)
+     * associative array keyed by item ID (empty if no updates performed)
      */
     public function updateHolds($catalog, $patron)
     {
@@ -381,7 +381,7 @@ class Holds extends AbstractRequestBase
                 ['details' => $details, 'patron' => $patron, 'newLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"]]
             );
             if ($updateResults == false) {
-                $flashMsg->addMessage('hold_update_fail', 'error');
+                $flashMsg->addMessage('hold_all_overdrive_fail', 'error');
             } else {
                 if ($updateResults['success']) {
                     $msg = $this->getController()
@@ -393,6 +393,87 @@ class Holds extends AbstractRequestBase
                     $flashMsg->addMessage($msg, 'error');
                 }
                 return $updateResults;
+            }
+        } else {
+             $flashMsg->addMessage('hold_empty_selection', 'error');
+        }
+        return [];
+    }
+
+    /**
+     * Process bulk hold requests.
+     *
+     * @param \VuFind\ILS\Connection $catalog ILS connection object
+     * @param array                  $patron  Current logged in patron
+     *
+     * @return array                          The result of the hold, an
+     * associative array keyed by item ID (empty if no updates performed)
+     */
+    public function createHolds($catalog, $patron)
+    {
+        // Retrieve the flashMessenger helper:
+        $flashMsg = $this->getController()->flashMessenger();
+        $params = $this->getController()->params();
+
+        // Pick IDs to update based on which button was pressed:
+        $details = $params->fromPost('holdIDs');
+
+        if (!empty($details)) {
+            $successes = 0;
+            $failures = 0;
+            $successMsg = "";
+            $failureMsg = "";
+
+            foreach($details as $id) {
+                $title = "";
+                foreach($params->fromPost('holdTitles') as $thisTitle) {
+                    if( substr($thisTitle, 0, strlen($id)) == $id ) {
+                        $title = urldecode(substr($thisTitle, strlen($id) + 1));
+                    }
+                }
+
+                // process overdrive holds
+                if( $overDriveId = $catalog->getOverDriveID($id) )
+                {
+                    $results = $catalog->placeOverDriveHold($overDriveId, $patron);
+                    if( $results['result'] ) {
+                        $successes++;
+                        $successMsg .= $title . "<br>";
+                    } else {
+                        $failures++;
+                        $failureMsg .= $title . "<br>";
+                    }
+                // process physical item holds
+                } else {
+                    $defaultRequired = $this->getController()->holds()->getDefaultRequiredDate(
+                        $checkHolds, $catalog, $patron, $gatheredDetails
+                    );
+                    $defaultRequired = $this->getController()->getServiceLocator()->get('VuFind\DateConverter')
+                        ->convertToDisplayDate("U", $defaultRequired);
+                    $holdResults = $catalog->placeHold(
+                        ['id' => $id, 'patron' => $patron, 'pickUpLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"], 'requiredBy' => $defaultRequired]
+                    );
+                    if( $holdResults['success'] ) {
+                        $successes++;
+                        $successMsg .= $title . "<br>";
+                    } else {
+                        $failures++;
+                        $failureMsg .= $title . "<br>";
+                    }
+                }
+            }
+
+            if ($successes > 0) {
+                $msg = ['msg' => ($successes == 1) ? 'hold_place_success_single' : 'hold_place_success_multiple', 
+                        'html' => true, 
+                        'tokens' => ['%%holdData%%' => $successMsg, '%%url%%' => $this->getController()->url()->fromRoute('myresearch-holds')]];
+                $flashMsg->addMessage($msg, 'info');
+            }
+            if ($failures > 0) {
+                $msg = ['msg' => ($failures == 1) ? 'hold_place_failure_single' : 'hold_place_failure_multiple', 
+                        'html' => true, 
+                        'tokens' => ['%%holdData%%' => $failureMsg]];
+                $flashMsg->addMessage($msg, 'error');
             }
         } else {
              $flashMsg->addMessage('hold_empty_selection', 'error');

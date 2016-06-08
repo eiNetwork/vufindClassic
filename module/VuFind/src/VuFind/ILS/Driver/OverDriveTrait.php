@@ -308,9 +308,6 @@ trait OverDriveTrait {
         return $this->_callUrl($availabilityUrl);
     }
 
-/*
-    private $checkouts = array();
-*/
     /**
      * Loads information about items that the user has checked out in OverDrive
      *
@@ -320,9 +317,6 @@ trait OverDriveTrait {
      * @return array
      */
     public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
-        if (isset($this->checkouts[$user->id])){
-            return $this->checkouts[$user->id];
-        }
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
         $checkedOutTitles = array();
@@ -402,7 +396,6 @@ trait OverDriveTrait {
                 $checkedOutTitles[] = $bookshelfItem;
             }
         }
-        $this->checkouts[$user->id] = $checkedOutTitles;
         return $checkedOutTitles;
     }
 
@@ -675,7 +668,7 @@ trait OverDriveTrait {
                 $downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
                 $result = $downloadLink;
             }else{
-                $result['message'] = 'Sorry, but we could not select a format for you. ' . $response->message;
+                $result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Sorry, but we could not select a format for you. ' . $response->message;
                 
             }
         }
@@ -683,30 +676,26 @@ trait OverDriveTrait {
         return $result;
     }
 
-/*
-    public function updateLendingOptions(){
-        //TODO: Replace this with an API when available
-        require_once ROOT_DIR . '/Drivers/OverDriveDriver2.php';
-        $overDriveDriver2 = new OverDriveDriver2();
-        return $overDriveDriver2->updateLendingOptions();
-    }
-*/
+    public function getDownloadLink($overDriveId, $format, $user, $parentURL = null){
+        if( $parentURL != null ) {
+            $this->session->parentURL = $parentURL;
+        }
 
-    public function getDownloadLink($overDriveId, $format, $user, $successURL = null){
         $url = $this->config['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
+        $odProcessURL = urlencode($this->config['Site']['url'] . "/vufind/MyResearch/OverdriveHandler");
 
-        $url .= '?errorpageurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveError');
+        $url .= '?errorpageurl=' . $odProcessURL;
         if ($format == 'ebook-overdrive'){
-            $url .= '&odreadauthurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveReadError');
+            $url .= '&odreadauthurl=' . $odProcessURL;
         }
         if ($format == 'audiobook-overdrive'){
-            $url .= '&odreadauthurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveReadError');
+            $url .= '&odreadauthurl=' . $odProcessURL;
         }
         if ($format == 'video-streaming'){
-            $url .= '&streamingauthurl=' . urlencode($this->config['Site']['url'] . '/Help/OverDriveReadError');
+            $url .= '&streamingauthurl=' . $odProcessURL;
         }
         if ($format == 'periodicals-nook'){
-            $url .= '&successurl=' . urlencode($this->config['Site']['url'] . $successURL);
+            $url .= '&successurl=' . $odProcessURL;
         }
 
         $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
@@ -721,7 +710,7 @@ trait OverDriveTrait {
                 $result['message'] = 'Created Download Link';
                 $result['downloadUrl'] = $response->links->contentlink->href;
             }else{
-                $result['message'] = 'Sorry, but we could not get a download link for you.  ' . $response->message;
+                $result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Sorry, but we could not get a download link for you.  ' . $response->message;
             }
         }
 

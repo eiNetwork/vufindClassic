@@ -39,6 +39,14 @@ class EINetwork extends Sierra2 implements
         return $this->config[$section][$name];
     }
 
+    public function getSessionVar($name) {
+        return $this->session[$name];
+    }
+
+    public function clearSessionVar($name) {
+        unset($this->session[$name]);
+    }
+
     /**
      * Patron Login
      *
@@ -414,7 +422,37 @@ class EINetwork extends Sierra2 implements
 
     public function updateMyProfile($patron, $updatedInfo){
         // update the phone, email, and/or notification setting
-        if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) || isset($updatedInfo['pin']) /*|| isset($updatedInfo['notices'])*/ ) {
+        if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) || isset($updatedInfo['pin']) || isset($updatedInfo['notices']) ) {
+            // see whether they have given us the notification setting
+            if( isset($updatedInfo['notices']) ) {
+                //Login to the patron's account
+                $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+                $success = false;
+
+                $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo";
+
+                $curl_connection = curl_init($curl_url);
+                curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+                curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+                curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+                curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+                curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+                curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+                curl_setopt($curl_connection, CURLOPT_POST, true);
+                $post_string = 'code=' . $patron['cat_username'] . '&pin=' . $patron['cat_password']  . '&submit=submit';
+                curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+                $sresult = curl_exec($curl_connection);
+
+                $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/modpinfo";
+                $post_string = 'notices=' . $updatedInfo['notices'];
+                curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+                curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+                $sresult = curl_exec($curl_connection);
+                curl_close($curl_connection);
+                unlink($cookieJar);
+            }
             return parent::updateMyProfile($patron, $updatedInfo);
         }
 
@@ -869,7 +907,11 @@ echo $sresult . "<br>";
             }
         }
 
-        return parent::updateHolds($holds);
+        if( count($holds["details"]) > 0 ) {
+            return parent::updateHolds($holds);
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -1180,7 +1222,7 @@ echo $sresult . "<br>";
             curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
             curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
 
-            $post_string = 'code=' . $patronInfo['cat_username'] . '&pin=' . $patronInfo['cat_password'] . '&submit=submit';//implode ('&', $post_items);
+            $post_string = 'code=' . $patronInfo['cat_username'] . '&pin=' . $patronInfo['cat_password'] . '&submit=submit';
             curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
             $patronInfoDump = curl_exec($this->curl_connection);
 

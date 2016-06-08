@@ -54,11 +54,14 @@
       <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
       <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
       <input type="hidden" name="placeHold" value="1">
-      <? if( $this->changePickup ): ?>
-        <input type="hidden" name="changePickup" value="true">
+      <? if( $this->changePickup || $this->bulkHold ): ?>
+        <input type="hidden" name="<?=($this->changePickup ? "changePickup" : "bulkHold")?>" value="true">
         <input type="hidden" name="referrer" value="<?=$this->referrer?>">
         <? foreach( $this->ids as $id ): ?>
-          <input type="hidden" name="updateIDs[]" value="<?=$id?>">
+          <input type="hidden" name="<?=($this->changePickup ? "updateIDs[]" : "holdIDs[]")?>" value="<?=$id?>">
+        <? endforeach; ?>
+        <? foreach( $this->titles as $title ): ?>
+          <input type="hidden" name="holdTitles[]" value="<?=$title?>">
         <? endforeach; ?>
       <? endif; ?>
       <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?> onclick="$('#holdFooter').css('display', 'none');$('#loadingFooter').css('display', 'block');">Okay</button>

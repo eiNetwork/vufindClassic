@@ -38,16 +38,18 @@
     } );
   }
 
-  function HoldSelected(form) {
-    var recordArgs = [];
-    form.siblings('.ajaxItem').find('.checkbox-select-item').each( function() {
-      if(this.checked) {
-        var id = $(this).attr("value").split('|')[1];
-        //form.find('div.dropdown[id="' + id.substring(1)
-        recordArgs.push({'id': id});
+  function HoldSelected(form, id) {
+    form.attr('target','_self');
+    form.find('.temporaryInput').remove();
+    $('#bulkAction' + id).attr('name','bulkHold');
+    form.find('.checkbox-select-item').each(function() {
+      if( $(this).prop('checked') ) {
+        var twin = form.siblings('.ajaxItem').find('.checkbox-select-item[value="' + $(this).attr("value") + '"]');
+        var title = twin.parents('table').find('.itemTitle').children('a').html();
+        $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
       }
     } );
-    alert( JSON.stringify(recordArgs) );
+    bulkActionSubmit(form);
   }
 
   function ConfirmSelected(form, id, action) {
@@ -102,7 +104,7 @@
       <div class="dropdown" id="listBulkDropdown<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
           <? if (isset($list)): ?>
-            <li><button class="btn-dropdown btn-standardDropdown" <? /* ?>onclick="HoldSelected($(this).parents('form')); return false;"<? */ ?> onclick="Lightbox.get('MyResearch','comingsoon'); return false;">Hold</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form'), '<?=$bulkID?>'); return false;">Hold</button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','delete');bulkActionSubmit($(this).parents('form'));return false;">Remove...</button></li>
             <hr class="stretchHR">
             <? if( $lists = $user->getLists() ): ?>

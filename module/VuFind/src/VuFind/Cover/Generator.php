@@ -66,12 +66,12 @@ class Generator
         $default = [
             'mode'         => 'grid',
             'authorFont'   => 'DroidSerif-Bold.ttf',
-            'fontSize'     => 7,
+            'fontSize'     => 12,
             'lightness'    => 220,
-            'maxLines'     => 5,
+            'maxLines'     => 6,
             'minFontSize'  => 5,
             'saturation'   => 80,
-            'size'         => 84,
+            'size'         => 128,
             'textAlign'    => 'center',
             'titleFont'    => 'DroidSerif-Bold.ttf',
             'topPadding'   => 19,
@@ -96,8 +96,11 @@ class Generator
      */
     public function generate($title, $author, $callnumber = null)
     {
+        $title = trim($title, "\0\t\n\x0B\r /");
         if ($this->settings->mode == 'solid') {
             return $this->generateSolid($title, $author, $callnumber);
+        } else if ($this->settings->mode == 'combo') {
+            return $this->generateCombo($title, $author, $callnumber);
         } else {
             return $this->generateGrid($title, $author, $callnumber);
         }
@@ -157,6 +160,66 @@ class Generator
             false,
             'center'
         );
+
+        // Output png CHECK THE PARAM
+        ob_start();
+        imagepng($im);
+        $img = ob_get_contents();
+        ob_end_clean();
+
+        // Clear memory
+        imagedestroy($im);
+        // GTFO
+        return $img;
+    }
+
+    /**
+     * Halfway between solid and combo.  Shows a solid background, overlaid with text of full title
+     *
+     * @param string $title      Title of the book
+     * @param string $author     Author of the book
+     * @param string $callnumber Callnumber of the book
+     *
+     * @return string contents of image file
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    protected function generateCombo($title, $author, $callnumber)
+    {
+        $half = $this->settings->size / 2;
+        $box  = $this->settings->size / 8;
+        // Create image
+        if (!($im = imagecreate($this->settings->size, $this->settings->size))) {
+            throw new \Exception("Cannot Initialize new GD image stream");
+        }
+        // this->white backdrop
+        $this->white = imagecolorallocate($im, 255, 255, 255);
+        // this->black
+        $this->black = imagecolorallocate($im, 0, 0, 0);
+
+        // Generate seed from callnumber, title back up
+        $seed = $this->createSeed($title, $callnumber);
+        // Number to color, hsb to control saturation and lightness
+        $color = $this->makeHSBColor(
+            $im,
+            $seed % 256,
+            $this->settings->saturation,
+            $this->settings->lightness
+        );
+
+        // Fill solid color
+        imagefilledrectangle(
+            $im,
+            0,
+            0,
+            $this->settings->size,
+            $this->settings->size,
+            $color
+        );
+
+        if (null !== $title) {
+            $this->drawTitle($im, $title, $box);
+        }
 
         // Output png CHECK THE PARAM
         ob_start();

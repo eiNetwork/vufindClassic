@@ -200,6 +200,7 @@ class Loader extends \VuFind\ImageLoader
         ) {
             if (isset($this->config->Content->makeDynamicCovers)
                 && false !== $this->config->Content->makeDynamicCovers
+                && $size == 'small'
             ) {
                 $this->image = $this->getCoverGenerator()
                     ->generate($title, $author, $callnumber);

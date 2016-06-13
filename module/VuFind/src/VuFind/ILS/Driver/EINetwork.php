@@ -412,6 +412,7 @@ class EINetwork extends Sierra2 implements
             $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
             $location = (isset($shelfLoc) && $shelfLoc) ? $this->getDBTable('location')->getByLocationId($shelfLoc->locationId) : null;
             $results[$i]['branchName'] = $location ? $location->displayName : null;
+            $results[$i]['branchCode'] = $location ? $location->code : null;
             $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
 
             for($j=0; $j<count($results2) && $results[$i]['branchName'] > $results2[$j]['branchName']; $j++) {}

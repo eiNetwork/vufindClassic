@@ -59,12 +59,10 @@ class Sierra2 extends Sierra implements
      * @throws ILSException
      * @return void
      */
-/*
     public function init()
     {
         // this function does nothing, but it's necessary to override the Sierra init() function that creates a postgres connection
     }
-*/
 
     /**
      * Make an HTTP request

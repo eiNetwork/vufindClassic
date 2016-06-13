@@ -196,6 +196,8 @@ class RecordController extends AbstractRecord
             $view->myLists = $lists;
         }
 
+        $view->currentLocation = $catalog->getDbTable("location")->getCurrentLocation();
+
         return $view;
     }
 

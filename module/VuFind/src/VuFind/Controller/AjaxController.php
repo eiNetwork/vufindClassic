@@ -217,6 +217,7 @@ class AjaxController extends AbstractBase
 
         // Load messages for response:
         $messages = [
+            'itshere' => $renderer->render('ajax/status-itshere.phtml'),
             'available' => $renderer->render('ajax/status-available.phtml'),
             'unavailable' => $renderer->render('ajax/status-unavailable.phtml'),
             'unknown' => $renderer->render('ajax/status-unknown.phtml')
@@ -441,6 +442,7 @@ class AjaxController extends AbstractBase
         }
 
         // Summarize call number, location and availability info across all items:
+        $currentLocation = $catalog->getDbTable('location')->getCurrentLocation();
         $callNumbers = $locations = [];
         $use_unknown_status = $available = false;
         $totalItems = 0;
@@ -459,6 +461,9 @@ class AjaxController extends AbstractBase
             // Store call number/location info:
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
+            if( !isset($itsHere) && $currentLocation && ($currentLocation['code'] == $info['branchCode']) ) {
+                $itsHere = $info;
+            }
         }
 
         // Determine call number string based on findings:
@@ -473,12 +478,14 @@ class AjaxController extends AbstractBase
 
         $availability_message = $use_unknown_status
             ? $messages['unknown']
-            : $messages[$available ? 'available' : 'unavailable'];
+            : $messages[isset($itsHere) ? 'itshere' : ($available ? 'available' : 'unavailable')];
         if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
             $availability_message = str_replace("<countText>", "Always Available", $availability_message);
-
         } else {
             $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
+            if( isset($itsHere) ) {
+                $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"], $availability_message);
+            }
         }
 
         // Collect the details:

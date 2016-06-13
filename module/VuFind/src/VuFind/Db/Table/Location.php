@@ -93,4 +93,22 @@ class Location extends Gateway
         };
         return $this->select($callback);
     }
+
+    /**
+     * Get location row corresponding to current location
+     *
+     * @return mixed
+     */
+    public function getCurrentLocation()
+    {
+        $callback = function ($select) {
+            $select->join(
+                ['ip' => 'ip_lookup'], 'ip.locationid = location.locationId',
+                []
+            );
+            $select->where('ip="' . substr($_SERVER['REMOTE_ADDR'], 0, strrpos($_SERVER['REMOTE_ADDR'], ".") + 1) . '0/24"');
+        };
+        $location = $this->select($callback);
+        return $location->current();
+    }
 }

@@ -74,14 +74,16 @@
         <? endif; ?>
 
         <tr>
-          <? $totalCopies = 0; $availableCopies = 0; $firstTime = true; ?>
+          <? $totalCopies = 0; $availableCopies = 0; ?>
           <? foreach($this->holdings as $entry): ?>
-            <? $firstTime = false; ?>
             <? foreach($entry["items"] as $item): ?>
               <? if( isset($item["isOverDrive"]) && $item["isOverDrive"] ): ?>
                 <? $totalCopies += ($item["copiesOwned"]); $availableCopies += ($item["copiesAvailable"]); ?>
               <? else: ?>
                 <? $totalCopies++; $availableCopies += ($item["availability"]); ?>
+                <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation['code'])): ?>
+                  <? $itsHere = $item; ?>
+                <? endif; ?>
               <? endif; ?>
             <? endforeach; ?>
           <? endforeach; ?>
@@ -89,11 +91,14 @@
           <? $green = (($totalCopies > 0) && ($availableCopies > 0)); ?>
           <td class="EIN-hide-m itemDetailCategory">Availability:</td>
           <td style="padding-bottom:5px">
-            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? '<i class="fa fa-check"></i>Available' : "Unavailable")?></span>
+            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . (isset($itsHere) ? 'It\'s Here!' : 'Available')) : "Unavailable")?></span>
             <? if( $alwaysAvailable ): ?>
               <span class="availableCopyText">Always Available</span>
             <? else: ?>
               <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+            <? endif; ?>
+            <? if( isset($itsHere) ): ?>
+              <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"]?></div>
             <? endif; ?>
           </td>
         </tr>

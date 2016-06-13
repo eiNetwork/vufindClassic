@@ -289,13 +289,8 @@ class SearchController extends AbstractSearch
             [
                 'DVDResults' => $this->getNewItemsByFormatAction(["DVD"]),
                 'eBookResults' => $this->getNewItemsByFormatAction(["OverDrive Read", "Adobe EPUB ebook", "Kindle Book", "Adobe PDF eBook", "Ebook Download"]),
-                'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"])
-/*
-                'results' => $this->getHomePageFacets(),
-                'hierarchicalFacets' => $this->getHierarchicalFacets(),
-                'hierarchicalFacetSortOptions'
-                    => $this->getHierarchicalFacetSortSettings()
-*/
+                'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"]),
+                'request' => $this->request
             ]
         );
     }
@@ -334,6 +329,9 @@ class SearchController extends AbstractSearch
         // Validate the range parameter -- it should not exceed the greatest
         // configured value:
         $maxAge = $this->newItems()->getMaxAge();
+        if($range > $maxAge) {
+            $range = $maxAge;
+        }
 
         // use the formats they passed in
         $formatStr = "";
@@ -354,7 +352,8 @@ class SearchController extends AbstractSearch
             $this->getRequest()->getQuery()->set('overrideIds', $bibIDs);
         } else {
             // Use a Solr filter to show results:
-            $hiddenFilters[] = $this->newItems()->getSolrFilter($range);
+            //$hiddenFilters[] = $this->newItems()->getSolrFilter($range);
+            $hiddenFilters[] = 'date_added:["' . strftime("%Y-%m-%dT00:00:00Z", time() - $range * 86400) . '" TO *]';
         }
 
         // If we found hidden filters above, apply them now:

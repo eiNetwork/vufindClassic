@@ -248,6 +248,26 @@ class Factory
     }
 
     /**
+     * Factory for Summaries tab plugin.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return Summaries
+     */
+    public static function getSummaries(ServiceManager $sm)
+    {
+        $config = $sm->getServiceLocator()->get('VuFind\Config')->get('config');
+        // Only instantiate the loader if the feature is enabled:
+        if (isset($config->Content->summaries)) {
+            $loader = $sm->getServiceLocator()->get('VuFind\ContentPluginManager')
+                ->get('summaries');
+        } else {
+            $loader = null;
+        }
+        return new Summaries($loader, static::getHideSetting($config, 'summaries'));
+    }
+
+    /**
      * Factory for UserComments tab plugin.
      *
      * @param ServiceManager $sm Service manager.

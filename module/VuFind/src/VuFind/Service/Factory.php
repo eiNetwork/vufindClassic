@@ -176,6 +176,18 @@ class Factory
     }
 
     /**
+     * Construct the Content\Summaries Plugin Manager.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \VuFind\Content\Summaries\PluginManager
+     */
+    public static function getContentSummariesPluginManager(ServiceManager $sm)
+    {
+        return static::getGenericPluginManager($sm, 'Content\Summaries');
+    }
+
+    /**
      * Construct the cookie manager.
      *
      * @param ServiceManager $sm Service manager.

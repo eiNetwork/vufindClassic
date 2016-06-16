@@ -320,10 +320,16 @@
           </div>
           <div id="details3" class="panel-collapse collapse">
             <div class="panel-body">
-              <? $summary = $this->driver->getSummary(); $summary = isset($summary[0]) ? $this->escapeHtml($summary[0]) : false; ?>              
-              <? if ($summary): ?>
-                <h6 class="accordionSubheading">Summary</h6>
-                <span class="accordionParagraph"><?=$summary?></span><br>
+              <? if( isset($this->tabs['Summaries']) ): ?>
+                <? $summarySources = $this->tabs['Summaries']->getContent($this->driver->getCleanISBN()); ?>
+                <? if( count($summarySources) > 0 ): ?>
+                  <h6 class="accordionSubheading accordionGap">Summary</h6>
+                  <? foreach( $summarySources as $summaries ): ?>
+                    <? foreach( $summaries as $summary ): ?>
+                      <span class="accordionParagraph"><?=$summary['Content']?></span><br>
+                    <? endforeach; ?>
+                  <? endforeach; ?>
+                <? endif; ?>
               <? endif; ?>
               <? if( isset($this->tabs['Reviews']) ): ?>
                 <? $reviewSources = $this->tabs['Reviews']->getContent($this->driver->getCleanISBN()); ?>

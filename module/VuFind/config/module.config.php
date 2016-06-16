@@ -140,6 +140,7 @@ $config = [
             'VuFind\ContentCoversPluginManager' => 'VuFind\Service\Factory::getContentCoversPluginManager',
             'VuFind\ContentExcerptsPluginManager' => 'VuFind\Service\Factory::getContentExcerptsPluginManager',
             'VuFind\ContentReviewsPluginManager' => 'VuFind\Service\Factory::getContentReviewsPluginManager',
+            'VuFind\ContentSummariesPluginManager' => 'VuFind\Service\Factory::getContentSummariesPluginManager',
             'VuFind\CookieManager' => 'VuFind\Service\Factory::getCookieManager',
             'VuFind\DateConverter' => 'VuFind\Service\Factory::getDateConverter',
             'VuFind\DbAdapter' => 'VuFind\Service\Factory::getDbAdapter',
@@ -287,6 +288,7 @@ $config = [
                     'authornotes' => 'VuFind\Content\Factory::getAuthorNotes',
                     'excerpts' => 'VuFind\Content\Factory::getExcerpts',
                     'reviews' => 'VuFind\Content\Factory::getReviews',
+                    'summaries' => 'VuFind\Content\Factory::getSummaries',
                 ],
             ],
             'content_authornotes' => [
@@ -325,6 +327,12 @@ $config = [
                 ],
                 'invokables' => [
                     'guardian' => 'VuFind\Content\Reviews\Guardian',
+                ],
+            ],
+            'content_summaries' => [
+                'factories' => [
+                    'syndetics' => 'VuFind\Content\Summaries\Factory::getSyndetics',
+                    'syndeticsplus' => 'VuFind\Content\Summaries\Factory::getSyndeticsPlus',
                 ],
             ],
             'db_table' => [
@@ -478,6 +486,7 @@ $config = [
                     'map' => 'VuFind\RecordTab\Factory::getMap',
                     'preview' => 'VuFind\RecordTab\Factory::getPreview',
                     'reviews' => 'VuFind\RecordTab\Factory::getReviews',
+                    'summaries' => 'VuFind\RecordTab\Factory::getSummaries',
                     'similaritemscarousel' => 'VuFind\RecordTab\Factory::getSimilarItemsCarousel',
                     'usercomments' => 'VuFind\RecordTab\Factory::getUserComments',
                 ],
@@ -636,7 +645,7 @@ $config = [
                     'Holdings' => 'HoldingsILS', 'Description' => 'Description',
                     'TOC' => 'TOC', 'UserComments' => 'UserComments',
                     'Reviews' => 'Reviews', 'Excerpt' => 'Excerpt',
-                    'Preview' => 'preview',
+                    'Preview' => 'preview', 'Summaries' => 'Summaries',
                     'HierarchyTree' => 'HierarchyTree', 'Map' => 'Map',
                     'Similar' => 'SimilarItemsCarousel',
                     'Details' => 'StaffViewArray',
@@ -648,7 +657,7 @@ $config = [
                     'Holdings' => 'HoldingsILS', 'Description' => 'Description',
                     'TOC' => 'TOC', 'UserComments' => 'UserComments',
                     'Reviews' => 'Reviews', 'Excerpt' => 'Excerpt',
-                    'Preview' => 'preview',
+                    'Preview' => 'preview', 'Summaries' => 'Summaries',
                     'HierarchyTree' => 'HierarchyTree', 'Map' => 'Map',
                     'Similar' => 'SimilarItemsCarousel',
                     'Details' => 'StaffViewMARC',

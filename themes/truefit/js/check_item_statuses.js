@@ -85,7 +85,6 @@ function handleItemStatusResponse(response) {
       ) {
         // No data is available -- hide the entire status area:
         item.find('.callnumAndLocation').addClass('hidden');
-        item.find('.status').addClass('hidden');
       } else if (result.locationList) {
         // We have multiple locations -- build appropriate HTML and hide unwanted labels:
         item.find('.callnumber').addClass('hidden');

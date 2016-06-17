@@ -461,7 +461,7 @@ class AjaxController extends AbstractBase
             // Store call number/location info:
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
-            if( !isset($itsHere) && $currentLocation && ($currentLocation['code'] == $info['branchCode']) ) {
+            if( !isset($itsHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
         }

@@ -159,7 +159,7 @@ fa {
 .searchDropdown{margin-top:2px}
 .manageListDropdown{margin-top:-2px;width:100%}
 .btn-standardDropdown{background-color: #ffffff;}
-.btn-standardDropdown:hover,.btn-standardDropdown:focus,.btn-standardDropdown:active,.btn-standardDropdown.active{background-color: #ededed}
+.btn-standardDropdown:hover,.btn-standardDropdown:focus,.btn-standardDropdown:active,.btn-standardDropdown.active,.btn-pickupLocation.hovered,tr.hovered{background-color: #ededed}
 .btn-pickupLocation,.btn-pickupLocationPreferred{color:#3d3d3d;font-weight:400;font-size:18px;text-align:left}
 .btn-pickupLocationPreferred,.bold{font-weight:700}
 .btn-pickupLocation:focus,.btn-pickupLocationPreferred:focus{outline:0}

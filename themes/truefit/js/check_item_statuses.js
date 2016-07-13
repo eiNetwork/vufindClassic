@@ -58,6 +58,8 @@ function handleItemStatusResponse(response) {
           leftButtonMenu.children(".standardDropdown").append("<li><a href=\"" + result.returnLink + "\" target=\"loginFrame\"><button class=\"btn-dropdown btn-standardDropdown\" onClick=\"$(this).parents('.dropdown').siblings('.leftButton').html('<i class=\\'fa fa-spinner bwSpinner\\'></i>&nbsp;Loading...')\">Return</button></a></li>");
         }
         leftButton.empty().append('Checked Out<i class="fa fa-caret-down"></i>');
+      } else if( result.itsHere && result.holdableCopyHere && result.volume_number == '' ) {
+        leftButton.empty().append('It\'s Here');
       } else if( ("holdLink" in result) ) {
         leftButton.prop('disabled', false);
         leftButton.wrap("<a href=\"" + result.holdLink + "\" target=\"loginFrame\"></a>");

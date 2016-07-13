@@ -77,6 +77,19 @@
     <script src="/themes/truefit/js/enc-base64-min.js"></script>
   </head>
   <body>
+    <!-- *google analytics* -->
+    <div>
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-80683816-1', 'auto');
+        ga('send', 'pageview');
+
+      </script>
+    </div>
     <iframe id="loginFrame" name="loginFrame" style="display:none"></iframe>
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box

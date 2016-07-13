@@ -274,9 +274,12 @@ class AjaxController extends AbstractBase
                 'reserve'              => 'false',
                 'reserve_message'      => $this->translate('Not On Reserve'),
                 'callnumber'           => '',
+                'volume_number'        => '',
                 'missing_data'         => true,
                 'record_number'        => $recordNumber,
                 'isHolding'            => false,
+                'itsHere'              => false,
+                'holdableCopyHere'     => false,
                 'holdArgs'             => ''
             ];
         }
@@ -443,7 +446,7 @@ class AjaxController extends AbstractBase
 
         // Summarize call number, location and availability info across all items:
         $currentLocation = $catalog->getDbTable('location')->getCurrentLocation();
-        $callNumbers = $locations = [];
+        $callNumbers = $locations = $volumeNumbers = [];
         $use_unknown_status = $available = false;
         $totalItems = 0;
         $availableItems = 0;
@@ -460,15 +463,24 @@ class AjaxController extends AbstractBase
             }
             // Store call number/location info:
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
+            $volumeNumbers[] = isset($info['number']) ? $info['number'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
             if( !isset($itsHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
+            }
+            if( !isset($holdableCopyHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') ) {
+                $holdableCopyHere = $info;
             }
         }
 
         // Determine call number string based on findings:
         $callNumber = $this->pickValue(
             $callNumbers, $callnumberSetting, 'Multiple Call Numbers'
+        );
+
+        // Determine volume number string based on findings:
+        $volumeNumber = $this->pickValue(
+            $volumeNumbers, $callnumberSetting, 'Multiple Volumes'
         );
 
         // Determine location string based on findings:
@@ -484,7 +496,7 @@ class AjaxController extends AbstractBase
         } else {
             $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
             if( isset($itsHere) ) {
-                $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"], $availability_message);
+                $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
             }
         }
 
@@ -501,7 +513,10 @@ class AjaxController extends AbstractBase
                 ? $this->translate('on_reserve')
                 : $this->translate('Not On Reserve'),
             'callnumber' => htmlentities($callNumber, ENT_COMPAT, 'UTF-8'),
+            'volume_number' => htmlentities($volumeNumber, ENT_COMPAT, 'UTF-8'),
             'isHolding' => $isHolding,
+            'itsHere' => isset($itsHere),
+            'holdableCopyHere' => isset($holdableCopyHere),
             'holdArgs' => $holdArgs
         ];
 

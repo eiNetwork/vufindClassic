@@ -4,10 +4,14 @@
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
   $isOverDrive = false;
+  $hasVolumes = false;
   foreach($this->holdings as $entry):
     foreach($entry["items"] as $item):
       if( isset($item["isOverDrive"]) && $item["isOverDrive"] ):
         $isOverDrive = true;
+      endif;
+      if( isset($item["number"]) && $item["number"]):
+        $hasVolumes = true;
       endif;
     endforeach;
   endforeach;
@@ -84,6 +88,9 @@
                 <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation['code'])): ?>
                   <? $itsHere = $item; ?>
                 <? endif; ?>
+                <? if(!isset($holdableCopyHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation['code']) && ($item["status"] != "o")): ?>
+                  <? $holdableCopyHere = $item; ?>
+                <? endif; ?>
               <? endif; ?>
             <? endforeach; ?>
           <? endforeach; ?>
@@ -98,7 +105,7 @@
               <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
             <? endif; ?>
             <? if( isset($itsHere) ): ?>
-              <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"]?></div>
+              <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
             <? endif; ?>
           </td>
         </tr>
@@ -114,7 +121,7 @@
             $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . "?hashKey=" . json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
             $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
           } else {
-            $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ("'Hold'," . $this->holdArgs)) . ")\"";
+            $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";
           }
           $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
         else:
@@ -122,7 +129,7 @@
           $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
         endif;
 
-        $holdLabel = ($this->canHold ? "Hold" : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));
+        $holdLabel = ($this->canHold ? ((($holdableCopyHere != null) && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));
         if( $this->isTitleCheckedOut && $isOverDrive ):
           $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
         endif;
@@ -133,7 +140,7 @@
         <? if($holdLink != null): ?>
           <a href="<?=$holdLink?>" target="loginFrame">
         <? endif; ?>
-        <button class="btn-default leftButton"<?=$holdClick?><?=(($this->canHold || $this->canCheckOut || ($isOverDrive && $this->isTitleCheckedOut))?"":" disabled")?>><?=$holdLabel?></button>
+        <button class="btn-default leftButton"<?=$holdClick?><?=((($this->canHold && (($holdableCopyHere == null) || $hasVolumes)) || $this->canCheckOut || ($isOverDrive && $this->isTitleCheckedOut))?"":" disabled")?>><?=$holdLabel?></button>
         <? if($holdLink != null): ?>
           </a>
         <? endif; ?>
@@ -263,7 +270,7 @@
                           <tr class="availabilityRow">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
                             <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? $item['callnumber'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
                           </tr>
                         <? endif; ?>
                       <? endforeach; ?>
@@ -289,7 +296,7 @@
                           <tr class="availabilityRow">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
                             <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
                           </tr>
                         <? endif; ?>
                       <? endforeach; ?>

@@ -841,6 +841,20 @@ $config['router']['routes']['record-overdrivedownload'] = [
         ]
     ]
 ];
+$config['router']['routes']['record-selectitem'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/Record/:id/SelectItem',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'Record',
+            'action'     => 'SelectItem',
+        ]
+    ]
+];
 $config['router']['routes']['confirm-editproperty'] = [
     'type' => 'Zend\Mvc\Router\Http\Segment',
     'options' => [

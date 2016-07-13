@@ -315,4 +315,36 @@ class RecordController extends AbstractRecord
 
       return parent::saveAction();
     }
+
+    /**
+     * Select Item action - Make patron choose a specific item (used for multi-volume bibs)
+     *
+     * @return mixed
+     */
+    public function selectItemAction() {
+      // grab the holdings, then split them into holdable and not holdable
+      $driver = $this->loadRecord();
+      $holdings = $driver->getRealTimeHoldings();
+      $availableHoldings = [];
+      $unavailableHoldings = [];
+      $currentLocation = $this->getILS()->getDbTable('location')->getCurrentLocation();
+      $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
+      foreach($holdings as $thisBib) {
+        foreach($thisBib["items"] as $item) {
+          if( $canHold && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
+            $availableHoldings[] = $item;
+          } else {
+            $unavailableHoldings[] = $item;
+          }
+        }
+      }
+
+      $view = $this->createViewModel();
+      $view->id = $driver->getUniqueID();
+      $view->hashKey = $this->params()->fromQuery('hashKey');
+      $view->availableHoldings = $availableHoldings;
+      $view->unavailableHoldings = $unavailableHoldings;
+      $view->setTemplate('record/selectItem');
+      return $view;
+    }
 }

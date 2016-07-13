@@ -129,6 +129,11 @@ trait HoldsTrait
                 // If we made it this far, we're ready to place the hold;
                 // if successful, we will redirect and can stop here.
 
+                // see whether they are trying to hold a specific item instead of a bib
+                if( isset($gatheredDetails['itemID']) ) {
+                    $gatheredDetails['id'] = $gatheredDetails['itemID'];
+                }
+
                 // Add Patron Data to Submitted Data
                 $holdDetails = $gatheredDetails + ['patron' => $patron];
 

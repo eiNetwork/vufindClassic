@@ -244,91 +244,7 @@ class EINetwork extends Sierra2 implements
      */
     public function getDefaultPickUpLocation($patron, $holdInfo = null)
     {
-/*
-        if ($holdInfo != null) {
-            $details = $this->getHoldingInfoForItem(
-                $patron['id'], $holdInfo['id'], $holdInfo['item_id']
-            );
-            $pickupLocations = $details['pickup-locations'];
-            if (isset($this->preferredPickUpLocations)) {
-                foreach (array_keys($details['pickup-locations']) as $locationID) {
-                    if (in_array($locationID, $this->preferredPickUpLocations)) {
-                        return $locationID;
-                    }
-                }
-            }
-            // nothing found or preferredPickUpLocations is empty? Return the first
-            // locationId in pickupLocations array
-            reset($pickupLocations);
-            return key($pickupLocations);
-        } else if (isset($this->preferredPickUpLocations)) {
-            return $this->preferredPickUpLocations[0];
-        } else {
-            throw new ILSException(
-                'Missing Catalog/preferredPickUpLocations config setting.'
-            );
-        }
-*/
-        return "xa";
-    }
-
-    /**
-     * Support method for placeHold -- get holding info for an item.
-     *
-     * @param string $patronId Patron ID
-     * @param string $id       Bib ID
-     * @param string $group    Item ID
-     *
-     * @return array
-     */
-    public function getHoldingInfoForItem($patronId, $id, $group)
-    {
-        return ['pickup-locations' => ['xa']];
-/**
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/branches"));
-        $locations = [];
-        for( $i=0; $i<$jsonVals->total; $i++ ) {
-            $thisLocation = $jsonVals->entries[$i];
-            //$locations[$thisLocation->
-        }
-        return ['pickup-locations' => $locations];
-/**
-        list($bib, $sys_no) = $this->parseId($id);
-        $resource = $bib . $sys_no;
-        $xml = $this->doRestDLFRequest(
-            ['patron', $patronId, 'record', $resource, 'items', $group]
-        );
-        $locations = [];
-        $part = $xml->xpath('//pickup-locations');
-        if ($part) {
-            foreach ($part[0]->children() as $node) {
-                $arr = $node->attributes();
-                $code = (string) $arr['code'];
-                $loc_name = (string) $node;
-                $locations[$code] = $loc_name;
-            }
-        } else {
-            throw new ILSException('No pickup locations');
-        }
-        $requests = 0;
-        $str = $xml->xpath('//item/queue/text()');
-        if ($str != null) {
-            list($requests) = explode(' ', trim($str[0]));
-        }
-        $date = $xml->xpath('//last-interest-date/text()');
-        $date = $date[0];
-        $date = "" . substr($date, 6, 2) . "." . substr($date, 4, 2) . "."
-            . substr($date, 0, 4);
-        return [
-            'pickup-locations' => $locations, 'last-interest-date' => $date,
-            'order' => $requests + 1
-        ];
-/**
-        return [
-            'pickup-locations' => [''], 'last-interest-date' => '08.11.1982',
-            'order' => 1
-        ];
-/**/
+        return "";
     }
 
     public function getStatus($id) {
@@ -415,7 +331,7 @@ class EINetwork extends Sierra2 implements
             $results[$i]['branchCode'] = $location ? $location->code : null;
             $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
 
-            for($j=0; $j<count($results2) && $results[$i]['branchName'] > $results2[$j]['branchName']; $j++) {}
+            for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
             array_splice($results2, $j, 0, [$results[$i]]);
         }
         return $results2;
@@ -424,6 +340,14 @@ class EINetwork extends Sierra2 implements
     public function updateMyProfile($patron, $updatedInfo){
         // update the phone, email, and/or notification setting
         if( isset($updatedInfo['phones']) || isset($updatedInfo['emails']) || isset($updatedInfo['pin']) || isset($updatedInfo['notices']) ) {
+            /**
+            * Screen Scraping functionality
+            * 
+            * The if block following this leverages the screen scraping functionality from our previous iteration of the catalog.
+            * This action should eventually be available via the Sierra API (and as such be implemented in the Sierra2 driver), 
+            * but our current version of the API does not have them available at this point.
+            * 
+            */
             // see whether they have given us the notification setting
             if( isset($updatedInfo['notices']) ) {
                 //Login to the patron's account
@@ -479,136 +403,6 @@ class EINetwork extends Sierra2 implements
                                   "days" => $updatedInfo[$thisFormat] );
                 $this->setOverDriveLendingOption($lendInfo);
             }
-        }
-
-        // see whether they have given us the notification setting
-        if( isset($updatedInfo['notices']) ) {
-/*
-            //Login to the patron's account
-            $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-            $success = false;
-
-            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo";
-
-            $curl_connection = curl_init($curl_url);
-            curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-            curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-            curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-            curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-            curl_setopt($curl_connection, CURLOPT_POST, true);
-            $post_items = array('code=' . $patron['cat_username'], 'pin=' . $patron['cat_password']);
-            $post_string = implode ('&', $post_items);
-echo $curl_url. "<br>";
-echo $post_string. "<br>";
-            curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-            $sresult = curl_exec($curl_connection);
-echo $sresult . "<br>";
-echo (strpos("PATTON", $sresult) ? "TRUE" : "FALSE") . "<br>";
-
-/*
-            //Issue a post request to update the patron information
-            $post_items = array('notices' => $updatedInfo['notices']);
-            $patronUpdateParams = implode ('&', $post_items);
-            curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-            $scope = isset($scope) ? $scope : null;
-            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/modpinfo";
-            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-            $sresult = curl_exec($curl_connection);
-echo $curl_url . "<br>";
-echo $patronUpdateParams . "<br>";
-echo $sresult . "<br>";
-            curl_close($curl_connection);
-            unlink($cookieJar);
-
-/*
-        //$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
-
-        //Should get Patron Information Updated on success
-        if (preg_match('/Patron information updated/', $sresult)){
-            $patronDump = $this->_getPatronDump($this->_getBarcode(), true);
-            $user->phone = $_REQUEST['phone'];
-            $user->email = $_REQUEST['email'];
-            $user->update();
-            //Update the serialized instance stored in the session
-            $_SESSION['userinfo'] = serialize($user);
-            return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
-        }else{
-            return "Your patron information could not be updated.";
-        }
-/*
-        //Setup the call to Millennium
-        $id2= $patronId;
-        $patronDump = $this->_getPatronDump($this->_getBarcode());
-        //$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
-
-        $this->_updateVuFindPatronInfo($patronId);
-
-        //Update profile information
-        $extraPostInfo = array();
-        $extraPostInfo['tele1'] = $_REQUEST['phone'];
-        $extraPostInfo['email'] = $_REQUEST['email'];
-        if (isset($_REQUEST['notices'])){
-            $extraPostInfo['notices'] = $_REQUEST['notices'];
-        }
-
-        //Login to the patron's account
-        $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-        $success = false;
-
-        $curl_url = $this->config['Catalog']['url'] . "/patroninfo";
-
-        $curl_connection = curl_init($curl_url);
-        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-        curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-        curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-        curl_setopt($curl_connection, CURLOPT_POST, true);
-        $post_data = $this->_getLoginFormValues($patronDump);
-        foreach ($post_data as $key => $value) {
-            $post_items[] = $key . '=' . urlencode($value);
-        }
-        $post_string = implode ('&', $post_items);
-        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-        $sresult = curl_exec($curl_connection);
-
-        //Issue a post request to update the patron information
-        $post_items = array();
-        foreach ($extraPostInfo as $key => $value) {
-            $post_items[] = $key . '=' . urlencode($value);
-        }
-        $patronUpdateParams = implode ('&', $post_items);
-        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-        $scope = isset($scope) ? $scope : null;
-        $curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
-        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-        $sresult = curl_exec($curl_connection);
-
-        curl_close($curl_connection);
-        unlink($cookieJar);
-
-        //$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
-
-        //Should get Patron Information Updated on success
-        if (preg_match('/Patron information updated/', $sresult)){
-            $patronDump = $this->_getPatronDump($this->_getBarcode(), true);
-            $user->phone = $_REQUEST['phone'];
-            $user->email = $_REQUEST['email'];
-            $user->update();
-            //Update the serialized instance stored in the session
-            $_SESSION['userinfo'] = serialize($user);
-            return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
-        }else{
-            return "Your patron information could not be updated.";
-        }
-*/
         }
 
         unset($this->session->patron);
@@ -745,23 +539,6 @@ echo $sresult . "<br>";
         $this->session->checkouts = $sierraTransactions;
         return $this->session->checkouts;
     }
-
-    /**
-     * Checkout
-     *
-     * This is responsible for checking out an item
-     *
-     * @param string $patron The patron's id
-     *
-     * @throws ILSException
-     * @return mixed          Associative array of patron info on successful login,
-     * null on unsuccessful login.
-     */
-/*
-    public function checkout($patron) {
-        return true;
-    }
-*/
 
     /**
      * Get Default "Hold Required By" Date (as Unix timestamp) or null if unsupported
@@ -951,6 +728,7 @@ echo $sresult . "<br>";
      * The functions after this point leverage the screen scraping functionality from our previous iteration of the catalog.
      * These actions should eventually be available via the Sierra API (and as such be implemented in the Sierra2 driver), 
      * but our current version of the API does not have them available at this point.
+     * 
      */
 
 

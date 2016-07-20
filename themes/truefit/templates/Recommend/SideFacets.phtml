@@ -3,10 +3,15 @@
   $urlParams = $this->results->getUrlQuery()->getParamArray();
   $urlString = $this->currentPath();
   $firstOne = true;
-  foreach($urlParams as $name => $value) {
+  foreach($urlParams as $name => $valueArr) {
     if( $name != "filter" ) {
-      $urlString .= ($firstOne ? "?" : "&") . $name . "=" . $value;
-      $firstOne = false;
+      if( !is_array($valueArr) ) {
+        $valueArr = [$valueArr];
+      }
+      foreach($valueArr as $index => $value ) {
+        $urlString .= ($firstOne ? "?" : "&") . $name . "=" . $value;
+        $firstOne = false;
+      }
     }
   }
 ?>

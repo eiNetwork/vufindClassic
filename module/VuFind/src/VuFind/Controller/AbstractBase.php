@@ -705,6 +705,7 @@ class AbstractBase extends AbstractActionController
     {
         // followups aren't used in lightboxes.
         return ($this->inLightbox()) ? '' : $this->followup()->retrieve('url', '');
+        //return $this->followup()->retrieve('url', '');
     }
 
     /**

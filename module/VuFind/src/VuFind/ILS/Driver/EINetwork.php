@@ -110,7 +110,8 @@ class EINetwork extends Sierra2 implements
 
             // return patron info
             $ret = [];
-            $ret['id'] = $api_data['RECORDNUM']; // or should I return patron id num?
+            $ret['id'] = $api_data['RECORDNUM']; 
+            $ret['username'] = $api_data['RECORDNUM'];
             $ret['cat_username'] = urlencode($username);
             $ret['cat_password'] = urlencode($password);
 
@@ -178,7 +179,7 @@ class EINetwork extends Sierra2 implements
         $patron['homelibrary'] = $location->displayName;
 
         // info from the database
-        $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+        $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
         $patron['preferredlibrarycode'] = $user->preferred_library;
         $location = $this->getDbTable('location')->getByCode($patron['preferredlibrarycode']);
         $patron['preferredlibrary'] = ($location != null) ? $location->displayName : null;
@@ -383,13 +384,13 @@ class EINetwork extends Sierra2 implements
 
         // see whether they have given us an updated preferred library
         if( isset($updatedInfo['preferred_library']) ) {
-            $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+            $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
             $user->changePreferredLibrary($updatedInfo['preferred_library']);
         }
 
         // see whether they have given us an updated alternate library
         if( isset($updatedInfo['alternate_library']) ) {
-            $user = $this->getDbTable('user')->getByUsername($patron['cat_username'], false);
+            $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
             $user->changeAlternateLibrary($updatedInfo['alternate_library']);
         }
 

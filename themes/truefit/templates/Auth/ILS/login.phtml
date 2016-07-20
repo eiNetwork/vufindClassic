@@ -15,6 +15,9 @@
       <span id="login_passwordError" class="formError"></span>
     </div>
     </div>
+    <? if( isset( $this->followup ) ): ?>
+      <input type="hidden" name="lightboxFollowup" value="<?=$this->followup?>">
+    <? endif; ?>
     <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
     <input type="hidden" name="authorization_code" id="authorization_code" value="">
   </form>
@@ -172,8 +175,16 @@
       frame.onload = null;
 
       var messages = frame.contentDocument.getElementById("loginFlashMessages");
+      var lightboxFollowup = frame.contentDocument.getElementById("lightboxFollowup");
+      // success, but need to reuse the lightbox
+      if( lightboxFollowup != null ) {
+        var lightboxArgs = jQuery.parseJSON(lightboxFollowup.innerHTML.replace(/'/g,"\""));
+        Lightbox.get(lightboxArgs[0], lightboxArgs[1],
+                     (lightboxArgs.length > 2) ? lightboxArgs[2] : undefined,
+                     (lightboxArgs.length > 3) ? lightboxArgs[3] : undefined,
+                     (lightboxArgs.length > 4) ? lightboxArgs[4] : undefined);
       // success, reload this page
-      if( messages == null || messages.children.length == 0 ) {
+      } else if( messages == null || messages.children.length == 0 ) {
         location.reload(true);
       // failure, find the error message and display it in the modal
       } else {

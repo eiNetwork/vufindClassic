@@ -191,7 +191,7 @@ class ILS extends AbstractBase
         }
 
         // Update the user and send it back to the caller:
-        $user = $this->getUserTable()->getByUsername($patron['cat_username']);
+        $user = $this->getUserTable()->getByUsername($patron['username']);
         $user->saveCredentials($patron['cat_username'], $params['password']);
         return $user;
     }

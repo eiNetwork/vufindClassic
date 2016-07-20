@@ -121,10 +121,17 @@ class MyResearchController extends AbstractBase
             $this->setFollowupUrlToReferer();
             return $this->forwardTo('MyResearch', 'Login');
         }
+
+        // if they gave us some extra info, stash it in the followup
+        if( $this->params()->fromPost('lightboxFollowup') ) {
+            $this->flashMessenger()->addMessage("<span id='lightboxFollowup'>" . $this->params()->fromPost('lightboxFollowup') . "</span>", "info");
+        }
+
         // Logged in?  Forward user to followup action
         // or default action (if no followup provided):
         if ($url = $this->getFollowupUrl()) {
             $this->clearFollowupUrl();
+
             // If a user clicks on the "Your Account" link, we want to be sure
             // they get to their account rather than being redirected to an old
             // followup URL. We'll use a redirect=0 GET flag to indicate this:
@@ -1449,7 +1456,7 @@ class MyResearchController extends AbstractBase
         if ($email = $this->params()->fromPost('email')) {
             $user = $table->getByEmail($email);
         } elseif ($username = $this->params()->fromPost('username')) {
-            $user = $table->getByUsername($username, false);
+            $user = $table->getByCatUsername($username, false);
         }
         $view = $this->createViewModel();
         $view->useRecaptcha = $this->recaptcha()->active('passwordRecovery');

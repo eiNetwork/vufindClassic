@@ -1,3 +1,4 @@
+<?=$this->flashmessages()?>
 <h2><?=$this->transEsc(($this->changePickup?"Change ":"")."Pickup Location")?></h2>
 <div class="hold-form">
   <table class="pickupLocationTable">
@@ -53,7 +54,9 @@
       <input type="hidden" name="gatheredDetails[comment]" value="" />
       <input type="hidden" name="gatheredDetails[requiredBy]" value="<?=(isset($this->gatheredDetails['requiredBy']) && !empty($this->gatheredDetails['requiredBy'])) ? $this->escapeHtmlAttr($this->gatheredDetails['requiredBy']) : $this->escapeHtmlAttr($this->defaultRequiredDate)?>"/>
       <input type="hidden" name="gatheredDetails[pickUpLocation]" value="<?=$selectedID?>">
-      <input type="hidden" name="gatheredDetails[itemID]" value="<?=(isset($this->gatheredDetails['itemId']) && !empty($this->gatheredDetails['itemId'])) ? $this->gatheredDetails['itemId'] : ""?>">
+      <? if(isset($this->gatheredDetails['itemId']) && !empty($this->gatheredDetails['itemId'])): ?>
+        <input type="hidden" name="gatheredDetails[itemID]" value="<?=$this->gatheredDetails['itemId']?>">
+      <? endif; ?>
       <input type="hidden" name="placeHold" value="1">
       <? if( $this->changePickup || $this->bulkHold ): ?>
         <input type="hidden" name="<?=($this->changePickup ? "changePickup" : "bulkHold")?>" value="true">

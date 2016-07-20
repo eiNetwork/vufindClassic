@@ -60,6 +60,7 @@ trait HoldsTrait
 
         // Stop now if the user does not have valid catalog credentials available:
         if (!is_array($patron = $this->catalogLogin())) {
+            $patron->followup = "['Record','Hold',{'id':'" . $this->params()->fromQuery('id') . "','hashKey':'" . $this->params()->fromQuery('hashKey') . "'}]";
             return $patron;
         }
 
@@ -130,7 +131,7 @@ trait HoldsTrait
                 // if successful, we will redirect and can stop here.
 
                 // see whether they are trying to hold a specific item instead of a bib
-                if( isset($gatheredDetails['itemID']) ) {
+                if( isset($gatheredDetails['itemID']) && $gatheredDetails['itemID'] != "" ) {
                     $gatheredDetails['id'] = $gatheredDetails['itemID'];
                 }
 

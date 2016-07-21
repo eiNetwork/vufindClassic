@@ -1256,7 +1256,8 @@ class SolrEContent extends SolrDefault
     public function getThumbnail($size = 'small')
     {
         if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
-            return $this->fields['thumbnail'];
+            //return $this->fields['thumbnail'];
+            return str_replace("http://", "https://", $this->fields['thumbnail']);
         } else {
             return parent::getThumbnail($size);
         }

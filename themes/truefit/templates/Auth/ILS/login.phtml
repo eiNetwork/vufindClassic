@@ -21,9 +21,27 @@
     <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
     <input type="hidden" name="authorization_code" id="authorization_code" value="">
   </form>
+  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalReset" onclick="ToggleLoginModal(this);">
+    <span class="headerLink">I forgot or want to change my PIN</span>
+  </button>
+</div>
+<div id="loginModalResetBody" style="color:#3f51b5;display:none">
+  <form role="reset" method="post" action="<?=$this->url('myresearch-resetpin')?>" name="resetForm" id="resetForm" autocomplete="off" target="loginFrame">
+    <div style="margin:auto">
+    <div class="textBoxContainer">
+      <input type="text" name="username" id="reset_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+      <i class="fa fa-exclamation-circle formErrorIcon"></i>
+      <span id="reset_usernameError" class="formError"></span>
+    </div><br>
+    </div>
+    <div class="forgotText">
+      Please enter your 14 digit library card number above. An email from helpdesk@einetwork.net will be sent to the email address in your patron record with a link to change your PIN.<br><br>
+      If you don't have an email address on file, please contact your library staff to assign one to your record.
+    </div>
+  </form>
 </div>
 <div id="loginModalRegisterBody" class="registerBody" style="color:#3f51b5;display:none">
-  <form role="login" method="post" action="<?=$this->url('myresearch-account')?>" name="registerForm" id="registerForm" autocomplete="off" target="loginFrame">
+  <form role="register" method="post" action="<?=$this->url('myresearch-account')?>" name="registerForm" id="registerForm" autocomplete="off" target="loginFrame">
     <div class="EIN-col-m-12">
       <div class="EIN-col-m-12 fieldTitle">Name</div>
       <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
@@ -117,6 +135,10 @@
     <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitLogIn()">Log In</button>
   </div>
+  <div id="loginModalResetFooter" style="display:none">
+    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-default btn-wide" onclick="SubmitReset()">Request PIN Change</button>
+  </div>
   <div id="loginModalRegisterFooter" style="display:none">
     <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitRegister()">Register</button>
@@ -131,7 +153,7 @@
   // the form starts displaying the login screen
   var loginToggle = "loginModalLogin";
   var processingLogin = false;
-  // flip the modal to the desired function (log in OR register)
+  // flip the modal to the desired function
   function ToggleLoginModal(target) {
     // can't do anything while we're processing
     if( processingLogin ) {
@@ -221,6 +243,47 @@
       document.getElementById(loginToggle + "Footer").style.display = "none";
       document.getElementById("loadingFooter").style.display = "block";
       document.getElementById("loginForm").submit();
+    }
+  }
+
+  // process an attempted reset
+  function SubmitReset() {
+    // can't do anything while we're processing
+    if( processingLogin ) {
+      return;
+    }
+
+    // we need to give this a few frames to load before we test for error messages
+    $('#loginFrame').load( function() { setTimeout( function() { 
+      var frame = document.getElementById("loginFrame");
+      frame.onload = null;
+
+      var messages = frame.contentDocument.getElementById("resetFlashMessages");
+      // success, find the result message and display it in the modal
+      if( messages != null && messages.children.length > 0 ) {
+        processingLogin = false;
+        document.getElementById(loginToggle + "Footer").style.display = "block";
+        document.getElementById("loadingFooter").style.display = "none";
+        document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;
+      }
+    }, 100); } );
+
+    // make sure they've given us all the relevant info
+    var barcode = document.getElementById("reset_username");
+    if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
+      document.getElementById("reset_usernameError").style.display = "block";
+      document.getElementById("reset_usernameError").innerHTML = "Please enter your barcode above.";
+      if( "classList" in barcode ) {
+        barcode.classList.add("textBoxError");
+      } else {
+        barcode.className += " textBoxError";
+      }
+      barcode.nextElementSibling.style.display = "block";
+    } else {
+      processingLogin = true;
+      document.getElementById(loginToggle + "Footer").style.display = "none";
+      document.getElementById("loadingFooter").style.display = "block";
+      document.getElementById("resetForm").submit();
     }
   }
 

@@ -495,7 +495,9 @@ $(document).ready(function() {
     return false;
   });
   Lightbox.addFormHandler('loginForm', function(evt) {
-    ajaxLogin(evt.target);
+    if(evt.target.getAttribute('name') == "loginForm") {
+      ajaxLogin(evt.target);
+    }
     return false;
   });
 

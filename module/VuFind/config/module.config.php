@@ -759,7 +759,7 @@ $staticRoutes = [
     'MyResearch/Holds', 'MyResearch/Home',
     'MyResearch/ILLRequests', 'MyResearch/Logout', 'MyResearch/MyList',
     'MyResearch/NewPassword', 'MyResearch/Notifications', 'MyResearch/Profile',
-    'MyResearch/Recover', 'MyResearch/SaveSearch',
+    'MyResearch/Recover', 'MyResearch/ResetPIN', 'MyResearch/SaveSearch',
     'MyResearch/StorageRetrievalRequests', 'MyResearch/UserLogin',
     'MyResearch/Verify',
     'Primo/Advanced', 'Primo/Home', 'Primo/Search',
@@ -880,6 +880,20 @@ $config['router']['routes']['myresearch-readinghistory'] = [
         'defaults' => [
             'controller' => 'MyResearch',
             'action'     => 'ReadingHistory',
+        ]
+    ]
+];
+$config['router']['routes']['myresearch-resetpin'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/MyResearch/ResetPIN',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'MyResearch',
+            'action'     => 'ResetPIN',
         ]
     ]
 ];

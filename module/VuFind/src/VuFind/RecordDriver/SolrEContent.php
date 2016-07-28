@@ -1257,7 +1257,14 @@ class SolrEContent extends SolrDefault
     {
         if (isset($this->fields['thumbnail']) && $this->fields['thumbnail']) {
             //return $this->fields['thumbnail'];
-            return str_replace("http://", "https://", $this->fields['thumbnail']);
+            $url = str_replace("http://", "https://", $this->fields['thumbnail']);
+
+            // catch any overdrive items that they haven't given us a proper thumbnail for
+            if( (strpos($url, "images.contentreserve.com") !== false) && (strpos($url, "{") === false) ) {
+                $url = substr($url, 0, strrpos($url, "/") + 1) . "{" . $this->fields["externalId"]  . "}" . substr($url, strrpos($url, "/") + 1);
+            }
+
+            return $url;
         } else {
             return parent::getThumbnail($size);
         }

@@ -3,6 +3,7 @@
   <types>
     <!-- Define fieldType long as it is needed by the _version_ field required by Solr 4.x -->
     <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+    <fieldType name="integer" class="solr.TrieIntField" omitNorms="true"/>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
     <fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer>
@@ -125,7 +126,10 @@
    <field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
    <!-- Generic Fields -->
    <field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
+   <field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
    <field name="format" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
    <field name="format_category" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="author" type="textProper" indexed="true" stored="true" termVectors="true"/>
    <field name="author-letter" type="string" indexed="true" stored="true"/>
@@ -153,6 +157,7 @@
    <field name="ctrlnum" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="isbn" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="issn" type="isn" indexed="true" stored="true" multiValued="true"/>
+   <field name="upc" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="oclc_num" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="callnumber-first" type="string" indexed="true" stored="true"/>
    <field name="callnumber-subject" type="string" indexed="true" stored="true"/>

@@ -68,6 +68,11 @@ class User extends Gateway
         $row = $this->createRow();
         $row->username = $username;
         $row->created = date('Y-m-d H:i:s');
+
+        // make sure they have a book cart
+        $row->save();
+        $row->getBookCart();
+
         return $row;
     }
 

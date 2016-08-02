@@ -61,6 +61,9 @@ trait OverDriveTrait {
 
         $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me';
         $profileData = $this->_callPatronUrl($userinfo['cat_username'], $userinfo['cat_password'], $url);
+        if( !$profileData ) {
+            return null;
+        }
 
         foreach( $profileData->lendingPeriods as $period ) {
             $lendingOptions[$period->formatType] = $period->lendingPeriod . " " . $period->units;
@@ -173,7 +176,11 @@ trait OverDriveTrait {
             $curlInfo = curl_getinfo($ch);
             curl_close($ch);
             $this->patronTokenData = json_decode($return);
-            $this->patronTokenData->expirationTime = time() + $this->patronTokenData->expires_in;
+            if( isset($this->patronTokenData->expires_in) ) {
+                $this->patronTokenData->expirationTime = time() + $this->patronTokenData->expires_in;
+            } else {
+                $this->patronTokenData = null;
+            }
         }
         return $this->patronTokenData;
     }

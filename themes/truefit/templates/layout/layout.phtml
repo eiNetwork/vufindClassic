@@ -165,7 +165,7 @@
               <span><i class="fa fa-spinner"></i></span>
               <span>&nbsp;<?=$this->transEsc('Loading') ?>...</span>
             </div>
-            <div class="modalScrollBar" onmousedown="StartScrollBarDrag(); return false;"><div class="modalScrollSlider"></div></div>
+            <div class="modalScrollBar" onmousedown="StartScrollBarDrag(false); return false;" ontouchstart="StartScrollBarDrag(true); return false;"><div class="modalScrollSlider"></div></div>
           </div>
           <div class="modal-footer"></div>
         </div>
@@ -179,10 +179,18 @@
       var initialOffset = -1;
       var maxRange = -1;
       var scrollLogic = function(e) {
-        if( initialOffset == -1 ) {
-          initialOffset = $('.modalScrollSlider').offset().top - $('.modalScrollBar').offset().top - e.pageY;
+        var pageY = initialOffset;
+        if( e.hasOwnProperty("pageY") ) {
+          pageY = e.pageY;
+        } else if( e.originalEvent.touches.length == 1 ) {
+          pageY = e.originalEvent.touches[0].pageY;
+        } else {
+          return;
         }
-        var target = e.pageY + initialOffset;
+        if( initialOffset == -1 ) {
+          initialOffset = $('.modalScrollSlider').offset().top - $('.modalScrollBar').offset().top - pageY;
+        }
+        var target = pageY + initialOffset;
         if( target < 0 ) {
           target = 0;
         } else if( target > ($('.modalScrollBar').height() - $('.modalScrollSlider').height()) ) {
@@ -193,41 +201,43 @@
         $('.modal-body').scrollTop(factor * maxRange);
       };
       var mouseUpLogic = function(e) {
-        $(document).unbind("mousemove", scrollLogic);  
-        $(document).unbind("mousemove", mouseUpLogic); 
+        $(document).unbind("mousemove touchmove", scrollLogic);  
+        $(document).unbind("mouseup touchend", mouseUpLogic); 
         initialOffset = -1; 
       };
-      function StartScrollBarDrag() {
-        $(document).bind("mousemove", scrollLogic);
-        $(document).bind("mouseup", mouseUpLogic);
+      function StartScrollBarDrag(isMobile) {
+        $(document).bind(isMobile ? "touchmove" : "mousemove", scrollLogic);
+        $(document).bind(isMobile ? "touchend" : "mouseup", mouseUpLogic);
       }
       function sizeModal() {
-        var targetPos = $('.modal-body').scrollTop();
-        $('.modal-body').css("max-height","none");
-        var offset = parseInt($('.modal-dialog').css('margin-top').replace('px', '')) + 
-                     parseInt($('.modal-dialog').css('margin-bottom').replace('px', '')) + 
-                     parseInt($('.modal-dialog').css('border-top-width').replace('px', '')) + 
-                     parseInt($('.modal-dialog').css('border-bottom-width').replace('px', '')) + 
-                     $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
-        var max = $(window).height() - offset;
-        var barHeight = max - 30;
-        var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
-        var hidden = (max > $('.modal-body').outerHeight());
-        maxRange = $('.modal-body').outerHeight() - max;
-        $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
-        $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
-        $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
-        Lightbox.addCloseAction(function() {
-          $('.modal-footer').html("");
-          $('.modalScrollBar').css({"height":"0px","display":"none"});
-          $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
-          $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
-          $('.modal-body').scrollTop(0);
-          initialOffset = -1;
-          maxRange = -1;
-        } );
-        $('.modal-body').scrollTop(targetPos);
-        $('.modalScrollSlider').css({"top":((targetPos * (barHeight - sliderHeight) / maxRange) + "px")});
+        setTimeout( function() {
+          var targetPos = $('.modal-body').scrollTop();
+          $('.modal-body').css("max-height","none");
+          var offset = parseInt($('.modal-dialog').css('margin-top').replace('px', '')) + 
+                       parseInt($('.modal-dialog').css('margin-bottom').replace('px', '')) + 
+                       parseInt($('.modal-dialog').css('border-top-width').replace('px', '')) + 
+                       parseInt($('.modal-dialog').css('border-bottom-width').replace('px', '')) + 
+                       $('.modal-header').outerHeight() + $('.modal-footer').outerHeight();
+          var max = $(window).height() - offset;
+          var barHeight = max - 30;
+          var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
+          var hidden = (max > $('.modal-body').outerHeight());
+          maxRange = $('.modal-body').outerHeight() - max;
+          $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
+          $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
+          $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
+          Lightbox.addCloseAction(function() {
+            $('.modal-footer').html("");
+            $('.modalScrollBar').css({"height":"0px","display":"none"});
+            $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
+            $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
+            $('.modal-body').scrollTop(0);
+            initialOffset = -1;
+            maxRange = -1;
+          } );
+          $('.modal-body').scrollTop(targetPos);
+          $('.modalScrollSlider').css({"top":((targetPos * (barHeight - sliderHeight) / maxRange) + "px")});
+        }, 20);
       }
       
     </script>

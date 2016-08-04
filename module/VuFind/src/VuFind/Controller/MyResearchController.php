@@ -1203,7 +1203,13 @@ class MyResearchController extends AbstractBase
 
             // Build record driver:
             $current["driver"] = $this->getDriverForILSRecord($current);
-            $holdList[($current["status"] == "i") ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'))][] = $current;
+            $group = ($current["status"] == "i") ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'));
+            $key = $current["driver"]->GetTitle().$current["hold_id"];
+            $holdList[$group][$key] = $current;
+        }
+        foreach($holdList as $name => $grouping) {
+            ksort($grouping);
+            $holdList[$name] = $grouping;
         }
 
         // Get List of PickUp Libraries based on patron's home library

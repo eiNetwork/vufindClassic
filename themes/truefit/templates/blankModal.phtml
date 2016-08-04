@@ -8,6 +8,6 @@
 
   // reload the parent (used if this template is loaded into an iframe instead of a modal
   if( isset($this->reloadParent) && $this->reloadParent ) {
-    echo "<script type='text/javascript'>parent.location.reload()</script>";
+    echo "<script type='text/javascript'>parent.window.scrollTo(0,0);parent.location.reload();</script>";
   }
 ?>

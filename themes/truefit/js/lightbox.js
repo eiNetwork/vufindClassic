@@ -145,8 +145,7 @@ var Lightbox = {
     $('#modal').removeData('modal');
     $('#modal').find('.modal-title').html('&nbsp;');
     $('#modal').find('.modal-body').html(vufindString.loading + "...");
-    $("html").removeClass("modal-open");
-    $("body").css("position", "static");
+    $("html,body").removeClass("modalOpen");
   },
   /**
    * Call all the functions we need for when the modal loads
@@ -236,8 +235,7 @@ var Lightbox = {
       url:url,
       data:post,
       success:function(html) { // Success!
-        $("html").addClass("modal-open");
-        $("body").css("position", "fixed");
+        $("html,body").addClass("modalOpen");
         callback(html);
       },
       error:function(d,e) {

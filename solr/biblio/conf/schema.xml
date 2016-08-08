@@ -117,6 +117,7 @@
    <field name="allfields_unstemmed" type="textProper" indexed="true" stored="false" multiValued="true"/>
    <field name="fulltext" type="text" indexed="true" stored="false"/>
    <field name="fulltext_unstemmed" type="textProper" indexed="true" stored="false"/>
+   <field name="keywords" type="text" indexed="true" stored="false"/>
    <field name="spelling" type="textSpell" indexed="true" stored="true" multiValued="true"/>
    <field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
    <!-- Institutional Fields -->
@@ -134,6 +135,7 @@
    <field name="author" type="textProper" indexed="true" stored="true" termVectors="true"/>
    <field name="author-letter" type="string" indexed="true" stored="true"/>
    <field name="authorStr" type="textFacet" indexed="true" stored="false"/>
+   <field name="auth_author" type="textProper" indexed="true" stored="true"/>
    <field name="title" type="text" indexed="true" stored="true"/>
    <field name="title_sort" type="string" indexed="true" stored="true"/>
    <field name="title_sub" type="text" indexed="true" stored="true"/>
@@ -159,8 +161,12 @@
    <field name="issn" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="upc" type="isn" indexed="true" stored="true" multiValued="true"/>
    <field name="oclc_num" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="callnumber" type="string" indexed="true" stored="true"/>
+   <field name="callnumber-a" type="string" indexed="true" stored="true"/>
    <field name="callnumber-first" type="string" indexed="true" stored="true"/>
+   <field name="callnumber-first-code" type="string" indexed="true" stored="true"/>
    <field name="callnumber-subject" type="string" indexed="true" stored="true"/>
+   <field name="callnumber-subject-code" type="string" indexed="true" stored="true"/>
    <field name="callnumber-label" type="string" indexed="true" stored="true"/>
    <field name="callnumber-sort" type="string" indexed="true" stored="true"/>
    <field name="callnumber-raw" type="string" indexed="true" stored="true" multiValued="true" />
@@ -175,6 +181,7 @@
    <field name="author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="auth_author2" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author_fuller" type="textProper" indexed="true" stored="true" />
    <field name="author_additional" type="textProper" indexed="true" stored="true" multiValued="true"/>
    <field name="author_additionalStr" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -196,11 +203,15 @@
    <field name="era" type="text" indexed="true" stored="true" multiValued="true"/>
    <field name="era_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
    <field name="illustrated" type="string" indexed="true" stored="true" multiValued="false"/>
+   <field name="fiction_nonfiction_full" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="long_lat" type="textFacet" indexed="true" stored="true" multiValued="false"/>
    <!-- Fields added from vufindplus schema -->
    <field name="literary_form" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="target_audience" type="string" indexed="true" stored="true" multiValued="true"/>
+   <field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="num_holdings" type="long" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
+   <field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="items" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
    <field name="lexile_score" type="long" indexed="true" stored="true" multiValued="false"/>

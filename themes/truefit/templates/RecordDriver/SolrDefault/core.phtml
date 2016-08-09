@@ -115,8 +115,8 @@
       <?
         $holdLink = null;
         if($user && $this->isTitleCheckedOut && $isOverDrive):
-          $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown\"";
-          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"";
+          $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown,#holdButtonDropdownMobile\"";
+          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"";
         else:
           if( $isOverDrive ) {
             $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . "?hashKey=" . json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
@@ -142,7 +142,7 @@
         <? if($holdLink != null): ?>
           </a>
         <? endif; ?>
-        <div class="dropdown" id="holdButtonDropdown">
+        <div class="dropdown EIN-hide-m" id="holdButtonDropdown">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if( $this->ODread && $this->ODread["result"] ): ?>
               <li>
@@ -183,8 +183,82 @@
         </div>
       </div>
       <div class="EIN-col-m-6 EIN-col-t-12 EIN-col-12">
-        <button class="btn-default rightButton"<?=$saveClick?>><?=($this->hasOnList)?"Manage Lists":"Add to List"?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-        <div class="dropdown" id="saveButtonDropdown">
+        <button class="btn-default rightButton"<?=$saveClick?>><?=$this->transEsc("list_manage")?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
+        <div class="dropdown EIN-hide-m" id="saveButtonDropdown">
+          <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+            <? if($this->myLists): ?>
+              <? foreach($this->myLists as $list): ?>
+                <li>
+                  <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
+                    <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
+                      <input type="hidden" name="confirm" value="1">
+                      <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="returnBibID" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
+                      <input type="hidden" name="list" value="<?=$list->id?>">
+                      <button class="btn-dropdown btn-standardDropdown" onClick="$('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+                    </form>
+                  <? else: ?>
+                    <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
+                      <input type="hidden" name="submit" value="1">
+                      <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
+                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
+                      <input type="hidden" name="list" value="<?=$list->id?>">
+                      <button class="btn-dropdown btn-standardDropdown" onClick="$('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
+                    </form>
+                  <? endif; ?>
+                </li>
+              <? endforeach; ?>
+            <? endif; ?>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
+            <? if ($this->hasOnList): ?>
+              <hr class="stretchHR">
+              <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
+            <? endif; ?>
+          </ul>
+        </div>
+      </div>
+      <div class="EIN-col-m-12 EIN-hide-t EIN-hide">
+        <div class="dropdown" id="holdButtonDropdownMobile">
+          <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+            <? if( $this->ODread && $this->ODread["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODread["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->ODlisten && $this->ODlisten["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODlisten["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->ODwatch && $this->ODwatch["result"] ): ?>
+              <li>
+                <a href="<?=$this->ODwatch["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Watch Now</button></a>
+              </li>
+            <? endif; ?>
+            <? if( $this->downloadFormats && count($this->downloadFormats) > 0 ): ?>
+              <?
+                $streamingVideo = false;
+                $nookPeriodical = false;
+                foreach($this->downloadFormats as $thisFormat): 
+                  $streamingVideo |= (strval($thisFormat["id"]) == "video-streaming");
+                  $nookPeriodical |= (strval($thisFormat["id"]) == "periodicals-nook");
+                endforeach;
+              ?>
+              <li>
+                <button class="btn-dropdown btn-standardDropdown" onClick="Lightbox.get('Record','OverdriveDownload',<?=str_replace("}", (",'parentURL':'" . $this->CurrentPath() . "'}"), $this->idArgs)?>)"><?=($streamingVideo?"Watch Now":"Download")?></button>
+              </li>
+            <? endif; ?>
+            <? if( $this->canReturn ): ?>
+              <li>
+                <a href="<?=$this->recordLink()->getActionUrl($this->driver, 'Return')?>" target="loginFrame">
+                  <button class="btn-dropdown btn-standardDropdown" onClick="$('.leftButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')">Return</button>
+                </a>
+              </li>
+            <? endif; ?>
+          </ul>
+        </div>
+        <div class="dropdown" id="saveButtonDropdownMobile">
           <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
             <? if($this->myLists): ?>
               <? foreach($this->myLists as $list): ?>

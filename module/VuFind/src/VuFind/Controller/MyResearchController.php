@@ -882,8 +882,10 @@ class MyResearchController extends AbstractBase
                 $results[] = ['list' => $thisList, 'items' => $runner->run($request, 'Favorites', $setupCallback)];
             }
 
+            $listToShow = $this->session->lastList;
+            unset($this->session->lastList);
             return $this->createViewModel(
-                ['results' => $results, 'showList' => $this->session->lastList]
+                ['results' => $results, 'showList' => $listToShow]
             );
         } catch (ListPermissionException $e) {
             if (!$this->getUser()) {

@@ -94,6 +94,8 @@
           }
           $('body').css({"overflow-y":"auto"});
           $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+          // hide the last hr
+          $(".panel-body").children(".ajaxItem:last-child").children("div").css("display","none");
         } );
       </script>
     <? endif; ?>

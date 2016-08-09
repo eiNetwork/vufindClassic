@@ -24,7 +24,7 @@ function handleItemStatusResponse(response) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
       item.find('.status').empty().append(result.availability_message);
       var leftButton = item.find('.leftButton');
-      var leftButtonMenu = item.find('#holdButtonDropdown' + result.id);
+      var leftButtonMenu = item.find('#holdButtonDropdown' + result.id + ',#holdButtonDropdownMobile' + result.id);
       if( result.isHolding ) {
         leftButton.empty().append('Holding');
       } else if( ("canCheckOut" in result) && result.canCheckOut ) {
@@ -35,7 +35,7 @@ function handleItemStatusResponse(response) {
       } else if( ("isCheckedOut" in result) && result.isCheckedOut ) {
         leftButton.prop('disabled', false);
         leftButton.attr('data-toggle', 'dropdown');
-        leftButton.attr('data-target', '#holdButtonDropdown' + result.id);
+        leftButton.attr('data-target', '#holdButtonDropdown' + result.id + ',#holdButtonDropdownMobile' + result.id);
         if( ("ODread" in result) && result.ODread.result ) {
           leftButtonMenu.children(".standardDropdown").append("<li><a href=\"" + result.ODread.downloadUrl + "\" target=\"_blank\"><button class=\"btn-dropdown btn-standardDropdown\">Read Now</button></a></li>");
         }

@@ -27,8 +27,10 @@
     }
 
     jQuery(document).ready(function() {
+      $('#sortButtonDropdown<?=$this->id?>').attr("style","position:absolute;width:100%");
       setTimeout(function() {
         $('#sortButton<?=$this->id?>').css("width", $('#sortButtonDropdown<?=$this->id?>').children().outerWidth());
+        $('#sortButtonDropdown<?=$this->id?>').attr("style","");
       }, 50);
     });
   </script>

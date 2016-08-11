@@ -656,7 +656,7 @@ class Sierra2 extends Sierra implements
             $currentOffset = 0;
             do {
                 $processed = 0;
-                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode,varFields&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                 if( !isset($apiHoldings->entries) ) {
                     break;
                 }

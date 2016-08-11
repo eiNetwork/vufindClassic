@@ -44,6 +44,9 @@
     if( !($(element).hasClass("userHasFocused")) ) {
       $(element).attr("value", "");
       $(element).addClass("userHasFocused");
+      <? if($this->propertyName == "pin"): ?>
+        $(element).attr("type", "password");
+      <? endif; ?>
     }
     $(element).css("border", "1px solid #949494");
     $(element).next().css("display","none");

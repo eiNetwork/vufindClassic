@@ -438,6 +438,7 @@ class MyResearchController extends AbstractBase
                 $post = $this->getRequest()->getPost();
                 $post->username = $patron["cat_username"];
                 $post->password = isset($updatedInfo["pin"]) ? $updatedInfo["pin"] : $patron["cat_password"];
+                $patron["cat_password"] = isset($updatedInfo["pin"]) ? $updatedInfo["pin"] : $patron["cat_password"];
                 // Login to grab the new info
                 $this->getAuthManager()->login($this->getRequest());
                 $profile = $catalog->getMyProfile($patron, true);

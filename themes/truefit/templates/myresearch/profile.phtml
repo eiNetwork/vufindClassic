@@ -84,8 +84,8 @@
               <button class="btn-alternate EIN-col-m-12" id="notificationButton" data-toggle="dropdown" data-target="#notificationButtonDropdown"><span><?=($selected == 'p')?'Phone':'Email'?></span><i class="fa fa-caret-down"></i></button>
               <div class="EIN-col-m-12 dropdown" id="notificationButtonDropdown">
                 <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
-                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','z');$('#notificationButton span').html('Email');"><?=$this->transEsc('Email')?></button></li>
-                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','p');$('#notificationButton span').html('Phone');"><?=$this->transEsc('Phone')?></button></li>
+                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','z');ChangeButtonToLoading('notificationButton');"><?=$this->transEsc('Email')?></button></li>
+                  <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#notification').attr('value','p');ChangeButtonToLoading('notificationButton');"><?=$this->transEsc('Phone')?></button></li>
                 </ul>
               </div>
               <input id="notification" name="notification" value="<?=$selected?>" class="hidden">
@@ -151,7 +151,7 @@
               <div class="EIN-col-m-12 dropdown" id="preferredLibraryButtonDropdown">
                 <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
                   <? foreach ($this->pickup as $lib): ?>
-                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#preferred_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');$('#preferredLibraryButton span').html('<?=$this->escapeHtml($lib['locationDisplay'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#preferred_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');ChangeButtonToLoading('preferredLibraryButton');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
                   <? endforeach; ?>
                 </ul>
               </div>
@@ -171,7 +171,7 @@
               <div class="EIN-col-m-12 dropdown" id="alternateLibraryButtonDropdown">
                 <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
                   <? foreach ($this->pickup as $lib): ?>
-                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#alternate_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');$('#alternateLibraryButton span').html('<?=$this->escapeHtml($lib['locationDisplay'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#alternate_library').attr('value','<?=$this->escapeHtmlAttr($lib['locationID'])?>');ChangeButtonToLoading('alternateLibraryButton');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></li>
                   <? endforeach; ?>
                 </ul>
               </div>
@@ -211,7 +211,7 @@
                 <div class="EIN-col-m-12 dropdown" id="ODeBookButtonDropdown">
                   <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
                     <? foreach ($this->profile['OD_renewalInDays']['eBook'] as $renewOption): ?>
-                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_eBook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODeBookButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_eBook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');ChangeButtonToLoading('ODeBookButton');"><?=$this->escapeHtml($renewOption)?> days</button></li>
                     <? endforeach; ?>
                   </ul>
                 </div>
@@ -231,7 +231,7 @@
                 <div class="EIN-col-m-12 dropdown" id="ODaudiobookButtonDropdown">
                   <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
                     <? foreach ($this->profile['OD_renewalInDays']['Audiobook'] as $renewOption): ?>
-                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_audiobook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODaudiobookButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_audiobook').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');ChangeButtonToLoading('ODaudiobookButton');"><?=$this->escapeHtml($renewOption)?> days</button></li>
                     <? endforeach; ?>
                   </ul>
                 </div>
@@ -251,7 +251,7 @@
                 <div class="EIN-col-m-12 dropdown" id="ODvideoButtonDropdown">
                   <ul role="navigation" class="dropdown-menu standardDropdown" style="width:100%">
                     <? foreach ($this->profile['OD_renewalInDays']['Video'] as $renewOption): ?>
-                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_video').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');$('#ODvideoButton span').html('<?=$this->escapeHtml($renewOption)?>');"><?=$this->escapeHtml($renewOption)?> days</button></li>
+                      <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="$('#OD_video').attr('value','<?=$this->escapeHtmlAttr($renewOption)?>');ChangeButtonToLoading('ODvideoButton');"><?=$this->escapeHtml($renewOption)?> days</button></li>
                     <? endforeach; ?>
                   </ul>
                 </div>
@@ -267,6 +267,12 @@
       </div>
     </div>
     <script type="text/javascript">
+      function ChangeButtonToLoading(id) {
+        $('#' + id).removeClass('btn-alternate');
+        $('#' + id).addClass('btn-default');
+        $('#' + id).click(function(e) { return false; });
+        $('#' + id).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...');
+      }
       $('.panel-heading a').on('click',function(e){
         // prevent them from dismissing the last open section if we're in tablet or desktop layout
         if($(document).width() >= 600) {

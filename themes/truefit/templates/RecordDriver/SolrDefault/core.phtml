@@ -124,7 +124,7 @@
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";
           }
-          $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\"" : " onClick=\"Lightbox.get('MyResearch','Login')\"");
+          $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login')\"");
         endif;
 
         $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));

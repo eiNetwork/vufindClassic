@@ -238,15 +238,4 @@
       }
     } );
   }
-
-  function CleanChecks22() {
-    // turn on all of the needed checkmarks
-    $.each($('.panel-advSearchAccordion'), function(index, item) {
-      if( $(item).find('.facetToggleOn.fa-check-square,.facetToggleOn.fa-check-circle.showCheck').length > 0 ) {
-        $(item).find('.greenCheck').css('display', 'inline-block');
-      } else {
-        $(item).find('.greenCheck').css('display', 'none');
-      }
-    } );
-  }
 </script>

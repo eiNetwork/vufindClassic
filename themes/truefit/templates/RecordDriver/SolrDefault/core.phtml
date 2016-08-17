@@ -110,6 +110,17 @@
             <? endif; ?>
           </td>
         </tr>
+        <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
+          <tr>
+            <td class="EIN-hide-m itemDetailCategory">&nbsp;</td>
+            <td>
+              <div class="itemURL"><span class="availableTag">Access Online</span></div>
+              <? foreach($urls as $thisURL): ?>
+                <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=$thisURL["desc"]?></a></div>
+              <? endforeach; ?>
+            </td>
+          </tr>
+        <? endif; ?>
       </table>
 
       <?
@@ -463,6 +474,12 @@
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('ISBN')?></td>
                     <td><? foreach ($isbns as $isbn): ?><?= $this->escapeHtml($isbn)?><br/><? endforeach; ?></td>
+                  </tr>
+                <? endif; ?>
+                <? if (!empty($urls)): ?>
+                  <tr>
+                    <td class="colophonHeading">Links</td>
+                    <td><? foreach ($urls as $url): ?><div class="itemURL"><a href="<?=$url["url"]?>" target="_blank"><?=$url["desc"]?></a></div><? endforeach; ?></td>
                   </tr>
                 <? endif; ?>
               </table>

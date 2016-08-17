@@ -71,6 +71,17 @@
               <span class="status ajax-availability hidden"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
             </td>
           </tr>
+          <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
+            <tr>
+              <td class="EIN-hide-m itemDetailCategory">&nbsp;</td>
+              <td>
+                <div class="itemURL"><span class="availableTag">Access Online</span></div>
+                <? foreach($urls as $thisURL): ?>
+                  <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=$thisURL["desc"]?></a></div>
+                <? endforeach; ?>
+              </td>
+            </tr>
+          <? endif; ?>
         </table>
       </div>
       <?

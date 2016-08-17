@@ -883,8 +883,11 @@ class MyResearchController extends AbstractBase
                 $results[] = ['list' => $thisList, 'items' => $runner->run($request, 'Favorites', $setupCallback)];
             }
 
-            $listToShow = $this->session->lastList;
-            unset($this->session->lastList);
+            $args = $this->getRequest()->getQuery()->toArray();
+            $listToShow = isset($args["listToShow"]) ? $args["listToShow"] : $this->session->lastList;
+            if( !isset($args["listToShow"]) ) {
+                unset($this->session->lastList);
+            }
             return $this->createViewModel(
                 ['results' => $results, 'showList' => $listToShow]
             );

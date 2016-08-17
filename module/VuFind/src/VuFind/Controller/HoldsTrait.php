@@ -132,6 +132,8 @@ trait HoldsTrait
 
                 // see whether they are trying to hold a specific item instead of a bib
                 if( isset($gatheredDetails['itemID']) && $gatheredDetails['itemID'] != "" ) {
+                    // BJP - need to hold onto bib ID for screen scrape.  when the API allows us to do item level holds properly, you can remove the next line
+                    $gatheredDetails['bibId'] = $gatheredDetails['id'];
                     $gatheredDetails['id'] = $gatheredDetails['itemID'];
                 }
 
@@ -145,7 +147,7 @@ trait HoldsTrait
                 // Success: Go to Display Holds
                 $msg = [
                     'html' => true,
-                    'msg' => (isset($results['success']) && $results['success'] == true) ? 'hold_place_success_html' : 'hold_place_failure_html',
+                    'msg' => (isset($results['success']) && $results['success'] == true) ? 'hold_place_success_html' : (isset($results['message']) ? $results['message'] : 'hold_place_failure_html'),
                     'tokens' => [
                         '%%url%%' => $this->url()->fromRoute('myresearch-holds')
                     ],

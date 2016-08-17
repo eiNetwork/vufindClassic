@@ -97,8 +97,17 @@ class RecordController extends AbstractRecord
         $canHold = (!empty($holdingTitleHold));
         $canCheckOut = false;
 
+        // see whether or not this bib has different volumes
+        foreach($holdings as $entry) {
+          foreach($entry["items"] as $item) {
+            if( isset($item["number"]) && $item["number"]) {
+              $hasVolumes = true;
+            }
+          }
+        }
+
         // see whether they already have a hold on it
-        if($canHold && ($user = $this->getUser())) {
+        if($canHold && ($user = $this->getUser()) && !$hasVolumes) {
             $patron = $this->catalogLogin();
             $holds = $catalog->getMyHolds($patron);
             foreach($holds as $thisHold) {
@@ -148,7 +157,8 @@ class RecordController extends AbstractRecord
             foreach($checkedOutItems as $thisItem) {
                 if($thisItem['id'] == $bib) {
                     $canCheckOut = false;
-                    $canHold = false;
+                    // if this bib has volumes, they still still place holds on other volumes even if they have one checked out
+                    $canHold = $hasVolumes; 
                     $view->isTitleCheckedOut = true;
                     if( isset($thisItem["overDriveId"]) ) {
                         $view->canReturn = isset($thisItem["earlyReturn"]) && $thisItem["earlyReturn"];
@@ -303,17 +313,17 @@ class RecordController extends AbstractRecord
      * @return mixed
      */
     public function saveAction() {
-      // keep a hold of the referring page since we are skipping the submit step
-      $referer = $this->getRequest()->getServer()->get('HTTP_REFERER');
-      if (substr($referer, -5) != '/Save'
-          && stripos($referer, 'MyResearch/EditList/NEW') === false
-      ) {
-          $this->setFollowupUrlToReferer();
-      } else {
-          $this->clearFollowupUrl();
-      }
+        // keep a hold of the referring page since we are skipping the submit step
+        $referer = $this->getRequest()->getServer()->get('HTTP_REFERER');
+        if (substr($referer, -5) != '/Save'
+            && stripos($referer, 'MyResearch/EditList/NEW') === false
+        ) {
+            $this->setFollowupUrlToReferer();
+        } else {
+            $this->clearFollowupUrl();
+        }
 
-      return parent::saveAction();
+        return parent::saveAction();
     }
 
     /**
@@ -322,29 +332,35 @@ class RecordController extends AbstractRecord
      * @return mixed
      */
     public function selectItemAction() {
-      // grab the holdings, then split them into holdable and not holdable
-      $driver = $this->loadRecord();
-      $holdings = $driver->getRealTimeHoldings();
-      $availableHoldings = [];
-      $unavailableHoldings = [];
-      $currentLocation = $this->getILS()->getDbTable('location')->getCurrentLocation();
-      $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
-      foreach($holdings as $thisBib) {
-        foreach($thisBib["items"] as $item) {
-          if( $canHold && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
-            $availableHoldings[] = $item;
-          } else {
-            $unavailableHoldings[] = $item;
-          }
+        // Retrieve user object and force login if necessary:
+        if (!is_array($patron = $this->catalogLogin())) {
+            $patron->followup = "['Record','SelectItem',{'id':'" . $this->params()->fromQuery('id') . "','hashKey':'" . $this->params()->fromQuery('hashKey') . "'}]";
+            return $patron;
         }
-      }
 
-      $view = $this->createViewModel();
-      $view->id = $driver->getUniqueID();
-      $view->hashKey = $this->params()->fromQuery('hashKey');
-      $view->availableHoldings = $availableHoldings;
-      $view->unavailableHoldings = $unavailableHoldings;
-      $view->setTemplate('record/selectItem');
-      return $view;
+        // grab the holdings, then split them into holdable and not holdable
+        $driver = $this->loadRecord();
+        $holdings = $driver->getRealTimeHoldings();
+        $availableHoldings = [];
+        $unavailableHoldings = [];
+        $currentLocation = $this->getILS()->getDbTable('location')->getCurrentLocation();
+        $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
+        foreach($holdings as $thisBib) {
+            foreach($thisBib["items"] as $item) {
+                if( $canHold && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
+                    $availableHoldings[] = $item;
+                } else {
+                    $unavailableHoldings[] = $item;
+                }
+            }
+        }
+
+        $view = $this->createViewModel();
+        $view->id = $driver->getUniqueID();
+        $view->hashKey = $this->params()->fromQuery('hashKey');
+        $view->availableHoldings = $availableHoldings;
+        $view->unavailableHoldings = $unavailableHoldings;
+        $view->setTemplate('record/selectItem');
+        return $view;
     }
 }

@@ -274,6 +274,7 @@ class AjaxController extends AbstractBase
                 'reserve'              => 'false',
                 'reserve_message'      => $this->translate('Not On Reserve'),
                 'callnumber'           => '',
+                'hasVolumes'           => false,
                 'volume_number'        => '',
                 'missing_data'         => true,
                 'record_number'        => $recordNumber,
@@ -366,9 +367,17 @@ class AjaxController extends AbstractBase
         $isHolding = false;
         $overDriveInfo = ["canCheckOut" => false];
         $holdArgs = "";
+        $hasVolumes = false;
+
+        // see whether or not this bib has different volumes
+        foreach($record as $item) {
+            if( isset($item["number"]) && $item["number"]) {
+                $hasVolumes = true;
+            }
+        }
 
         // see if they already have a hold on it
-        if($canHold && ($user = $this->getUser())) {
+        if($canHold && ($user = $this->getUser()) && !$hasVolumes) {
             foreach($holds as $thisHold) {
                 if($thisHold['id'] == $bib) {
                     $canHold = false;
@@ -414,7 +423,7 @@ class AjaxController extends AbstractBase
             foreach($checkedOutItems as $thisItem) {
                 if($thisItem['id'] == $bib) {
                     $overDriveInfo["canCheckOut"] = false;
-                    $canHold = false;
+                    $canHold = $hasVolumes;
                     if( isset($thisItem["overDriveId"]) ) {
                         $overDriveInfo["isCheckedOut"] = true;
                         $overDriveInfo["canReturn"] = isset($thisItem["earlyReturn"]) && $thisItem["earlyReturn"];
@@ -513,6 +522,7 @@ class AjaxController extends AbstractBase
                 ? $this->translate('on_reserve')
                 : $this->translate('Not On Reserve'),
             'callnumber' => htmlentities($callNumber, ENT_COMPAT, 'UTF-8'),
+            'hasVolumes' => $hasVolumes,
             'volume_number' => htmlentities($volumeNumber, ENT_COMPAT, 'UTF-8'),
             'isHolding' => $isHolding,
             'itsHere' => isset($itsHere),

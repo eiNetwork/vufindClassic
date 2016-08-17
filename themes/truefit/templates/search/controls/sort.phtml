@@ -10,20 +10,24 @@
     <div class="dropdown" id="sortButtonDropdown<?=$this->id?>" style="position:absolute">
       <ul role="navigation" class="dropdown-menu standardDropdown">
         <? foreach ($list as $sortType => $sortData): ?>
-          <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="submitSortForm('<?=$this->escapeHtmlAttr($sortType)?>')"><?=$this->transEsc($sortData['desc'])?></button></li>
+          <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="submitSortForm('<?=$this->escapeHtmlAttr($sortType)?>', '<?=$this->id?>')"><?=$this->transEsc($sortData['desc'])?></button></li>
         <? endforeach; ?>
       </ul>
     </div>
   </div>
   <form class="form-inline" action="<?=$this->currentPath()?>" method="get" name="sort<?=$this->id?>">
     <input type="hidden" id="sort_options_1_<?=$this->id?>" name="sort">
-    <?=$this->results->getUrlQuery()->asHiddenFields(array('sort' => '/.*/'));?>
+    <? if( !isset($this->list) || !$this->list ): ?>
+      <?=$this->results->getUrlQuery()->asHiddenFields(array('sort' => '/.*/'));?>
+    <? else: ?>
+      <input type="hidden" name="listToShow" value="<?=$this->list?>">
+    <? endif; ?>
     <noscript><input type="submit" class="btn btn-default" value="<?=$this->transEsc("Set")?>" /></noscript>
   </form>
   <script type="text/javascript">
-    function submitSortForm(sortType) {
-      $('#sort_options_1_<?=$this->id?>').val(sortType);
-      $("form[name='sort<?=$this->id?>']").submit();
+    function submitSortForm(sortType, id) {
+      $('#sort_options_1_' + id).val(sortType);
+      $("form[name='sort" + id + "']").submit();
     }
 
     jQuery(document).ready(function() {

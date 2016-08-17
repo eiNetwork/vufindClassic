@@ -31,7 +31,10 @@
         </div>
       <? endforeach; ?>
       <div class="panel-heading">
-        <h4 class="panel-title"><a onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})">Create New List</a></h4>
+        <h4 class="panel-title">
+          <a onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})" class="collapsed">Create New List</a>
+          <div class="openAccordionTab"></div>
+        </h4>
       </div>
       <div class="panel-heading"></div>
     </div>
@@ -69,7 +72,7 @@
               <table style="margin:auto;display:inline-block">
                 <tr>
                   <td><span><strong><?=$this->localizedNumber($thisResult["items"]->getResultTotal())?></strong> titles sorted by </span></td>
-                  <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml', ['params' => $thisResult["items"]->getParams(), 'results' => $thisResult["items"], 'id' => $thisResult["list"]->id])?></td>
+                  <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml', ['params' => $thisResult["items"]->getParams(), 'results' => $thisResult["items"], 'id' => $thisResult["list"]->id, 'list' => $list->id])?></td>
                 </tr>
               </table>
             </div>
@@ -132,6 +135,12 @@
             }
             $('body').css({"overflow-y":"auto"});
             $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+            // if they switch from mobile to tablet/desktop, make sure there's an open tab
+            $(window).resize( function() { 
+              if(($(document).width() >= 600) && ($('#listAccordion').find('div .collapse.in').length == 0) ) {
+                $('.panel-heading a').first().click();
+              }
+            });
           } );
         </script>
       <? endif; ?>

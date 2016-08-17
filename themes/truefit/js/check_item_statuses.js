@@ -67,7 +67,7 @@ function handleItemStatusResponse(response) {
         leftButton.empty().append('Hold');
       } else if( result.holdArgs != '' ) {
         leftButton.prop('disabled', false);
-        leftButton.attr('onClick', "Lightbox.get('Record','Hold'," + result.holdArgs + ")");
+        leftButton.attr('onClick', "Lightbox.get('Record','" + (result.hasVolumes ? "SelectItem" : "Hold") + "'," + result.holdArgs + ")");
         leftButton.empty().append('Hold');
       } else {
         leftButton.empty().append('Unable to Hold');

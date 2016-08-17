@@ -193,7 +193,7 @@ fa {
 
 .accordionButtonsLeft{margin-right:-1px;margin-top:10px}
 .openAccordionTab{background-color: #fff;height:100%;width:1px;position:absolute;top:0px;right:0;}
-.collapsed + .openAccordionTab{display:none}
+.collapsed + .openAccordionTab{background-color:#949494}
 
 .btn-default > .fa-caret-down,.btn-alternate > .fa-caret-down{margin:0;padding-left:7px}
 .form-inline{display:inline}
@@ -373,3 +373,5 @@ i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 
 html.modalOpen {overflow:hidden}
 body.modalOpen {overflow:hidden;position:fixed;width:100%}
+
+.itemURL {padding-bottom:5px}

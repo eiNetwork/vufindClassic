@@ -473,7 +473,7 @@ class Sierra extends AbstractBase implements TranslatorAwareInterface
             // Use the database ids to get the item-level information (status,
             // location, and potentially call number) associated with that bib record
             $query1 = "SELECT
-                        item_view.item_status_code,
+                        '-',
                         location_name.name,
                         checkout.due_gmt,
                         varfield_view.field_content,

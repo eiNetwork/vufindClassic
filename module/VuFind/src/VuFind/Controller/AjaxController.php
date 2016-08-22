@@ -220,6 +220,7 @@ class AjaxController extends AbstractBase
             'itshere' => $renderer->render('ajax/status-itshere.phtml'),
             'available' => $renderer->render('ajax/status-available.phtml'),
             'unavailable' => $renderer->render('ajax/status-unavailable.phtml'),
+            'order' => $renderer->render('ajax/status-order.phtml'),
             'unknown' => $renderer->render('ajax/status-unknown.phtml')
         ];
 
@@ -382,7 +383,7 @@ class AjaxController extends AbstractBase
             $args=array();
             foreach($record as $item) {
                 // look for a hold link
-                $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
+                $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!','order']);
                 $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
                 if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                     foreach(explode('&',$item['link']['query']) as $piece) {
@@ -451,12 +452,16 @@ class AjaxController extends AbstractBase
         $totalItems = 0;
         $availableItems = 0;
         foreach ($record as $info) {
-            // Find an available copy
+             // Find an available copy
             if ($info['availability']) {
                 $available = true;
-                $availableItems += (isset($item["isOverDrive"]) && $item["isOverDrive"]) ? $item["copiesAvailable"] : 1;
+                $availableItems += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
             }
-            $totalItems += (isset($item["isOverDrive"]) && $item["isOverDrive"]) ? $item["copiesOwned"] : 1;
+            if ($info['status'] == 'order') {
+                $onOrder = true;
+            }
+            //$totalItems += ((isset($item["isOverDrive"]) && $item["isOverDrive"]) | ($onOrder)) ? $item["copiesOwned"] : 1;
+            $totalItems += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
             // Check for a use_unknown_message flag
             if (isset($info['use_unknown_message']) && $info['use_unknown_message'] == true) {
                 $use_unknown_status = true;
@@ -468,7 +473,7 @@ class AjaxController extends AbstractBase
             if( !isset($itsHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
-            if( !isset($holdableCopyHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') ) {
+            if( !isset($holdableCopyHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
                 $holdableCopyHere = $info;
             }
         }
@@ -490,7 +495,10 @@ class AjaxController extends AbstractBase
 
         $availability_message = $use_unknown_status
             ? $messages['unknown']
-            : $messages[isset($itsHere) ? 'itshere' : ($available ? 'available' : 'unavailable')];
+            : $messages[isset($itsHere) ? 'itshere' : ($available ? 'available' : ($onOrder ? 'order' : 'unavailable'))];
+        if ($onOrder) {
+            $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
+        }
         if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
             $availability_message = str_replace("<countText>", "Always Available", $availability_message);
         } else {

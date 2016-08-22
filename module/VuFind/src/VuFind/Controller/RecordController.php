@@ -124,7 +124,7 @@ class RecordController extends AbstractRecord
             foreach($holdings as $holding) {
                 foreach($holding['items'] as $item) {
                     // look for a hold link
-                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!']);
+                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!','order']);
                     $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
                     if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                         foreach(explode('&',$item['link']['query']) as $piece) {

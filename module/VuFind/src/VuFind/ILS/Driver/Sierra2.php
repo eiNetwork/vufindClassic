@@ -658,33 +658,62 @@ class Sierra2 extends Sierra implements
                 $processed = 0;
                 $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                 if( !isset($apiHoldings->entries) ) {
-                    break;
-                }
-                foreach($apiHoldings->entries as $thisItem) {
-                    $number = null;
-                    if( isset($thisItem->varFields) ) {
-                        foreach($thisItem->varFields as $thisVarField) {
-                            if( $thisVarField->fieldTag == "v" ) {
-                                $number = $thisVarField->content;
-                            }
+                    //If there are no attached items, check to see if it is on order
+                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                    //log(print_r($apiOrders));
+                    if( !isset($apiOrders->entries) ) {
+                        break;
+                    }
+                    foreach($apiOrders->entries as $thisEntry) {
+                        foreach($thisEntry->orders as $thisItem) {
+                            //log(print_r(array(json_encode($thisItem))));
+                            $itemInfo = [
+                                "id" => $id,
+                                "itemId" => null,
+                                "availability" => false,
+                                "status" => "order",
+                                "location" => $thisItem->location->name,
+                                "reserve" => "N",
+                                "callnumber" => null,
+                                "duedate" => null,
+                                "returnDate" => false,
+                                "number" => null,
+                                "barcode" => null,
+                                "locationCode" => $thisItem->location->code,
+                                "copiesOwned" => $thisItem->copies
+                            ];
+                            $holdings[] = $itemInfo;
                         }
                     }
-                    $itemInfo = [
-                        "id" => $id,
-                        "itemId" => $thisItem->id,
-                        "availability" => (($thisItem->status->code == "-") || ($thisItem->status->code == "o")) && !isset($thisItem->status->duedate),
-                        "status" => $thisItem->status->code,
-                        "location" => $thisItem->location->name,
-                        "reserve" => "N",
-                        "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
-                        "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
-                        "returnDate" => false,
-                        "number" => $number,
-                        "barcode" => $thisItem->barcode,
-                        "locationCode" => $thisItem->location->code
-                        ];
-                    $holdings[] = $itemInfo;
-                    $processed++;
+                    //log(print_r(array(json_encode($holdings))));
+                } else {
+                    foreach($apiHoldings->entries as $thisItem) {
+                    $number = null;
+                        if( isset($thisItem->varFields) ) {
+                            foreach($thisItem->varFields as $thisVarField) {
+                                if( $thisVarField->fieldTag == "v" ) {
+                                    $number = $thisVarField->content;
+                                }
+                            }
+                        }
+                        $itemInfo = [
+                            "id" => $id,
+                            "itemId" => $thisItem->id,
+                            "availability" => (($thisItem->status->code == "-") || ($thisItem->status->code == "o")) && !isset($thisItem->status->duedate),
+                            "status" => $thisItem->status->code,
+                            "location" => $thisItem->location->name,
+                            "reserve" => "N",
+                            "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
+                            "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
+                            "returnDate" => false,
+                            "number" => $number,
+                            "barcode" => $thisItem->barcode,
+                            "locationCode" => $thisItem->location->code,
+                            "copiesOwned" => 1
+                            ];
+                        $holdings[] = $itemInfo;
+                        $processed++;
+                    }
                 }
                 $currentOffset += $pageSize;
             } while( $processed == $pageSize );

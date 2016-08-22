@@ -321,6 +321,8 @@ class EINetwork extends Sierra2 implements
                 $results[$i]['displayStatus'] = "STORAGE";
             } else if( $results[$i]['status'] == 'w' ) {
                 $results[$i]['displayStatus'] = "WITHDRAWN";
+            } else if( $results[$i]['status'] == 'order' ) {
+                $results[$i]['displayStatus'] = "ON ORDER";    
             } else {
                 $results[$i]['displayStatus'] = "UNKNOWN";
             }
@@ -335,6 +337,7 @@ class EINetwork extends Sierra2 implements
             for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
             array_splice($results2, $j, 0, [$results[$i]]);
         }
+        //log(print_r(array(json_encode($results2))));  
         return $results2;
     }
 

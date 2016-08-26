@@ -14,6 +14,29 @@
       }
     }
   }
+
+  function URLify($str) {
+    $str = str_replace(" ",  "+",   $str);
+    $str = str_replace("%",  "%25", $str);
+    $str = str_replace("|",  "%7C", $str);
+    $str = str_replace("{",  "%7B", $str);
+    $str = str_replace("}",  "%7D", $str);
+    $str = str_replace("/",  "%2F", $str);
+    $str = str_replace("^",  "%5E", $str);
+    $str = str_replace("[",  "%5B", $str);
+    $str = str_replace("]",  "%5D", $str);
+    $str = str_replace("`",  "%60", $str);
+    $str = str_replace("'",  "%27", $str);
+    $str = str_replace("?",  "%3F", $str);
+    $str = str_replace(";",  "%3B", $str);
+    $str = str_replace(":",  "%3A", $str);
+    $str = str_replace("@",  "%40", $str);
+    $str = str_replace("=",  "%3D", $str);
+    $str = str_replace("&",  "%26", $str);
+    $str = str_replace("\\", "%5C", $str);
+    $str = str_replace("\"", "%22", $str);
+    return $str;
+  }
 ?>
 <script type="text/javascript">
   function ToggleFacet(item) {
@@ -83,33 +106,30 @@
         $(item).find('.greenCheck').css('display', 'none');
       }
     } );
-    // if we are not on the desktop, refresh the link on the apply button
-    if($(window).width() < 768) {
-    //if($('#facetSubmitLink').length > 0) {
-      // fix the link on the apply button
-      $('#facetSubmitLink').prop("href", "<?=$urlString?>");
-      $.each($('.facetToggleOn.fa-check-square'), function(index, item) {
-        if($(item).attr("value") != undefined) {
-          $('#facetSubmitLink').prop("href", $('#facetSubmitLink').prop("href") + $(item).attr("value"));
-        }
-      } );
-    // if we are on the desktop, refresh the page
-    } else {
-      var url = window.location.href.replace(/%20/, "+");
-      var changed = false;
-      $.each($('.fa-check-square'), function(index, item) {
-        if($(item).attr("value") != undefined) {
-          var testStr = $(item).attr("value").replace(/ /g,"+").replace(/\//g,"%2F");
-          if( $(item).hasClass("facetToggleOn") && url.indexOf(testStr) == -1 ) {
-            url += testStr;
-            changed = true;
-          } else if( $(item).hasClass("facetToggleOff") && url.indexOf(testStr) >= 0 ) {
-            url = url.replace(new RegExp(testStr.replace(/\+/g,"\\+"), 'g'), "");
-            changed = true;
+
+    // generate the correct URL
+    var url = window.location.href;
+    var changed = false;
+    $.each($('.fa-check-square'), function(index, item) {
+      if($(item).attr("value") != undefined) {
+        var testStr = $(item).attr("value");
+        if( $(item).hasClass("facetToggleOn") && url.indexOf(testStr) == -1 ) {
+          url += testStr;
+          changed = true;
+        } else if( $(item).hasClass("facetToggleOff") && url.indexOf(testStr) >= 0 ) {
+          while( url.indexOf(testStr) >= 0 ) {
+            url = url.replace(testStr, "");
           }
+          changed = true;
         }
-      } );
-      if(changed) {
+      }
+    } );
+    if(changed) {
+      // if we are not on the desktop, refresh the link on the apply button
+      if( $(window).width() < 768 ) {
+        $('#facetSubmitLink').prop("href", url);
+      // if we are on the desktop, refresh the page
+      } else {
         window.location.href = url;
       }
     }
@@ -144,9 +164,22 @@
           <div class="panel-body">
             <ul class="facetAccordionList">
               <? if( $title != "format" ): ?>
-                <? foreach ($cluster['list'] as $i=>$thisFacet): ?>
+                <?
+                  // Sort the current facet list alphabetically; we'll use this data
+                  // along with the foreach below to display facet options in the
+                  // correct order.
+                  $sorted = array();
+                  foreach ($cluster['list'] as $i => $value) {
+                    if (!empty($value['displayText'])) {
+                      $sorted[$i] = $value['displayText'];
+                    }
+                  }
+                  natcasesort($sorted);
+                ?>
+                <? foreach ($sorted as $i=>$dummy): ?>
+                  <? $thisFacet = $cluster['list'][$i]; ?>
                   <li>
-                    <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                    <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(URLify($thisFacet['value']))?>%22"></i>
                     <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
                     <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
                   </li>

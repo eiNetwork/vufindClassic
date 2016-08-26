@@ -12,7 +12,7 @@
   if( $lookfor != "" ) {
 ?>
 <script type="text/javascript">
-  $("input[name=lookfor]").val("<?= $lookfor ?>");
+  $("input[name=lookfor]").val("<?= str_replace("\"", "\\\"", $lookfor) ?>");
 </script>
 <?
   }

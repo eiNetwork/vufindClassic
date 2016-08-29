@@ -27,7 +27,7 @@ function handleItemStatusResponse(response) {
         var heldItemID = $(this).find('.volumeInfo.hidden').html();
         if( heldItemID ) {
           var heldVolumes = jQuery.parseJSON(result.heldVolumes);
-          $(this).find('.volumeInfo').empty().append(heldVolumes[heldItemID]).removeClass("hidden");
+          $(this).find('.volumeInfo').empty().append("(" + heldVolumes[heldItemID] + ")").removeClass("hidden");
         }
       } );
       var leftButton = item.find('.leftButton');

@@ -91,6 +91,7 @@
 
       </script>
     </div>
+    <iframe id="loginFrame" name="loginFrame" style="display:none"></iframe>
     <? // see whether or not we need to do some background loading of holds/checkouts
       $account = $this->auth()->getManager();
       if( $user = $account->isLoggedIn() ):
@@ -106,7 +107,6 @@
         endif;
       endif;
     ?>
-    <iframe id="loginFrame" name="loginFrame" style="display:none"></iframe>
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box
       // 2. It was set to false; we should display nothing

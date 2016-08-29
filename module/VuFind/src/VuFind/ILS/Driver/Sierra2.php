@@ -250,6 +250,21 @@ class Sierra2 extends Sierra implements
     }
 
     /**
+     * Get Number of My Transactions
+     *
+     * This is responsible for returning the raw count of a patron's checked out items.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return int           Count of checked out items.
+     */
+    public function getNumberOfMyTransactions($patron){
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/checkouts"));
+        return $jsonVals->total;
+    }
+
+    /**
      * Get My Transactions
      *
      * This is responsible for returning a patron's checked out items.
@@ -331,6 +346,21 @@ class Sierra2 extends Sierra implements
             $fines[$i] = $thisItem;
         }
         return $fines;
+    }
+
+    /**
+     * Get Number Of My Holds
+     *
+     * This is responsible for returning the raw count of a patron's holds.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return int           Number of holds that this patron currently has.
+     */
+    public function getNumberOfMyHolds($patron){
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/holds"));
+        return $jsonVals->total;
     }
 
     /**

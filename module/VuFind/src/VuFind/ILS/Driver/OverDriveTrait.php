@@ -316,6 +316,23 @@ trait OverDriveTrait {
     }
 
     /**
+     * Loads the count of items that the user has checked out in OverDrive
+     *
+     * @param User $user
+     * @param array $overDriveInfo optional array of information loaded from _loginToOverDrive to improve performance.
+     *
+     * @return int
+     */
+    public function getNumberOfOverDriveCheckedOutItems($user, $overDriveInfo = null){
+        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
+        $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
+        if (isset($response->checkouts)){
+            return count($response->checkouts);
+        }
+        return 0;
+    }
+
+    /**
      * Loads information about items that the user has checked out in OverDrive
      *
      * @param User $user
@@ -408,7 +425,19 @@ trait OverDriveTrait {
 
     /**
      * @param User $user
-     * @param null $overDriveInfo
+     * @return int
+     */
+    public function getNumberOfOverDriveHolds($user){
+        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
+        $response = $this->_callPatronUrl($user->cat_username, $user->cat_password, $url);
+        if (isset($response->holds)){
+            return count($response->holds);
+        }
+        return 0;
+    }
+
+    /**
+     * @param User $user
      * @return array
      */
     public function getOverDriveHolds($user){

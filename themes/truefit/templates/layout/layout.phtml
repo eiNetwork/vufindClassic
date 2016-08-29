@@ -75,6 +75,7 @@
     <link href="/themes/truefit/css/einetwork.css" media="all" rel="stylesheet" type="text/css">
     <script src="/themes/truefit/js/hmac-sha256.js"></script>
     <script src="/themes/truefit/js/enc-base64-min.js"></script>
+    <script src="/themes/truefit/js/backgroundLoader.js"></script>
   </head>
   <body>
     <!-- *google analytics* -->
@@ -90,6 +91,21 @@
 
       </script>
     </div>
+    <? // see whether or not we need to do some background loading of holds/checkouts
+      $account = $this->auth()->getManager();
+      if( $user = $account->isLoggedIn() ):
+        if( $this->ils()->getDriver()->getSessionVar('holds') === null ):
+    ?>
+      <iframe style="display:none" id="backgroundLoaderHolds"></iframe>
+    <?
+        endif;
+        if( $this->ils()->getDriver()->getSessionVar('checkouts') === null ):
+    ?>
+      <iframe style="display:none" id="backgroundLoaderCheckouts"></iframe>
+    <?
+        endif;
+      endif;
+    ?>
     <iframe id="loginFrame" name="loginFrame" style="display:none"></iframe>
     <? // Set up the search box -- there are three possible cases:
       // 1. No search box was set; we should default to the normal box

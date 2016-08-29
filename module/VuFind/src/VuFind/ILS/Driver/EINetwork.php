@@ -491,6 +491,27 @@ class EINetwork extends Sierra2 implements
     }
 
     /**
+     * Get Number Of My Holds
+     *
+     * This is responsible for returning just the raw count of a patron's holds.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function getNumberOfMyHolds($patron) {
+        if( isset($this->session->holds) ) {
+            return count($this->session->holds);
+        }
+
+        $numberOfSierraHolds = parent::getNumberOfMyHolds($patron);
+        $numberOfOverDriveHolds = $this->getNumberOfOverDriveHolds((object)$patron);
+        return $numberOfSierraHolds + $numberOfOverDriveHolds;
+    }
+
+    /**
      * Get My Holds
      *
      * This is responsible for returning a patron's holds.
@@ -519,6 +540,26 @@ class EINetwork extends Sierra2 implements
         }
         $this->session->holds = $sierraHolds;
         return $this->session->holds;
+    }
+
+    /**
+     * Get Number of My Transactions
+     *
+     * This is responsible for returning the raw count of a patron's checked out items.
+     *
+     * @param string $patron The patron's id
+     *
+     * @throws ILSException
+     * @return int           Count of checked out items.
+     */
+    public function getNumberOfMyTransactions($patron){
+        if( isset($this->session->checkouts) ) {
+            return count($this->session->checkouts);
+        }
+
+        $numberOfSierraTransactions = parent::getNumberOfMyTransactions($patron);
+        $numberOfOverDriveTransactions = $this->getNumberOfOverDriveCheckedOutItems((object)$patron);
+        return $numberOfSierraTransactions + $numberOfOverDriveTransactions;
     }
 
     /**

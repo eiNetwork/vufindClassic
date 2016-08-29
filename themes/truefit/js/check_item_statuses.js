@@ -23,6 +23,13 @@ function handleItemStatusResponse(response) {
     $.each(response.data, function(i, result) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
       item.find('.status').empty().append(result.availability_message);
+      item.each( function() {
+        var heldItemID = $(this).find('.volumeInfo.hidden').html();
+        if( heldItemID ) {
+          var heldVolumes = jQuery.parseJSON(result.heldVolumes);
+          $(this).find('.volumeInfo').empty().append(heldVolumes[heldItemID]).removeClass("hidden");
+        }
+      } );
       var leftButton = item.find('.leftButton');
       var leftButtonMenu = item.find('#holdButtonDropdown' + result.id.replace(".","") + ',#holdButtonDropdownMobile' + result.id.replace(".",""));
       if( result.isHolding ) {

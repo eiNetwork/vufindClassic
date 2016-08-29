@@ -897,6 +897,20 @@ $config['router']['routes']['myresearch-resetpin'] = [
         ]
     ]
 ];
+$config['router']['routes']['myresearch-backgroundloader'] = [
+    'type' => 'Zend\Mvc\Router\Http\Segment',
+    'options' => [
+        'route'    => '/MyResearch/BackgroundLoader',
+        'constraints' => [
+            'controller' => '[a-zA-Z][a-zA-Z0-9_-]*',
+            'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+        ],
+        'defaults' => [
+            'controller' => 'MyResearch',
+            'action'     => 'BackgroundLoader',
+        ]
+    ]
+];
 $config['router']['routes']['myresearch-overdrivehandler'] = [
     'type' => 'Zend\Mvc\Router\Http\Segment',
     'options' => [

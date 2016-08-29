@@ -282,7 +282,8 @@ class AjaxController extends AbstractBase
                 'isHolding'            => false,
                 'itsHere'              => false,
                 'holdableCopyHere'     => false,
-                'holdArgs'             => ''
+                'holdArgs'             => '',
+                'heldVolumes'          => ''
             ];
         }
 
@@ -383,6 +384,20 @@ class AjaxController extends AbstractBase
                 if($thisHold['id'] == $bib) {
                     $canHold = false;
                     $isHolding = true;
+                }
+            }
+        }
+
+        // see which volumes they have a hold on
+        $heldVolumes = array();
+        if( $hasVolumes ) {
+            foreach($record as $item) {
+                if( isset($item["number"]) && $item["number"]) {
+                    foreach($holds as $thisHold) {
+                        if(substr($thisHold["item_id"], 2, -1) == $item["itemId"]) {
+                            $heldVolumes[$item["itemId"]] = $item["number"];
+                        }
+                    }
                 }
             }
         }
@@ -535,7 +550,8 @@ class AjaxController extends AbstractBase
             'isHolding' => $isHolding,
             'itsHere' => isset($itsHere),
             'holdableCopyHere' => isset($holdableCopyHere),
-            'holdArgs' => $holdArgs
+            'holdArgs' => $holdArgs,
+            'heldVolumes' => json_encode($heldVolumes)
         ];
 
         // add in the overdrive info if needed

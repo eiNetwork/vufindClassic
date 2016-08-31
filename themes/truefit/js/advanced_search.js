@@ -181,6 +181,14 @@ function adjustAdvSearchTypeButtons() {
   } );
 }
 
+function CheckForEnter(e) {
+  var isEnter = ((e.keyCode ? e.keyCode : (e.which ? e.which : e.charCode)) == 13);
+  if( isEnter ) {
+    $('#advSearchMasterButton').click();
+  }
+  return !isEnter;
+}
+
 function advSearchDropdownClick(button, value) {
   $(button).parents('.dropdown').prevAll('input').attr('value', value);
   $(button).parents('.dropdown').prevAll('button').children('span').html($(button).html());

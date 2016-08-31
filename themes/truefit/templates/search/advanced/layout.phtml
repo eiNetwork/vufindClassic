@@ -108,7 +108,7 @@
                   <div class="EIN-col-m-12">
                     <div class="EIN-col-m-12 EIN-col-t-8">
                       <? $value = isset($setQueries[$group][$search]) ? $this->escapeHtml($setQueries[$group][$search]->getString()) : ""; ?>
-                      <input name="lookfor<?=$group ?>[]" id="search_lookfor<?=$group.'_'.$search ?>" <? if($value==""): ?>onfocus="if (this.value=='Enter your search term') {this.value = '';this.style.color='#3d3d3d';}"<?else:?>style="color:#3d3d3d"<?endif;?> class="form-control textBox" type="text" value="<?=$value?>" onkeypress="return SquashEnter(event);">
+                      <input name="lookfor<?=$group ?>[]" id="search_lookfor<?=$group.'_'.$search ?>" <? if($value==""): ?>onfocus="if (this.value=='Enter your search term') {this.value = '';this.style.color='#3d3d3d';}"<?else:?>style="color:#3d3d3d"<?endif;?> class="form-control textBox" type="text" value="<?=$value?>" onkeypress="return CheckForEnter(event);">
                     </div>
                     <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:5px"></div>
                     <div class="EIN-col-m-12 EIN-col-t-4 center">
@@ -163,7 +163,7 @@
     <? endif; ?>
     <div class="EIN-col-m-12 center" style="margin-top:20px;margin-bottom:10px">
       <button class="btn-alternate btn-wide" onclick="ResetAdvSearchForm(); return false;"><?= $this->transEsc('Reset')?></button>
-      <button class="btn-default btn-wide gap" onclick="CleanSearchBoxes();"><?= $this->transEsc('Search')?></button>
+      <button class="btn-default btn-wide gap" id="advSearchMasterButton" onclick="CleanSearchBoxes();"><?= $this->transEsc('Search')?></button>
     </div>
   </form>
 </div>

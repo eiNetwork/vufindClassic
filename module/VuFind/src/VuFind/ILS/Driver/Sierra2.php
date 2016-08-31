@@ -142,7 +142,7 @@ class Sierra2 extends Sierra implements
         }
 
         // request a new token
-        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v2/token", \Zend\Http\Request::METHOD_POST);
+        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v3/token", \Zend\Http\Request::METHOD_POST);
         $client->setHeaders(
                 array('Accept' => 'application/json; charset=UTF-8',
                       'Authorization' => ('Basic ' . base64_encode($this->config['SIERRAAPI']['apiKey'] . ':' . $this->config['SIERRAAPI']['apiSecret']))));
@@ -179,12 +179,12 @@ class Sierra2 extends Sierra implements
     public function getMyProfile($patron)
     {
 /** BP => Client Credentials Grant **/
-        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . 
+        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . 
                                                       "?fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
 /** BP => Authorization Code Grant **
-        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/find?barcode=" . $patron['barcode'] . 
+        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/find?barcode=" . $patron['barcode'] . 
                                                       "&fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
-//        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/2865172"), true );
+//        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/2865172"), true );
 /** **/
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
@@ -260,7 +260,7 @@ class Sierra2 extends Sierra implements
      * @return int           Count of checked out items.
      */
     public function getNumberOfMyTransactions($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/checkouts"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts"));
         return $jsonVals->total;
     }
 
@@ -275,7 +275,7 @@ class Sierra2 extends Sierra implements
      * @return array         Associative array of checked out items.
      */
     public function getMyTransactions($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/checkouts"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts"));
 
         $checkedOutItems = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
@@ -293,13 +293,13 @@ class Sierra2 extends Sierra implements
             $arr = explode("/", $jsonVals->entries[$i]->item);
             $itemId = $arr[count($arr)-1];
             $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-            $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $itemId));
+            $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId));
             $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
             $thisItem['institution_name'] = $itemInfo->location->name;
             $thisItem['borrowingLocation'] = $itemInfo->location->name;
 
             // get the bib info
-            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/" . $itemInfo->bibIds[0]));
+            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
             $thisItem['title'] = $bibInfo->title;
             $thisItem['publication_year'] = $bibInfo->publishYear;
             $thisItem['author'] = $bibInfo->author;
@@ -321,7 +321,7 @@ class Sierra2 extends Sierra implements
      * null on unsuccessful login.
      */
     public function getMyFines($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/fines"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines"));
         $fines = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
             $thisItem = [];
@@ -330,7 +330,7 @@ class Sierra2 extends Sierra implements
             $arr = explode("/", $jsonVals->entries[$i]->item);
             $itemId = $arr[count($arr)-1];
             if( $itemId != "" ) {
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $itemId));
+                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId));
 
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                 $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
@@ -359,7 +359,7 @@ class Sierra2 extends Sierra implements
      * @return int           Number of holds that this patron currently has.
      */
     public function getNumberOfMyHolds($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/holds"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds"));
         return $jsonVals->total;
     }
 
@@ -375,7 +375,7 @@ class Sierra2 extends Sierra implements
      * null on unsuccessful login.
      */
     public function getMyHolds($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'] . "/holds"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds"));
         $holds = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
             $thisItem = [];
@@ -401,7 +401,7 @@ class Sierra2 extends Sierra implements
             // it's an item-level hold
             if( $arr[count($arr)-2] == "items" ) {
                 $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/" . $id));
+                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $id));
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                 $bibId = $itemInfo->bibIds[0];
             // it's bib level
@@ -410,7 +410,7 @@ class Sierra2 extends Sierra implements
             }
 
             // get the bib info
-            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/" . $bibId));
+            $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $bibId));
             $thisItem['publication_year'] = $bibInfo->publishYear;
 
             $holds[$i] = $thisItem;
@@ -432,7 +432,7 @@ class Sierra2 extends Sierra implements
     public function renewMyItems($items){
         $responses = [];
         foreach($items["details"] as $checkoutID) {
-            $reply = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/checkouts/" . $checkoutID . "/renewal", 
+            $reply = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/checkouts/" . $checkoutID . "/renewal", 
                                                        \Zend\Http\Request::METHOD_POST));
             $responses[$checkoutID] = (isset($reply->code) && isset($reply->specificCode)) ? $reply->description : true;
         }
@@ -474,7 +474,7 @@ class Sierra2 extends Sierra implements
                       'recordNumber' => (int)substr($details["id"], 2, -1), 
                       'pickupLocation' => $details['pickUpLocation'], 
                       'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));
-        $jsonVals = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $details['patron']['id'] . "/holds/requests", 
+        $jsonVals = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $details['patron']['id'] . "/holds/requests", 
                                                        \Zend\Http\Request::METHOD_POST, 
                                                        json_encode($body)) );
         $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
@@ -496,7 +496,7 @@ class Sierra2 extends Sierra implements
         $success = true;
         for($i=0; $i<count($holds["details"]); $i++ )
         {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i],
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i],
                                                           \Zend\Http\Request::METHOD_DELETE));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
@@ -519,7 +519,7 @@ class Sierra2 extends Sierra implements
         for($i=0; $i<count($holds["details"]); $i++ )
         {
             $body = json_encode(array('freeze' => $doFreeze));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i], 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i], 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
@@ -543,7 +543,7 @@ class Sierra2 extends Sierra implements
         for($i=0; $i<count($holds["details"]); $i++ )
         {
             $body = json_encode(array('pickupLocation' => $holds["newLocation"]));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/holds/" . $holds["details"][$i], 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i], 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
@@ -626,7 +626,7 @@ class Sierra2 extends Sierra implements
      *                            ["emails", "names", "addresses", "phones", "pin"]
      */
     public function updateMyProfile($patron, $updateBody){
-        $result = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/patrons/" . $patron['id'], 
+        $result = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'], 
                                                     \Zend\Http\Request::METHOD_PUT, 
                                                     json_encode($updateBody)));
         return ["success" => (!isset($result->code) && !isset($result->specificCode))];
@@ -686,10 +686,10 @@ class Sierra2 extends Sierra implements
             $currentOffset = 0;
             do {
                 $processed = 0;
-                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                 if( !isset($apiHoldings->entries) ) {
                     //If there are no attached items, check to see if it is on order
-                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v2/bibs/?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                     //log(print_r($apiOrders));
                     if( !isset($apiOrders->entries) ) {
                         break;

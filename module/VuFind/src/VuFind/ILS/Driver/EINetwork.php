@@ -337,7 +337,6 @@ class EINetwork extends Sierra2 implements
             for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
             array_splice($results2, $j, 0, [$results[$i]]);
         }
-        //log(print_r(array(json_encode($results2))));  
         return $results2;
     }
 
@@ -523,7 +522,7 @@ class EINetwork extends Sierra2 implements
      * null on unsuccessful login.
      */
     public function getMyHolds($patron) {
-        if( isset($this->session->holds) ) {
+        if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) ) {
             return $this->session->holds;
         }
 
@@ -539,6 +538,11 @@ class EINetwork extends Sierra2 implements
             }
         }
         $this->session->holds = $sierraHolds;
+        if( isset($this->session->staleHoldsHash) ) {
+            if( md5(json_encode($sierraHolds)) != $this->session->staleHoldsHash ) {
+                unset( $this->session->staleHoldsHash );
+            }
+        }
         return $this->session->holds;
     }
 
@@ -573,7 +577,7 @@ class EINetwork extends Sierra2 implements
      * @return array         Associative array of checked out items.
      */
     public function getMyTransactions($patron){
-        if( isset($this->session->checkouts) ) {
+        if( isset($this->session->checkouts) && !isset($this->session->staleCheckoutsHash) ) {
             return $this->session->checkouts;
         }
 
@@ -589,7 +593,31 @@ class EINetwork extends Sierra2 implements
             }
         }
         $this->session->checkouts = $sierraTransactions;
+        if( isset($this->session->staleCheckoutsHash) ) {
+            if( md5(json_encode($sierraTransactions)) != $this->session->staleCheckoutsHash ) {
+                unset( $this->session->staleCheckoutsHash );
+            }
+        }
         return $this->session->checkouts;
+    }
+
+
+    /**
+     * Renew My Items
+     *
+     * This is responsible for renewing a patron's items.
+     *
+     * @param array  $items  The items to renew
+     *
+     * @throws ILSException
+     * @return mixed          Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     */
+    public function renewMyItems($items){
+        // invalidate the cached data
+        $this->session->staleCheckoutsHash = md5(json_encode($this->session->checkouts));
+
+        return parent::renewMyItems($items);
     }
 
     /**
@@ -625,7 +653,7 @@ class EINetwork extends Sierra2 implements
     public function placeHold($details)
     {
         // invalidate the cached data
-        unset($this->session->holds);
+        $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
         // item level holds via the API don't work yet
         if( substr($details["id"], 1, 1) == "i" ) {
@@ -648,7 +676,7 @@ class EINetwork extends Sierra2 implements
      */
     public function cancelHolds($holds){
         // invalidate the cached data
-        unset($this->session->holds);
+        $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
         $success = true;
         $overDriveHolds = [];
@@ -688,7 +716,7 @@ class EINetwork extends Sierra2 implements
      */
     public function freezeHolds($holds, $doFreeze){
         // invalidate the cached data
-        unset($this->session->holds);
+        $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
         $success = true;
         $overDriveHolds = [];
@@ -731,7 +759,7 @@ class EINetwork extends Sierra2 implements
     public function updateHolds($holds)
     {
         // invalidate the cached data
-        unset($this->session->holds);
+        $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
         // weed out overdrive holds, there's nothing we can do there
         for($i=0; $i<count($holds["details"]); $i++ )

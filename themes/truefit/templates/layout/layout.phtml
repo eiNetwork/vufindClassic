@@ -95,14 +95,14 @@
     <? // see whether or not we need to do some background loading of holds/checkouts
       $account = $this->auth()->getManager();
       if( $user = $account->isLoggedIn() ):
-        if( $this->ils()->getDriver()->getSessionVar('holds') === null ):
+        if( $this->ils()->getDriver()->getSessionVar('holds') === null || $this->ils()->getDriver()->getSessionVar('staleHoldsHash') !== null ):
     ?>
       <iframe style="display:none" id="backgroundLoaderHolds"></iframe>
     <?
         endif;
-        if( $this->ils()->getDriver()->getSessionVar('checkouts') === null ):
+        if( $this->ils()->getDriver()->getSessionVar('checkouts') === null || $this->ils()->getDriver()->getSessionVar('staleCheckoutsHash') !== null ):
     ?>
-      <iframe style="display:none" id="backgroundLoaderCheckouts"></iframe>
+      <iframe style="display:noned" id="backgroundLoaderCheckouts"></iframe>
     <?
         endif;
       endif;

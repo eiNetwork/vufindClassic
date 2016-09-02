@@ -102,7 +102,7 @@
         endif;
         if( $this->ils()->getDriver()->getSessionVar('checkouts') === null || $this->ils()->getDriver()->getSessionVar('staleCheckoutsHash') !== null ):
     ?>
-      <iframe style="display:noned" id="backgroundLoaderCheckouts"></iframe>
+      <iframe style="display:none" id="backgroundLoaderCheckouts"></iframe>
     <?
         endif;
       endif;

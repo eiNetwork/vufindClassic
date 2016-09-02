@@ -219,6 +219,7 @@ class AjaxController extends AbstractBase
         $messages = [
             'itshere' => $renderer->render('ajax/status-itshere.phtml'),
             'available' => $renderer->render('ajax/status-available.phtml'),
+            'oneclick' => $renderer->render('ajax/status-oneclick.phtml'),
             'unavailable' => $renderer->render('ajax/status-unavailable.phtml'),
             'order' => $renderer->render('ajax/status-order.phtml'),
             'unknown' => $renderer->render('ajax/status-unknown.phtml')
@@ -266,10 +267,19 @@ class AjaxController extends AbstractBase
 
         // If any IDs were missing, send back appropriate dummy data
         foreach ($missingIds as $missingId => $recordNumber) {
+            // see if we have any urls we should show
+            $driver = $this->getRecordLoader()->load( $thisID );
+            $urls = $driver->getURLs();
+            foreach($urls as $key => $thisUrl) {
+                if( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
+                    $isOneClick = true;
+                endif;
+            }
+
             $statuses[] = [
                 'id'                   => $missingId,
                 'availability'         => 'false',
-                'availability_message' => str_replace("<countText>", "0 copies", $messages['unavailable']),
+                'availability_message' => str_replace("<countText>", "0 copies", $messages[$isOneClick ? 'oneclick' : 'unavailable']),
                 'location'             => $this->translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -283,7 +293,8 @@ class AjaxController extends AbstractBase
                 'itsHere'              => false,
                 'holdableCopyHere'     => false,
                 'holdArgs'             => '',
-                'heldVolumes'          => ''
+                'heldVolumes'          => '',
+                'urls'                 => json_encode($urls)
             ];
         }
 
@@ -367,6 +378,8 @@ class AjaxController extends AbstractBase
         $driver = $this->getRecordLoader()->load( $bib );
         $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
         $isHolding = false;
+        $isOverDrive = false;
+        $isOneClick = false;
         $overDriveInfo = ["canCheckOut" => false];
         $holdArgs = "";
         $hasVolumes = false;
@@ -375,6 +388,9 @@ class AjaxController extends AbstractBase
         foreach($record as $item) {
             if( isset($item["number"]) && $item["number"]) {
                 $hasVolumes = true;
+            }
+            if( isset($item["isOverDrive"]) && $item["isOverDrive"] ) {
+              $isOverDrive = true;
             }
         }
 
@@ -519,7 +535,10 @@ class AjaxController extends AbstractBase
 
         $availability_message = $use_unknown_status
             ? $messages['unknown']
-            : $messages[isset($itsHere) ? 'itshere' : ($available ? 'available' : ($onOrder ? 'order' : 'unavailable'))];
+            : $messages[isset($itsHere) ? 'itshere' : 
+                        ($available ? 'available' : 
+                         ($onOrder ? 'order' : 
+                          ($isOneClick ? 'oneclick' : 'unavailable')))];
         if ($onOrder) {
             $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
         }
@@ -530,6 +549,16 @@ class AjaxController extends AbstractBase
             if( isset($itsHere) ) {
                 $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
             }
+        }
+
+        // see if we have any urls we should show
+        $urls = $driver->getURLs();
+        foreach($urls as $key => $thisUrl) {
+          if( $isOverDrive && (strpos($thisUrl["url"], "http://excerpts.contentreserve.com") === false) ):
+            unset($urls[$key]);
+          elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
+            $isOneClick = true;
+          endif;
         }
 
         // Collect the details:
@@ -551,7 +580,8 @@ class AjaxController extends AbstractBase
             'itsHere' => isset($itsHere),
             'holdableCopyHere' => isset($holdableCopyHere),
             'holdArgs' => $holdArgs,
-            'heldVolumes' => json_encode($heldVolumes)
+            'heldVolumes' => json_encode($heldVolumes),
+            'urls' => json_encode($urls)
         ];
 
         // add in the overdrive info if needed

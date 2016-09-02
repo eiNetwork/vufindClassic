@@ -12,6 +12,7 @@
   $account = $this->auth()->getManager();
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
+  $urls = $this->driver->getURLs();
 ?>
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
   <table class="EIN-col-m-12"><tr>
@@ -71,13 +72,12 @@
               <span class="status ajax-availability hidden"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
             </td>
           </tr>
-          <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
+          <? if( !empty($urls) ): ?>
             <tr>
-              <td class="EIN-hide-m itemDetailCategory">&nbsp;</td>
+              <td class="EIN-hide-m itemDetailCategory hidden">Links:</td>
               <td>
-                <div class="itemURL"><span class="availableTag">Access Online</span></div>
                 <? foreach($urls as $thisURL): ?>
-                  <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=$thisURL["desc"]?></a></div>
+                  <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : $thisURL["desc"])?></a></div>
                 <? endforeach; ?>
               </td>
             </tr>

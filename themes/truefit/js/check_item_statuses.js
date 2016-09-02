@@ -25,11 +25,18 @@ function handleItemStatusResponse(response) {
       item.find('.status').empty().append(result.availability_message);
       item.each( function() {
         var heldItemID = $(this).find('.volumeInfo.hidden').html();
-        if( heldItemID ) {
-          var heldVolumes = jQuery.parseJSON(result.heldVolumes);
+        var heldVolumes = jQuery.parseJSON(result.heldVolumes);
+        if( heldItemID && heldVolumes.hasOwnProperty(heldItemID) ) {
           $(this).find('.volumeInfo').empty().append("(" + heldVolumes[heldItemID] + ")").removeClass("hidden");
         }
       } );
+      var urls = JSON.parse(result.urls);
+      for( var key in urls ) {
+        if( urls.hasOwnProperty(key) ) {
+          $('div.itemURL a[href="' + urls[key]["url"] + '"]').parents('.itemURL').removeClass("hidden");
+          $('div.itemURL a[href="' + urls[key]["url"] + '"]').parents('tr').find('td.itemDetailCategory').removeClass("hidden");
+        }
+      }
       var leftButton = item.find('.leftButton');
       var leftButtonMenu = item.find('#holdButtonDropdown' + result.id.replace(".","") + ',#holdButtonDropdownMobile' + result.id.replace(".",""));
       if( result.isHolding ) {

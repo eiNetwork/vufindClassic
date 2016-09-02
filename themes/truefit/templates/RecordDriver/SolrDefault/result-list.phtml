@@ -59,13 +59,14 @@
           </td>
         </tr>
         <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
-          <td class="EIN-hide-m itemDetailCategory">&nbsp;</td>
-          <td>
-            <div class="itemURL"><span class="availableTag">Access Online</span></div>
-            <? foreach($urls as $thisURL): ?>
-              <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=$thisURL["desc"]?></a></div>
-            <? endforeach; ?>
-          </td>
+          <tr>
+            <td class="EIN-hide-m itemDetailCategory hidden">Links:</td>
+            <td>
+              <? foreach($urls as $thisURL): ?>
+                <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : $thisURL["desc"])?></a></div>
+              <? endforeach; ?>
+            </td>
+          </tr>
         <? endif; ?>
       </table>
 

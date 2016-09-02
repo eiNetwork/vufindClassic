@@ -4,11 +4,11 @@
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
   $isOverDrive = false;
+  $isOneClick = false;
   $hasVolumes = false;
   $holdableCopyHere = false;
   $onOrder = false;
   foreach($this->holdings as $entry):
-    //echo json_encode($entry);
     foreach($entry["items"] as $item):
       if( isset($item["isOverDrive"]) && $item["isOverDrive"] ):
         $isOverDrive = true;
@@ -20,6 +20,14 @@
         $onOrder = true;
       endif;      
     endforeach;
+  endforeach;
+  $urls = $this->driver->getURLs();
+  foreach($urls as $key => $thisUrl):
+    if( $isOverDrive && (strpos($thisUrl["url"], "http://excerpts.contentreserve.com") === false) ):
+      unset($urls[$key]);
+    elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
+      $isOneClick = true;
+    endif;
   endforeach;
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
@@ -106,31 +114,30 @@
             <? endforeach; ?>
           <? endforeach; ?>
           <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
-          <? $green = (($totalCopies > 0) && ($availableCopies > 0)|($onOrder)); ?>
+          <? $green = $isOneClick || (($totalCopies > 0) && ($availableCopies > 0)|($onOrder)); ?>
           <td class="EIN-hide-m itemDetailCategory">Availability:</td>
           <td style="padding-bottom:5px">
-            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : 'Available'))) : "Unavailable")?></span>
+            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : ($isOneClick ? 'Access Online' : 'Available')))) : "Unavailable")?></span>
             <? if( $alwaysAvailable ): ?>
               <span class="availableCopyText">Always Available</span>
+            <? elseif( $isOneClick ): ?>
+              <span class="availableCopyText"></span>
+            <? elseif( $onOrder ): ?>
+              <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
             <? else: ?>
-              <? if( $onOrder ): ?>
-                  <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
-              <? else: ?>
-                  <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
-              <? endif; ?>
+              <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
             <? endif; ?>
             <? if( isset($itsHere) ): ?>
               <div class="availableCopyText"><?=$itsH['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
             <? endif; ?>
           </td>
         </tr>
-        <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
+        <? if( !empty($urls) ): ?>
           <tr>
-            <td class="EIN-hide-m itemDetailCategory">&nbsp;</td>
+            <td class="EIN-hide-m itemDetailCategory">Links:</td>
             <td>
-              <div class="itemURL"><span class="availableTag">Access Online</span></div>
               <? foreach($urls as $thisURL): ?>
-                <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=$thisURL["desc"]?></a></div>
+                <div class="itemURL"><a href="<?=$thisURL["url"]?>" target="_blank"><?=($isOneClick ? 'Download from OneClick' : $thisURL["desc"])?></a></div>
               <? endforeach; ?>
             </td>
           </tr>
@@ -352,9 +359,9 @@
           </div>
           <div id="details1" class="panel-collapse collapse">
             <div class="panel-body">
-              <? if( $availableCopies > 0): ?>
-                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":"")?> (<?=$alwaysAvailable ? "Always Available" : $availableCopies?>)</h6>
-                <? if( !$isOverDrive ): ?>
+              <? if( ($availableCopies > 0) || $isOneClick ): ?>
+                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":($isOneClick?" on OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : $availableCopies?>)</h6>
+                <? if( !$isOverDrive && !$isOneClick ): ?>
                   <table class="EIN-col-m-12">
                     <tr class="availabilityHeaderRow">
                       <td class="EIN-col-m-4">Location</td>
@@ -493,7 +500,7 @@
                 <? if (!empty($urls)): ?>
                   <tr>
                     <td class="colophonHeading">Links</td>
-                    <td><? foreach ($urls as $url): ?><div class="itemURL"><a href="<?=$url["url"]?>" target="_blank"><?=$url["desc"]?></a></div><? endforeach; ?></td>
+                    <td><? foreach ($urls as $url): ?><div class="itemURL"><a href="<?=$url["url"]?>" target="_blank"><?=($isOneClick ? 'Download from OneClick' : $url["desc"])?></a></div><? endforeach; ?></td>
                   </tr>
                 <? endif; ?>
               </table>

@@ -205,6 +205,9 @@
                      (lightboxArgs.length > 2) ? lightboxArgs[2] : undefined,
                      (lightboxArgs.length > 3) ? lightboxArgs[3] : undefined,
                      (lightboxArgs.length > 4) ? lightboxArgs[4] : undefined);
+      // success, but they have messages, so send them to the message center
+      } else if( $(frame.contentDocument).find('.notificationsCount').length > 0 ) {
+        window.location.replace("/MyResearch/Notifications");
       // success, reload this page
       } else if( messages == null || messages.children.length == 0 ) {
         location.reload(true);

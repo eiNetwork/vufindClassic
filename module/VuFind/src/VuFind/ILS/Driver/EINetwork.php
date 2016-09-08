@@ -789,7 +789,10 @@ class EINetwork extends Sierra2 implements
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $notifications[] = ["subject" => "You have fines!", "message" => "Your account currently has $" . number_format($profile["moneyOwed"],2) . " worth of fines applied to it.  Please pay this as soon as possible!"];
+            $notifications[] = ["subject" => "You have fines.", "message" => "Your account currently has $" . number_format($profile["moneyOwed"],2) . 
+                                                                             " worth of fines applied to it.  Please <a class=\"messageLink\" target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . 
+                                                                             $profile["id"] . "/overdues\">click here</a> and pay this as soon as possible.  " . 
+                                                                             "You will be sent to the old catalog and will need to sign in again."];
         }
         if( $profile["preferredlibrarycode"] == null ) {
             $notifications[] = ["subject" => "Choose a preferred library", "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical " .

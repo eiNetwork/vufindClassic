@@ -70,9 +70,13 @@
           <tr>
             <td class="EIN-hide-m itemDetailCategory">Return Date:</td>
             <td style="padding-bottom:5px">
-              <span class="<?=(($this->checkout["dateDiff"]->invert == 0) ? "un" : "")?>availableTag">
-                <? if( $this->checkout["dateDiff"]->invert == 0 ): ?>
-                  Due <?=$this->checkout["dateDiff"]->days?> days ago!
+              <span class="<?=((($this->checkout["dateDiff"]->invert == 0) && ($this->checkout["dateDiff"]->days != 0)) ? "un" : "")?>availableTag">
+                <? if( $this->checkout["dateDiff"]->days == 0 ): ?>
+                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> today!
+                <? elseif( $this->checkout["dateDiff"]->invert == 0 ): ?>
+                  Due <?=($this->checkout["dateDiff"]->days == 1) ? "yesterday!" : ($this->checkout["dateDiff"]->days . " days ago!")?>
+                <? elseif( $this->checkout["dateDiff"]->days == 1 ): ?>
+                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> tomorrow!
                 <? elseif( $this->checkout["dateDiff"]->days <= 7 ): ?>
                   <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> in <?=$this->checkout["dateDiff"]->days?> days!
                 <? else: ?>
@@ -91,7 +95,7 @@
           if( isset($this->checkout["overDriveId"]) ):
             $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown" . str_replace(".", "", $id) . "\"";
           else:
-            $thisType = ($this->checkout["dateDiff"]->invert == 0) ? 'overdue' : (($this->checkout["dateDiff"]->days <= 7) ? 'due_this_week' : 'other');
+            $thisType = (($this->checkout["dateDiff"]->invert == 0) && ($this->checkout["dateDiff"]->days != 0)) ? 'overdue' : (($this->checkout["dateDiff"]->days <= 7) ? 'due_this_week' : 'other');
             $holdClick = " onClick=\"Lightbox.get('MyResearch','CheckedOut', false, {'renew':'true','renewSelected':'true','confirm':'0','renewSelectedIDS[]':'" . $this->checkout["checkout_id"] . "','checkoutType':'" . $thisType . "'})\"";
           endif;
         else:

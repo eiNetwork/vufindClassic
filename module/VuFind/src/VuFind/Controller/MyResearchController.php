@@ -1404,7 +1404,7 @@ class MyResearchController extends AbstractBase
 
             // Build record driver:
             $current["driver"] = $this->getDriverForILSRecord($current);
-            $checkoutList[($current["dateDiff"]->invert == 0) ? 'overdue' : (($current["dateDiff"]->days <= 7) ? 'due_this_week' : 'other')][] = $current;
+            $checkoutList[(($current["dateDiff"]->invert == 0) && ($current["dateDiff"]->days != 0)) ? 'overdue' : (($current["dateDiff"]->days <= 7) ? 'due_this_week' : 'other')][] = $current;
         }
 
         $view->checkoutList = $checkoutList;

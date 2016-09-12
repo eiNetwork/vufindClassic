@@ -375,3 +375,6 @@ html.modalOpen {overflow:hidden}
 body.modalOpen {overflow:hidden;position:fixed;width:100%}
 
 .itemURL {padding-bottom:5px}
+
+.messageLink{color:#3f51b5 !important}
+.messageWarning{color:#ed0000; font-weight:700}

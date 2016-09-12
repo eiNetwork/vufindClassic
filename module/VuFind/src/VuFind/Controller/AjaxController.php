@@ -273,6 +273,8 @@ class AjaxController extends AbstractBase
             foreach($urls as $key => $thisUrl) {
                 if( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
                     $isOneClick = true;
+                elseif( strpos($thisUrl["url"], "http://www.carnegielibrary.org/research/music/pittsburgh/pghlps.html") !== false ):
+                    unset($urls[$key]);
                 endif;
             }
 
@@ -293,7 +295,7 @@ class AjaxController extends AbstractBase
                 'itsHere'              => false,
                 'holdableCopyHere'     => false,
                 'holdArgs'             => '',
-                'heldVolumes'          => '',
+                'heldVolumes'          => '[]',
                 'urls'                 => json_encode($urls)
             ];
         }
@@ -555,6 +557,8 @@ class AjaxController extends AbstractBase
         $urls = $driver->getURLs();
         foreach($urls as $key => $thisUrl) {
           if( $isOverDrive && (strpos($thisUrl["url"], "http://excerpts.contentreserve.com") === false) ):
+            unset($urls[$key]);
+          elseif( strpos($thisUrl["url"], "http://www.carnegielibrary.org/research/music/pittsburgh/pghlps.html") !== false ):
             unset($urls[$key]);
           elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
             $isOneClick = true;

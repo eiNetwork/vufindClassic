@@ -25,6 +25,8 @@
   foreach($urls as $key => $thisUrl):
     if( $isOverDrive && (strpos($thisUrl["url"], "http://excerpts.contentreserve.com") === false) ):
       unset($urls[$key]);
+    elseif( strpos($thisUrl["url"], "http://www.carnegielibrary.org/research/music/pittsburgh/pghlps.html") !== false ):
+      unset($urls[$key]);
     elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
       $isOneClick = true;
     endif;

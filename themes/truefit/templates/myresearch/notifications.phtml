@@ -10,7 +10,7 @@
       <? foreach($this->notifications as $thisMessage): ?>
         <tr><td>
           <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
-          <div class="EIN-col-m-12 messageRow" onclick="Lightbox.get('MyResearch','Notifications',false,{'showMessage':true,'subject':'<?=$this->transEsc($thisMessage["subject"])?>','message':'<?=$this->transEsc($thisMessage["message"])?>'})"><?=$this->transEsc($thisMessage["subject"])?></div>
+          <div class="EIN-col-m-12 messageRow" onclick="Lightbox.get('MyResearch','Notifications',false,{'showMessage':true,'subject':'<?=$this->transEsc($thisMessage["subject"])?>','message':'<?=$this->transEsc($thisMessage["message"])?>'})"><?=$thisMessage["subject"]?></div>
         </td></tr>
       <? endforeach; ?>
     </table>

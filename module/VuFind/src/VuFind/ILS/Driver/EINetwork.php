@@ -789,18 +789,17 @@ class EINetwork extends Sierra2 implements
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $notifications[] = ["subject" => "You have fines.", "message" => "Your account currently has $" . number_format($profile["moneyOwed"],2) . 
-                                                                             " worth of fines applied to it.  Please <a class=\"messageLink\" target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . 
-                                                                             $profile["id"] . "/overdues\">click here</a> and pay this as soon as possible.  " . 
-                                                                             "You will be sent to the old catalog and will need to sign in again."];
+            $notifications[] = ["subject" => "<span class=\"messageWarning\">You have fines.</span>", "message" => "You currently have $" . number_format($profile["moneyOwed"],2) . " in fines.<br><br>" . 
+                                             "<a target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . $profile["id"] . "/overdues\"><button class=\"btn-default btn-wide\">Pay Online</button></a><br><br>" . 
+                                             "(You will be sent to the old version of the Catalog and will need to login into your account again.)"];
         }
         if( $profile["preferredlibrarycode"] == null ) {
             $notifications[] = ["subject" => "Choose a preferred library", "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical " .
                                                                                         "items much easier, since your preferred library is used as the default pickup location.  You can " .
-                                                                                        "assign a preferred library on the profile page."];
+                                                                                        "assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];
         }
         if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->invert == 0 ) {
-            $notifications[] = ["subject" => "Card expired", "message" => "Your library card is expired. Please visit your local library to renew your card to ensure access to all online services."];
+            $notifications[] = ["subject" => "<span class=\"messageWarning\">Card expired</span>", "message" => "Your library card is expired. Please visit your local library to renew your card to ensure access to all online services."];
         } else if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->days <= 30 ) {
             $notifications[] = ["subject" => "Card expiration approaching", "message" => "Your library card is due to expire within the next 30 days. Please visit your local library to " .
                                                                                          "renew your card to ensure access to all online services."];

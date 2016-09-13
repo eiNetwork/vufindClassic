@@ -451,7 +451,18 @@ class SolrDefault extends AbstractBase
      */
     public function getFormats()
     {
-        return isset($this->fields['format']) ? $this->fields['format'] : [];
+        if( isset($this->fields['format']) ) {
+            $formats = $this->fields['format'];
+            // weed out categories
+            foreach($formats as $key => $value) {
+                if( strpos($value, "Category:") !== false ) {
+                    unset($formats[$key]);
+                }
+            }
+            return $formats;
+        } else {
+            return [];
+        }
     }
 
     /**

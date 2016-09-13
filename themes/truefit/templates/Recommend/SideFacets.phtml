@@ -236,11 +236,13 @@
                   </li>
                   <? usort($inputVals, function($format1,$format2) { return strcmp($format1["displayText"], $format2["displayText"]); } ); ?>
                   <? foreach( $inputVals as $thisFacet ): ?>
-                    <li class="facetOffset1">
-                      <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
-                      <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
-                      <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
-                    </li>
+                    <? if( strpos($thisFacet['value'], "Category: ") === false): ?>
+                      <li class="facetOffset1">
+                        <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                        <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
+                        <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                      </li>
+                    <? endif; ?>
                   <? endforeach; ?>
                 <? endif; ?>
               <? endif; ?>

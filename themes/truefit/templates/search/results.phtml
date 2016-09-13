@@ -31,10 +31,10 @@
   $facetSet = $this->results->getRecommendations('side')[0]->getFacetSet();
   $resultCategories = $facetSet ? $facetSet["format_category"]["list"] : [];
   $resultFormats = $facetSet ? $facetSet["format"]["list"] : [];
-  $usableFormats = [];
+  $usableFormats = array();
   $usableCategories = [];
   foreach( $resultFormats as $thisFormat ):
-    $usableFormats[] = $thisFormat["value"];
+    $usableFormats[$thisFormat["value"]] = $thisFormat;
   endforeach;
 ?>
 
@@ -60,7 +60,7 @@
               <? if($thisResult["value"] == $categoryName):  $resultCount = $thisResult["count"]; endif; ?>
             <? endforeach; ?>
             <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $firstType = null;  foreach($formatTypes as $type): ?>
-              <? if( in_array($type, $usableFormats) ): ?>
+              <? if( array_key_exists($type, $usableFormats) ): ?>
                 <? if( $firstType == null ): ?>
                   <? $firstType = $type; $usableCategories[] = $categoryName; ?>
                 <? else: ?>

@@ -159,6 +159,9 @@
             $('#searchBoxDropdown').offset({left:newLeft, top:newTop});
             $('#searchBoxDropdown').css('width', $('#searchBoxDropdown').children("ul").outerWidth());
           }
+
+          // adjust to prevent scroll bars for music count
+          $(".hideOverflow").css({"overflow-x":(($(".main .container").width() == $(window).innerWidth())?"hidden":"visible")});
         }
       </script>
     </div>

@@ -49,7 +49,7 @@ table.footer {
 
 .formatIconCount {
   position:absolute;
-  top:-10px;
+  top:-5px;
   left:75%;
   width:100%;
   margin-left:-50%;
@@ -244,7 +244,7 @@ input:-webkit-autofill {-webkit-box-shadow: 0 0 0 1000px white inset;}
 .splashBtnOffset{margin-top:10px}
 .splashSearchBox{font-size:24px;height:48px;color:#949494;padding:5px 8px}
 
-.splashNewest{background-color:#949494;color:#ffffff;text-align:center;margin:0px -4px}
+.splashNewest{background-color:#949494;color:#ffffff;text-align:center;maargin:0px -4px}
 @media only screen and (min-width: 600px) {
   .splashNewest{margin:0}
 }
@@ -378,3 +378,6 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 
 .messageLink{color:#3f51b5 !important}
 .messageWarning{color:#ed0000; font-weight:700}
+
+.newestItem {width:33%; padding:3%}
+.newestItemHidden {width:33%; padding:3%; display:none}

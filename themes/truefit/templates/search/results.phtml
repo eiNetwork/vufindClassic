@@ -56,9 +56,8 @@
         <tr>
           <? foreach($this->formatCategories->types as $category): ?>
             <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
-            <? $imageName = str_replace(" ", "", $categoryName); $resultCount = 0; foreach($resultCategories as $thisResult): ?>
-              <? if($thisResult["value"] == $categoryName):  $resultCount = $thisResult["count"]; endif; ?>
-            <? endforeach; ?>
+            <? $imageName = str_replace(" ", "", $categoryName); ?>
+            <? $resultCount = $usableFormats["Category: " . $categoryName]["count"]; ?>
             <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $firstType = null;  foreach($formatTypes as $type): ?>
               <? if( array_key_exists($type, $usableFormats) ): ?>
                 <? if( $firstType == null ): ?>
@@ -68,10 +67,11 @@
                 <? endif; ?>
               <? endif; ?>
             <? endforeach; ?>
-            <td><div style="position:relative">
+            <td><div style="position:relative"<?=(($categoryName=="Music")?" class=\"hideOverflow\"":"")?>>
               <? if( $firstType != null ): ?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->addFacet('format', $firstType, 'OR', $urlParams)?>">
               <? endif; ?>
+              <div class="EIN-m-12" style="height:3px"></div>
               <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (($firstType == null) ? "Disabled" : "")?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
               <? if( $firstType != null ): ?>
                 </a>
@@ -93,10 +93,20 @@
         <table style="margin:auto;text-align:center">
           <tr>
             <td style="padding-left:10px" class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
-            <td style="padding-left:10px"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
+            <td style="padding-left:10px" id="resultsCount"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
             <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml')?></td>
           </tr>
         </table>
+        <script type="text/javascript">
+          jQuery(document).ready(function() {
+            setTimeout(function() {
+              while($('#resultsCount').parents("table").width() > $(window).innerWidth()) {
+                var fontSize = parseInt($('#resultsCount').css("font-size"));
+                $('#resultsCount').css("font-size", (fontSize - 1) + "px");
+              }
+            }, 100);
+          });
+        </script>
         <hr style="margin:5px 0">
       </div>
     <? endif; ?>

@@ -34,84 +34,114 @@
 <script type="text/javascript">
   function MoveSliderLeft(slider) {
     var leftBtn = slider.children[0].children[0];
-    var rightBtn = slider.children[1].children[0];
-    var scrollWindow = slider.children[2];
-    var scrollRow = scrollWindow.children[0];
-    if( parseFloat(scrollRow.style.left) < 0 ) {
-      scrollRow.style.left = (parseFloat(scrollRow.style.left) + 99) + "%";
-      leftBtn.disabled = (parseFloat(scrollRow.style.left) >= 0);
-      rightBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
+    var rightBtn = slider.children[2].children[0];
+    var sliderTable = slider.children[1].children[0];
+    var childTDs = $(sliderTable).find("td");
+    for( var i=slider.showIndex; i<slider.showIndex + 3 && i<childTDs.length; i++) {
+      childTDs.eq(i).addClass("newestItemHidden").removeClass("newestItem");
     }
+    slider.showIndex -= 3
+    for( var i=slider.showIndex; i<slider.showIndex + 3; i++) {
+      childTDs.eq(i).addClass("newestItem").removeClass("newestItemHidden");
+    }
+    leftBtn.disabled = (slider.showIndex == 0);
+    rightBtn.disabled = false;
   }
 
   function MoveSliderRight(slider) {
+    if( !slider.hasOwnProperty("showIndex") ) {
+      slider.showIndex = 0;
+    }
+
     var leftBtn = slider.children[0].children[0];
-    var rightBtn = slider.children[1].children[0];
-    var scrollWindow = slider.children[2];
-    var scrollRow = scrollWindow.children[0];
-    if( scrollRow.style.left == "" ) {
-      scrollRow.style.left = "0%";
+    var rightBtn = slider.children[2].children[0];
+    var sliderTable = slider.children[1].children[0];
+    var childTDs = $(sliderTable).find("td");
+    for( var i=slider.showIndex; i<slider.showIndex + 3; i++) {
+      childTDs.eq(i).addClass("newestItemHidden").removeClass("newestItem");
     }
-    if( (scrollWindow.offsetWidth - scrollRow.offsetLeft) < scrollRow.scrollWidth ) {
-      scrollRow.style.left = (parseFloat(scrollRow.style.left) - 99) + "%";
-      leftBtn.disabled = (scrollRow.scrollWidth <= scrollWindow.offsetWidth);
-      rightBtn.disabled = ((scrollWindow.offsetWidth - scrollRow.offsetLeft) >= scrollRow.scrollWidth);
+    slider.showIndex += 3
+    for( var i=slider.showIndex; i<slider.showIndex + 3 && i<childTDs.length; i++) {
+      childTDs.eq(i).addClass("newestItem").removeClass("newestItemHidden");
     }
+    leftBtn.disabled = false;
+    rightBtn.disabled = (slider.showIndex + 3) >= childTDs.length;
   }
 </script>
 <div class="splashNewest">
   <? if(is_object($this->DVDResults) && count($DVDResults = $this->DVDResults->results->getResults()) > 0): ?>
     <h1 class="newestHeader">Newest DVDs</h1>
-    <div class="sliderRoot">
-      <div class="sliderButtonLeft">
-        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
-      </div>
-      <div class="sliderButtonRight">
-        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->DVDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
-      </div>
-      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
-        <? foreach ($DVDResults as $entry): ?>
-          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
-            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-          </div></div></div></a><!--
-        <? endforeach ?>
-      --></div></div>
-    </div>
+    <table style="width:100%">
+      <tr>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+        </td>
+        <td style="width:76%" class="sliderWindow">
+          <table style="width:100%"><tr>
+          <? $count = 0; foreach ($DVDResults as $entry): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
+              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </div></div></div></a></td>
+          <? endforeach ?>
+          <? while( $count % 3 ): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
+          <? endwhile; ?>
+          </tr></table>
+        </td>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->DVDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+        </td>
+      </tr>
+    </table>
   <? endif; ?>
   <? if(is_object($this->eBookResults) && count($ebookResults = $this->eBookResults->results->getResults()) > 0): ?>
     <h1 class="newestHeader">Newest eBooks</h1>
-    <div class="sliderRoot">
-      <div class="sliderButtonLeft">
-        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
-      </div>
-      <div class="sliderButtonRight">
-        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->eBookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
-      </div>
-      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
-        <? foreach ($ebookResults as $entry): ?>
-          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
-            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-          </div></div></div></a><!--
-        <? endforeach ?>
-      --></div></div>
-    </div>
+    <table style="width:100%">
+      <tr>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+        </td>
+        <td style="width:76%" class="sliderWindow">
+          <table style="width:100%"><tr>
+          <? $count = 0; foreach ($ebookResults as $entry): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
+              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </div></div></div></a></td>
+          <? endforeach ?>
+          <? while( $count % 3 ): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
+          <? endwhile; ?>
+          </tr></table>
+        </td>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->eBookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+        </td>
+      </tr>
+    </table>
   <? endif; ?>
   <? if(is_object($this->CDResults) && count($CDResults = $this->CDResults->results->getResults()) > 0): ?>
     <h1 class="newestHeader">Newest Music CDs</h1>
-    <div class="sliderRoot">
-      <div class="sliderButtonLeft">
-        <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
-      </div>
-      <div class="sliderButtonRight">
-        <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->CDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
-      </div>
-      <div class="sliderWindow"><div class="sliderRow" on><!-- Need this ugly hack to get rid of space between inline-block elements.
-        <? foreach ($CDResults as $entry): ?>
-          --><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1"><div class="newestEntryLev2"><div class="newestEntryLev3">
-            <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-          </div></div></div></a><!--
-        <? endforeach ?>
-      --></div></div>
-    </div>
+    <table style="width:100%">
+      <tr>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+        </td>
+        <td style="width:76%" class="sliderWindow">
+          <table style="width:100%"><tr>
+          <? $count = 0; foreach ($CDResults as $entry): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
+              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </div></div></div></a></td>
+          <? endforeach ?>
+          <? while( $count % 3 ): ?>
+            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
+          <? endwhile; ?>
+          </tr></table>
+        </td>
+        <td style="width:12%">
+          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->CDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+        </td>
+      </tr>
+    </table>
   <? endif; ?>
 </div>

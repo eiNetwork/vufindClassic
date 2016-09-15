@@ -201,6 +201,12 @@
                     <? endforeach; ?>
                   <? endforeach; ?>
                 <? endforeach; ?>
+                <? /* weed out categories */ ?>
+                <? for( $index=count($inputVals) - 1; $index>=0; $index-- ): ?>
+                  <? if( strpos($inputVals[$index]['value'], "Category: ") !== false): ?>
+                    <? unset( $inputVals[$index] ); ?>
+                  <? endif; ?>
+                <? endfor; ?>
                 <? $bookTypes = ["Print Book", "eBook", "Audio Book"]; $showBooks = false; foreach($bookTypes as $type): $showBooks |= (count($outputVals[$type]["children"]) > 0); endforeach; ?>
                 <? if( $showBooks ): ?>
                   <li class="facetOffset0">
@@ -220,7 +226,7 @@
                     </li>
                     <? foreach( $thisArray["children"] as $thisFacet ): ?>
                       <li class="facetOffset<?=(in_array($type, $bookTypes) ? "2" : "1")?>">
-                        <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
+                        <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(URLify($thisFacet['value']))?>%22"></i>
                         <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
                         <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
                       </li>
@@ -236,13 +242,11 @@
                   </li>
                   <? usort($inputVals, function($format1,$format2) { return strcmp($format1["displayText"], $format2["displayText"]); } ); ?>
                   <? foreach( $inputVals as $thisFacet ): ?>
-                    <? if( strpos($thisFacet['value'], "Category: ") === false): ?>
-                      <li class="facetOffset1">
-                        <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".str_replace(" ","+",$thisFacet['value'])?>%22"></i>
-                        <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
-                        <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
-                      </li>
-                    <? endif; ?>
+                    <li class="facetOffset1">
+                      <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(URLify($thisFacet['value']))?>%22"></i>
+                      <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
+                      <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                    </li>
                   <? endforeach; ?>
                 <? endif; ?>
               <? endif; ?>

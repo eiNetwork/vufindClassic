@@ -54,26 +54,42 @@
     <div class="EIN-col-m-12">
       <table style="width:100%; text-align:center">
         <tr>
+          <? $anyApplied = $this->results->getUrlQuery()->getParamArray()["filter"]; ?>
+          <? foreach( $anyApplied as $key=>$value): ?>
+            <? if(strpos($value, "~format:") === false): ?>
+              <? unset($anyApplied[$key]); ?>
+            <? endif; ?>
+          <? endforeach; ?>
           <? foreach($this->formatCategories->types as $category): ?>
             <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
-            <? $imageName = str_replace(" ", "", $categoryName); $resultCount = 0; foreach($resultCategories as $thisResult): ?>
-              <? if($thisResult["value"] == $categoryName):  $resultCount = $thisResult["count"]; endif; ?>
-            <? endforeach; ?>
-            <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $firstType = null;  foreach($formatTypes as $type): ?>
+            <? $imageName = str_replace(" ", "", $categoryName); ?>
+            <? $thisCategory = $usableFormats["Category: " . $categoryName]; ?>
+            <? $resultCount = $usableFormats["Category: " . $categoryName]["count"]; ?>
+            <? $thisCategory["someApplied"] = false; ?>
+            <? $thisCategory["isApplied"] = true; ?>
+            <? $urlParams = $this->results->getUrlQuery()->getParamArray();  $removeTypes = [];  $firstType = null;  foreach($formatTypes as $type): ?>
               <? if( array_key_exists($type, $usableFormats) ): ?>
                 <? if( $firstType == null ): ?>
                   <? $firstType = $type; $usableCategories[] = $categoryName; ?>
                 <? else: ?>
                   <? $urlParams["filter"][] = "~format:\"" . $type . "\""; ?>
+                  <? $removeTypes[] = "~format:\"" . $type . "\""; ?>
                 <? endif; ?>
+                <? $thisCategory["someApplied"] = $thisCategory["someApplied"] || $usableFormats[$type]["isApplied"]; ?>
+                <? $thisCategory["isApplied"] = $thisCategory["isApplied"] && $usableFormats[$type]["isApplied"]; ?>
               <? endif; ?>
             <? endforeach; ?>
-            <td><div style="position:relative">
-              <? if( $firstType != null ): ?>
+            <? $thisCategory["isApplied"] = $thisCategory["isApplied"] && $thisCategory["someApplied"]; ?>
+            <td><div style="position:relative"<?=(($categoryName=="Music")?" class=\"hideOverflow\"":"")?>>
+              <? if( $thisCategory["isApplied"] ): ?>
+                <? $urlParams["filter"] = array_diff($urlParams["filter"], $removeTypes); ?>
+                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet('format', $firstType, true, 'OR', $urlParams)?>">
+              <? elseif( $firstType != null ): ?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->addFacet('format', $firstType, 'OR', $urlParams)?>">
               <? endif; ?>
-              <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (($firstType == null) ? "Disabled" : "")?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
-              <? if( $firstType != null ): ?>
+              <div class="EIN-m-12" style="height:3px"></div>
+              <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (((!$anyApplied && ($thisCategory["count"] > 0)) || $thisCategory["isApplied"]) ? "" : ($thisCategory["someApplied"] ? "Partial" : "Disabled"))?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
+              <? if( $thisCategory["isApplied"] || ($firstType != null) ): ?>
                 </a>
               <? endif; ?>
               </div></td>
@@ -93,10 +109,20 @@
         <table style="margin:auto;text-align:center">
           <tr>
             <td style="padding-left:10px" class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
-            <td style="padding-left:10px"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
+            <td style="padding-left:10px" id="resultsCount"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
             <td style="padding-left:5px"><?=$this->render('search/controls/sort.phtml')?></td>
           </tr>
         </table>
+        <script type="text/javascript">
+          jQuery(document).ready(function() {
+            setTimeout(function() {
+              while($('#resultsCount').parents("table").width() > $(window).innerWidth()) {
+                var fontSize = parseInt($('#resultsCount').css("font-size"));
+                $('#resultsCount').css("font-size", (fontSize - 1) + "px");
+              }
+            }, 100);
+          });
+        </script>
         <hr style="margin:5px 0">
       </div>
     <? endif; ?>

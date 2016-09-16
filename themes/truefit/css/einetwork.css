@@ -381,3 +381,4 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 
 .newestItem {width:33%; padding:3%}
 .newestItemHidden {width:33%; padding:3%; display:none}
+.initialSearch {color:#949494}

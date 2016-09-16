@@ -32,11 +32,21 @@
 <? else: ?>
   <form role="search" method="get" action="<?=$this->url($basicSearch)?>" name="searchForm" id="LCsearchForm" autocomplete="off">
     <?= $this->render('search/searchTabs'); ?>
-    <button class="btn btn-noBorderAlternate floatR" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();"><i class="fa fa-caret-down"></i></button>
-    <button type="submit" class="btn btn-noBorderAlternate floatR"><i class="fa fa-search"></i></button>
-    <span class="expand">
-      <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?>" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search" : $this->lookfor)?>" onfocus="if (this.value=='Search') {this.value = '';this.style.color='#3d3d3d';}"/>
-    </span>
+    <table class="EIN-col-m-12">
+      <tr>
+        <td style="width:100%">
+          <div style="padding:0 5px">
+            <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?><? if($this->lookfor == ""): ?> initialSearch<? endif; ?>" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search For..." : $this->lookfor)?>" onfocus="SearchFocus(this);"/>
+          </div>
+        </td>
+        <td>
+          <button type="submit" class="btn btn-noBorderAlternate floatR"><i class="fa fa-search"></i></button>
+        </td>
+        <td>
+          <button class="btn btn-noBorderAlternate floatR" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();"><i class="fa fa-caret-down"></i></button>
+        </td>
+      </tr>
+    </table>
     <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
 
     <? $shards = $options->getShards(); if ($options->showShardCheckboxes() && !empty($shards)): ?>
@@ -93,12 +103,21 @@
   <script type="text/javascript">
     $("#searchForm_lookfor").focus();
 
+    function SearchFocus(elem) {
+      $(elem).parent().css({"background-color":"#ededed"});
+      $(".initialSearch").typeahead('val', '');
+      $(".initialSearch").css({"color":"#3d3d3d"});
+      $(".initialSearch").focusout( function() {
+        $(this).parent().css({"background-color":"#fff"});
+      } );
+      $(".initialSearch").removeClass("initialSearch");
+    }
+
     // submit the login on enter press
-    //$("#LCsearchForm input").keypress(function(event) {
     $("input[name=lookfor]").keypress(function(event) {
       if (event.which == 13) {
         event.preventDefault();
-        event.target.parentElement.parentElement.submit();
+        $(event.target).parents("form").submit();
       }
     });
   </script>

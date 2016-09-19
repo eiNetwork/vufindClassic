@@ -180,7 +180,7 @@
             <h4 id="modalTitle" class="modal-title"></h4>
           </div>
           <div style="position:relative">
-            <div class="modal-body" style="color:#3d3d3d">
+            <div class="modal-body" style="color:#3d3d3d; overflow:auto">
               <span><i class="fa fa-spinner"></i></span>
               <span>&nbsp;<?=$this->transEsc('Loading') ?>...</span>
             </div>
@@ -240,16 +240,13 @@
           var max = $(window).height() - offset;
           var barHeight = max - 30;
           var sliderHeight = barHeight * barHeight / $('.modal-body').outerHeight();
-          var hidden = (max > $('.modal-body').outerHeight());
           maxRange = $('.modal-body').outerHeight() - max;
-          $('.modal-body').css({"max-height":(max + "px"),"overflow-y":"hidden"});
-          $('.modalScrollBar').css({"height":(barHeight + "px"),"display":(hidden ? "none" : "block")});
+          $('.modalScrollBar').css({"height":(barHeight + "px"),"display":"none"});
           $('.modalScrollSlider').css({"height":(sliderHeight + "px")});
           Lightbox.addCloseAction(function() {
             $('.modal-footer').html("");
             $('.modalScrollBar').css({"height":"0px","display":"none"});
             $('.modalScrollSlider').css({"height":"0px", "top":"0px"});
-            $('.modal-body').css({"max-height":"none","overflow-y":"auto"});
             $('.modal-body').scrollTop(0);
             initialOffset = -1;
             maxRange = -1;

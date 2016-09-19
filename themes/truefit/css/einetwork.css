@@ -269,7 +269,7 @@ input:-webkit-autofill {-webkit-box-shadow: 0 0 0 1000px white inset;}
 .titleInfoLine{margin:0 0 5px}
 .authorLink{color:#757575}.authorLink:hover,.authorLink:active,.authorLink:focus{text-decoration:underline}
 .padded{padding:0px 7px}
-.formatTag{border-radius:2px;background-color:#ededed;color:#3d3d3d;font-size:14px;font-weight:700;padding:3px 6px;white-space:nowrap}
+.formatTag,.filterTag{border-radius:2px;background-color:#ededed;color:#3d3d3d;font-size:14px;font-weight:700;padding:3px 6px;white-space:nowrap}
 .availableTag{border-radius:2px;background-color:rgba(29, 163, 56, 0.2);color:#007517;font-size:14px;font-weight:700;padding:3px 6px}
 .unavailableTag{border-radius:2px;background-color:rgba(240, 105, 105, 0.2);color:#d90000;font-size:14px;font-weight:700;padding:3px 6px}
 .publishDate{color:#3d3d3d;font-size:14px}
@@ -382,3 +382,5 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 .newestItem {width:33%; padding:3%}
 .newestItemHidden {width:33%; padding:3%; display:none}
 .initialSearch {color:#949494}
+.filterTagDiv {padding-top:5px; display:inline-block}
+.filterTag .fa-close {color:#3d3d3d; margin-left:6px}

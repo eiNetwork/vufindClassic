@@ -128,6 +128,20 @@
             }, 100);
           });
         </script>
+        <? $params = $this->results->getUrlQuery()->getParamArray(); ?>
+        <? if( $params["filter"] != null ): ?>
+          <div style="width:95%;margin:auto; text-align:center">
+            <div class="filterTagDiv">Refined to:</div>
+            <? foreach( ($params["filter"]) as $key => $value ): ?>
+              <? $bits = explode("\"",$value); ?>
+              <div class="filterTagDiv"><span class="filterTag"><?=$bits[1]?>
+                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], 1, -1), $bits[1], true, 'OR', $params)?>">
+                  <i class="fa fa-close"></i>
+                </a>
+              </span></div>
+            <? endforeach; ?>
+          </div>
+        <? endif; ?>
         <hr style="margin:5px 0">
       </div>
     <? endif; ?>

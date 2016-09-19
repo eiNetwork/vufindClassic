@@ -45,7 +45,7 @@ function handleItemStatusResponse(response) {
         leftButton.prop('disabled', false);
         leftButton.wrap("<a href=\"" + result.checkoutLink + "\" target=\"loginFrame\"></a>");
         leftButton.attr('onClick', "$(this).html('<i class=\\\'fa fa-spinner bwSpinner\\\'></i>&nbsp;Loading...')");
-        leftButton.empty().append('Checkout');
+        leftButton.empty().append('Check Out');
       } else if( ("isCheckedOut" in result) && result.isCheckedOut ) {
         leftButton.prop('disabled', false);
         leftButton.attr('data-toggle', 'dropdown');

@@ -12,29 +12,39 @@
 ?>
 <div class="navbar-header row">
   <div class="EIN-col-m-12">
-    <div style="float:left;margin-right:20px">
+    <table class="EIN-col-m-12" style="white-space:nowrap"><tr>
+    <td><div style="margin-right:20px">
       <a href="<?=$this->url('home')?>"><button class="btn-noBorderAlternate">Library Catalog</button></a>
-    </div>
-    <div class="floatR">
+    </div></td>
+    <td class="EIN-col-m-12">
+<? if ($this->layout()->searchbox !== false): ?>
+    <div style="margin:0 4px"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #949494;border-right:1px solid #949494;padding-right:2px">
+      <?=$this->layout()->searchbox ?>
+    </div></div>
+<? endif; ?>
+    </td>
+    <td class="EIN-hide">
       <div class="dropdown EIN-hide">
         <button type="button" class="dropdown-toggle btn-noBorderAlternate" data-toggle="dropdown" href="#navDropdown">
           <span class="sr-only">Toggle navigation</span>
           <i class="fa fa-bars"></i>
         </button>
       </div>
+    </td>
+    <td class="EIN-hide-m EIN-hide-t" style="padding-right:4px">
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('Help','Home')"><span class="headerLink">Help</span></button>
+    </td>
+    <td class="EIN-hide-m EIN-hide-t">
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none"><span class="headerLink">Locations</span></button>
+    </td>
+    <td class="EIN-hide-m EIN-hide-t">
 <? if ($user): ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
 <? else: ?>
       <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
 <? endif; ?>
-    </div>
-<? if ($this->layout()->searchbox !== false): ?>
-    <span class="expand"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #949494;border-right:1px solid #949494;padding-right:2px">
-      <?=$this->layout()->searchbox ?>
-    </div></span>
-<? endif; ?>
+    </td>
+    </tr></table>
   </div>
   <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="border-top:1px solid #949494"></div>
   <div class="EIN-col-m-12">
@@ -77,11 +87,10 @@
       </ul>
     </div>
   </div>
-  <div class="EIN-col-m-12 EIN-hide-t EIN-hide">
 <? if ($this->layout()->searchbox !== false): ?>
+  <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="border-bottom:1px solid #949494">
     <?=$this->layout()->searchbox ?>
-    <hr>
-<? endif; ?>
   </div>
+<? endif; ?>
   <div class="EIN-col-m-12" style="height:10px"></div>
 </div>

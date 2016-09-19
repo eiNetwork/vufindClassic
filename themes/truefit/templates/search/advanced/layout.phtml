@@ -108,7 +108,7 @@
                   <div class="EIN-col-m-12">
                     <div class="EIN-col-m-12 EIN-col-t-8">
                       <? $value = isset($setQueries[$group][$search]) ? $this->escapeHtml($setQueries[$group][$search]->getString()) : ""; ?>
-                      <input name="lookfor<?=$group ?>[]" id="search_lookfor<?=$group.'_'.$search ?>" <? if($value==""): ?>onfocus="if (this.value=='Enter your search term') {this.value = '';this.style.color='#3d3d3d';}"<?else:?>style="color:#3d3d3d"<?endif;?> class="form-control textBox" type="text" value="<?=$value?>" onkeypress="return CheckForEnter(event);">
+                      <input name="lookfor<?=$group ?>[]" id="search_lookfor<?=$group.'_'.$search ?>"<? if($value==""): ?> onfocus="SearchFocus(this)"<? endif; ?> class="form-control textBox<?=(($value=="")?" initialSearch":"")?>" type="text" value="<?=$value?>" onkeypress="return CheckForEnter(event);">
                     </div>
                     <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:5px"></div>
                     <div class="EIN-col-m-12 EIN-col-t-4 center">
@@ -167,3 +167,15 @@
     </div>
   </form>
 </div>
+<script type="text/javascript">
+  function SearchFocus(elem) {
+    var elemParent = $(elem).parent();
+    elemParent.css({"background-color":"#ededed"});
+    elemParent.find(".initialSearch").val('');
+    elemParent.find(".initialSearch").css({"color":"#3d3d3d"});
+    elemParent.find(".initialSearch").focusout( function() {
+      elemParent.css({"background-color":"#fff"});
+    } );
+    elemParent.find(".initialSearch").removeClass("initialSearch");
+  }
+</script>

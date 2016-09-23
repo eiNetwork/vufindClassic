@@ -14,7 +14,7 @@
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
     </td>
     <td class="EIN-col-m-11" style="padding-right:10px">
-      <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+      <div class="EIN-col-m-12">
         <h1 property="name" class="itemTitle"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml((($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))))?>
           <? if( isset($this->hold["item_id"]) ): ?>
             <span class="hidden volumeInfo"><?=substr($this->hold["item_id"], 2, -1)?></span>
@@ -31,7 +31,7 @@
           <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
             <tr>
               <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
-              <td style="padding-bottom:5px">
+              <td style="padding-bottom:5px; width:100%">
                 <span class="formatTag"><?=$thisFormat?></span>
 
                 <? if( $firstTime ): ?>
@@ -49,18 +49,29 @@
           <? endforeach; ?>
         <? endif; ?>
 
-        <tr>
-          <td class="EIN-hide-m itemDetailCategory">Availability:</td>
-          <td style="padding-bottom:5px">
-            <span class="status ajax-availability hidden"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
-          </td>
-        </tr>
-
         <? if( !isset($this->hold["overDriveId"]) ): ?>
           <tr>
             <td colspan="2">
               <div class="EIN-col-m-12" style="height:10px"></div>
               Pick up at: <span class="bold"><?=$this->hold["location"]?></span>
+            </td>
+          </tr>
+          <? if( $this->hold["status"] != "i" && isset($this->hold["expire"]) ): ?>
+            <tr>
+              <td colspan="2">
+                Not wanted after: <span class="bold"><?=strftime("%b %e, %Y", strtotime($this->hold["expire"]))?></span>
+              </td>
+            </tr>
+          <? endif; ?>
+        <? endif; ?>
+        <? if( $this->hold["status"] != "i" && $this->hold["status"] != "t" ): ?>
+          <tr>
+            <td colspan="2">
+              <? if( isset($this->hold["overDriveId"]) ): ?>
+                <span class="bold"><?=$this->hold["position"]?></span>
+              <? else: ?>
+                <span class="bold ajax-holdStatus holdStatus"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
+              <? endif; ?>
             </td>
           </tr>
         <? endif; ?>

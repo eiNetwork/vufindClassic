@@ -26,9 +26,9 @@
       <div class="panel-heading">
         <h4 class="panel-title">
           <? if(count($this->holdList[$holdType]) > 0): ?>    
-            <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
+            <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active leftTab"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
           <? else: ?>
-            <a data-toggle="collapse" class="collapsed disabled" onclick="return false;"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
+            <a data-toggle="collapse" class="collapsed disabled leftTab" onclick="return false;"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
           <? endif; ?>
           <div class="openAccordionTab"></div>
         </h4>

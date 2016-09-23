@@ -25,14 +25,14 @@
         <? $list = $thisResult["list"]; ?>    
         <div class="panel-heading">
           <h4 class="panel-title">
-            <a data-toggle="collapse" data-parent="#listAccordion" href="#details<?=$list->id?>" class="collapsed" onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"><?=$list->title?><span class="badge"><?=$thisResult["items"]->getResultTotal()?></span></a>
+            <a data-toggle="collapse" data-parent="#listAccordion" href="#details<?=$list->id?>" class="collapsed leftTab" onclick="setTimeout( function() { $('#sortButton<?=$list->id?>').css('width', $('#sortButtonDropdown<?=$list->id?>').children().outerWidth())}, 10);"><?=$list->title?><span class="badge"><?=$thisResult["items"]->getResultTotal()?></span></a>
             <div class="openAccordionTab"></div>
           </h4>
         </div>
       <? endforeach; ?>
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})" class="collapsed">Create New List</a>
+          <a onclick="Lightbox.get('MyResearch','editList',{'id':'NEW'})" class="collapsed leftTab">Create New List</a>
           <div class="openAccordionTab"></div>
         </h4>
       </div>

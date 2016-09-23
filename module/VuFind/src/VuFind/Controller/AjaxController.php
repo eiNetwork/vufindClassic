@@ -304,6 +304,101 @@ class AjaxController extends AbstractBase
         return $this->output($statuses, self::STATUS_OK);
     }
 
+
+    /**
+     * Get Hold Statuses
+     *
+     * This is responsible for printing the holdings information for a
+     * collection of records in JSON format.
+     *
+     * @return \Zend\Http\Response
+     * @author Chris Delis <cedelis@uillinois.edu>
+     * @author Tuan Nguyen <tuan@yorku.ca>
+     */
+    protected function getHoldStatusesAjax()
+    {
+        $this->writeSession();  // avoid session write timing bug
+        $catalog = $this->getILS();
+        $ids = $this->params()->fromQuery('id');
+        $results = [];
+        foreach($ids as $thisID) {
+            $driver = $this->getRecordLoader()->load( $thisID );
+            $holdings = $driver->getRealTimeHoldings();
+            $items = [];
+            foreach($holdings as $holding) {
+                $items = array_merge($items, $holding["items"]);
+            }
+            $results[] = $items;
+        }
+        $holds = [];
+        if($user = $this->getUser()) {
+            $patron = $this->catalogLogin();
+            $holds = $catalog->getMyHolds($patron);
+        }
+
+        // In order to detect IDs missing from the status response, create an
+        // array with a key for every requested ID.  We will clear keys as we
+        // encounter IDs in the response -- anything left will be problems that
+        // need special handling.
+        $missingIds = array_flip($ids);
+
+        // Loop through all the status information that came back
+        $statuses = [];
+        foreach ($results as $recordNumber => $record) {
+            // Filter out suppressed locations:
+            $record = $this->filterSuppressedLocations($record);
+
+            // Skip empty records:
+            if (count($record)) {
+                $copyCount = count($record);
+
+                // get this hold
+                $thisHold = [];
+                foreach( $holds as $holdIterator ) {
+                    if( $holdIterator["id"] == $record[0]["id"] ) {
+                        $thisHold = $holdIterator;
+                    }
+                }
+                
+                // fix the hold message
+                $peopleCount = ceil(($thisHold["position"] + 1) / $copyCount);
+                $holdMessage = $peopleCount . " " . (($peopleCount == 1) ? "person": "people") . " ahead of you (hold #" . 
+                               ($thisHold["position"] + 1) . " on " . $copyCount . " cop" . (($copyCount == 1) ? "y" : "ies") . ")";
+
+                $statuses[] = [
+                    'id'                   => $record[0]['id'],
+                    'hold_status_message'  => $holdMessage
+                ];
+
+                // The current ID is not missing -- remove it from the missing list.
+                unset($missingIds[$record[0]['id']]);
+            }
+        }
+
+        // If any IDs were missing, send back appropriate dummy data
+        foreach ($missingIds as $missingId => $recordNumber) {
+            // see if we have any urls we should show
+            $driver = $this->getRecordLoader()->load( $thisID );
+            $urls = $driver->getURLs();
+            foreach($urls as $key => $thisUrl) {
+                if( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
+                    $isOneClick = true;
+                elseif( strpos($thisUrl["url"], "http://www.carnegielibrary.org/research/music/pittsburgh/pghlps.html") !== false ):
+                    unset($urls[$key]);
+                endif;
+            }
+
+            $statuses[] = [
+                'id'                   => $missingId,
+                'hold_status_message'  => "Unable to load hold status"
+            ];
+        }
+
+        // Done
+        return $this->output($statuses, self::STATUS_OK);
+    }
+
+
     /**
      * Support method for getItemStatuses() -- when presented with multiple values,
      * pick which one(s) to send back via AJAX.

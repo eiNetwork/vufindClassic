@@ -1,5 +1,36 @@
 /*global path*/
 
+function checkHoldStatuses() {
+  var id = $.map($('.ajaxItem'), function(i) {
+    return $(i).find('.hiddenId')[0].value;
+  });
+  if (!id.length) {
+    return;
+  }
+  $(".ajax-holdStatus").removeClass('hidden');
+  $('.ajaxItem').each( function() {
+    $.ajax({
+      dataType: 'json',
+      url: path + '/AJAX/JSON?method=getHoldStatuses',
+      data: {id:[$(this).find('.hiddenId')[0].value]},
+      success: handleHoldStatusResponse
+    });
+  });
+}
+
+function handleHoldStatusResponse(response) {
+  if(response.status == 'OK') {
+    $.each(response.data, function(i, result) {
+      var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
+      item.find('.holdStatus').empty().append(result.hold_status_message);
+    });
+  } else {
+    // display the error message on each of the ajax status place holder
+    $(".ajax-holdStatus").empty().append(response.data);
+  }
+  $(".ajax-holdStatus").removeClass('ajax-holdStatus');
+}
+
 function checkItemStatuses() {
   var id = $.map($('.ajaxItem'), function(i) {
     return $(i).find('.hiddenId')[0].value;
@@ -142,5 +173,10 @@ function handleItemStatusResponse(response) {
 }
 
 $(document).ready(function() {
-  checkItemStatuses();
+  if( $(".ajax-availability").length > 0 ) {
+    checkItemStatuses();
+  }
+  if( $(".ajax-holdStatus").length > 0 ) {
+    checkHoldStatuses();
+  }
 });

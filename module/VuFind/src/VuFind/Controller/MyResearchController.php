@@ -1407,6 +1407,23 @@ class MyResearchController extends AbstractBase
             $checkoutList[(($current["dateDiff"]->invert == 0) && ($current["dateDiff"]->days != 0)) ? 'overdue' : (($current["dateDiff"]->days <= 7) ? 'due_this_week' : 'other')][] = $current;
         }
 
+        // sort lists by due date, then title
+        foreach( $checkoutList as $key => $thisList ) {
+            usort($checkoutList[$key], function($co1, $co2) {
+                if($co1["duedate"] > $co2["duedate"]) {
+                    return 1;
+                } else if($co1["duedate"] < $co2["duedate"]) {
+                    return -1;
+                } else if($co1["title"] > $co2["title"]) {
+                    return 1;
+                } else if($co1["title"] < $co2["title"]) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            } );
+        }
+
         $view->checkoutList = $checkoutList;
         $view->showCheckoutType = $this->session->lastCheckoutType;
         return $view;

@@ -41,6 +41,15 @@
   foreach( $resultFormats as $thisFormat ):
     $usableFormats[$thisFormat["value"]] = $thisFormat;
   endforeach;
+
+  // load the empties
+  foreach($this->formatCategories->types as $category): 
+    $formatTypes = explode(",", $category);
+    $categoryName = array_splice($formatTypes, 0, 1)[0];
+    if( !isset($usableFormats["Category: " . $categoryName]) ):
+      $usableFormats["Category: " . $categoryName] = array("count" => 0);
+    endif;
+  endforeach;
 ?>
 
 <div class="row">
@@ -59,7 +68,7 @@
     <div class="EIN-col-m-12">
       <table style="width:100%; text-align:center">
         <tr>
-          <? $anyApplied = $this->results->getUrlQuery()->getParamArray()["filter"]; ?>
+          <? $anyApplied = isset($this->results->getUrlQuery()->getParamArray()["filter"]) ? $this->results->getUrlQuery()->getParamArray()["filter"] : []; ?>
           <? foreach( $anyApplied as $key=>$value): ?>
             <? if(strpos($value, "~format:") === false): ?>
               <? unset($anyApplied[$key]); ?>
@@ -129,7 +138,7 @@
           });
         </script>
         <? $params = $this->results->getUrlQuery()->getParamArray(); ?>
-        <? if( $params["filter"] != null ): ?>
+        <? if( isset($params["filter"]) && $params["filter"] != null ): ?>
           <div style="width:95%;margin:auto; text-align:center">
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>

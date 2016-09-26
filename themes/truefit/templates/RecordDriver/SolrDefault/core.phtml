@@ -333,19 +333,19 @@
       <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
         <div class="panel-heading">
           <h4 class="panel-title">
-            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details1" class="collapsed">Availability Details</a>
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details1" class="leftTab collapsed">Availability Details</a>
             <div class="openAccordionTab"></div>
           </h4>
         </div>
         <div class="panel-heading" style="display:none">
           <h4 class="panel-title">
-            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details2" class="collapsed">Other Formats & Languages</a>
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details2" class="leftTab collapsed">Other Formats & Languages</a>
             <div class="openAccordionTab"></div>
           </h4>
         </div>
         <div class="panel-heading overdriveHeader">
           <h4 class="panel-title">
-            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details3" class="collapsed">Details</a>
+            <a data-toggle="collapse" data-parent="#detailsAccordion" href="#details3" class="leftTab collapsed">Details</a>
             <div class="openAccordionTab"></div>
           </h4>
         </div>
@@ -433,16 +433,31 @@
           </div>
           <div id="details3" class="panel-collapse collapse">
             <div class="panel-body">
-              <? if( isset($this->tabs['Summaries']) ): ?>
-                <? $summarySources = $this->tabs['Summaries']->getContent($this->driver->getCleanISBN()); ?>
+              <? if( isset($this->tabs['Summaries']) || count($this->driver->getSummary()) > 0 ): ?>
+                <? $summarySources = (isset($this->tabs['Summaries']) ? $this->tabs['Summaries']->getContent($this->driver->getCleanISBN()) : []); ?>
                 <? if( count($summarySources) > 0 ): ?>
                   <h6 class="accordionSubheading accordionGap">Summary</h6>
                   <? foreach( $summarySources as $summaries ): ?>
                     <? foreach( $summaries as $summary ): ?>
-                      <span class="accordionParagraph"><?=$summary['Content']?></span><br>
+                      <div class="accordionParagraph"><?=$summary['Content']?></div>
                     <? endforeach; ?>
                   <? endforeach; ?>
+                <? elseif( count($summaries = $this->driver->getSummary()) > 0 ): ?>
+                  <h6 class="accordionSubheading accordionGap">Summary</h6>
+                  <span class="accordionParagraph">
+                  <? foreach( $summaries as $summary ): ?>
+                    <?=$summary ?><br>
+                  <? endforeach; ?>
+                  </span>
                 <? endif; ?>
+              <? endif; ?>
+              <? if( count($toc = $this->driver->getTOC()) > 0 ): ?>
+                <h6 class="accordionSubheading accordionGap">Contents</h6>
+                <span class="accordionParagraph">
+                  <? foreach( $toc as $line ): ?>
+                    <?=(($line == "") ? " --<br>" : $line) ?>
+                  <? endforeach; ?>
+                </span><br>
               <? endif; ?>
               <? if( isset($this->tabs['Reviews']) ): ?>
                 <? $reviewSources = $this->tabs['Reviews']->getContent($this->driver->getCleanISBN()); ?>
@@ -473,26 +488,141 @@
                     <td><?=$this->escapeHtml($edition)?></td>
                   </tr>
                 <? endif; ?>
-                <? if (isset($authors['secondary']) && !empty($authors['secondary'])): ?>
+                <? $otherTitles = array_merge($this->driver->getNewerTitles(), $this->driver->getPreviousTitles(), $this->driver->getFormattedMarcDetails(730, ['|a']), $this->driver->getFormattedMarcDetails(740, ['|a']), $this->driver->getFormattedMarcDetails(700, ['|t']), $this->driver->getFormattedMarcDetails(710, ['|t']), $this->driver->getFormattedMarcDetails(711, ['|t'])); if (!empty($otherTitles)): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Other Titles')?></td>
+                    <td><span class="accordionParagraph"><? foreach ($otherTitles as $altTitle): ?>
+                      <? $field = isset($altTitle[0]) ? $altTitle[0] : $altTitle; ?>
+                      <? if( $field != "" ): ?>
+                        <a href="<?=$this->record($this->driver)->getLink('title', $field)?>"><?=$field?></a><br>
+                      <? endif; ?>
+                    <? endforeach; ?></span></td>
+                  </tr>
+                <? endif; ?>
+                <? $contributors = array_merge($this->driver->getFormattedMarcDetails(700, ['|a']), $this->driver->getFormattedMarcDetails(710, ['|a']), $this->driver->getFormattedMarcDetails(711, ['|a'])); ?>
+                <? if (count($contributors) > 0): ?>
+                  <? $roles = array_merge($this->driver->getFormattedMarcDetails(700, ['|bdqce4']), $this->driver->getFormattedMarcDetails(710, ['|bdce']), $this->driver->getFormattedMarcDetails(711, ['|dce'])); ?>
+                  <? $titles = array_merge($this->driver->getFormattedMarcDetails(700, ['|t']), $this->driver->getFormattedMarcDetails(710, ['|t']), $this->driver->getFormattedMarcDetails(711, ['|t'])); ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Contributors')?></td>
-                    <td>
-                      <? foreach ($authors['secondary'] as $field): ?><span property="contributor"><a href="<?=$this->record($this->driver)->getLink('author', $field)?>"><?=$this->escapeHtml($field)?></a></span><br><? endforeach; ?>
-                    </td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($contributors as $key => $field): ?>
+                        <span property="contributor">
+                          <a href="<?=$this->record($this->driver)->getLink('author', $field[0])?>"><?=$this->escapeHtml($field[0])?></a>
+                          <? if( $roles[$key][0] != "" ): ?>
+                            <?= $roles[$key][0] ?>
+                          <? endif; ?>
+                          <? if( $titles[$key][0] != "" ): ?>
+                            <a href="<?=$this->record($this->driver)->getLink('title', $titles[$key][0])?>"><?= $titles[$key][0] ?></a>
+                          <? endif; ?>
+                        </span><br>
+                      <? endforeach; ?>
+                    </span></td>
                   </tr>
                 <? endif; ?>
-                <? $langs = $this->driver->getLanguages(); if (!empty($langs)): ?>
+                <? $performerNotes = $this->driver->getFormattedMarcDetails(511, ['|a']); ?>
+                <? if (count($performerNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Participants/Performers')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($performerNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field[0])?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $productionNotes = $this->driver->getProductionCredits(); ?>
+                <? if (count($productionNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Other Contributors')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($productionNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $targetNotes = $this->driver->getTargetAudienceNotes(); ?>
+                <? if (count($targetNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Audience')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($targetNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $langs = $this->driver->getLanguages(); ?>
+                <? $languageNotes = $this->driver->getFormattedMarcDetails(546, ['|a']); ?>
+                <? if ( (count($langs) + count($languageNotes)) > 0 ): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Language')?></td>
-                    <td><? foreach ($langs as $lang): ?><?= $this->escapeHtml($lang)?><br/><? endforeach; ?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($langs as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                      <? foreach ($languageNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field[0])?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
                   </tr>
                 <? endif; ?>
-                <? /* $marcDesc = $this->driver->getFormattedMarcDetails(300,['|abc']); if (!empty($marcDesc)): ?>
+                <? $generalNotes = $this->driver->getGeneralNotes(); ?>
+                <? if (count($generalNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Notes')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($generalNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $systemNotes = $this->driver->getSystemDetails(); ?>
+                <? if (count($systemNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('System Details')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($systemNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $awardNotes = $this->driver->getAwards(); ?>
+                <? if (count($awardNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Awards')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($awardNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
+                <? $marcDesc = $this->driver->getFormattedMarcDetails(300,['|abce']); ?>
+                <? if (count($marcDesc) > 0): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Description')?></td>
-                    <td><?=$this->escapeHtml($marcDesc[0][0])?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($marcDesc as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field[0])?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
                   </tr>
-                <? endif; */ ?>
+                <? endif; ?>
+                <? $bibNotes = $this->driver->getBibliographyNotes(); ?>
+                <? if (count($bibNotes) > 0): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Bibliography Notes')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach ($bibNotes as $field): ?>
+                        <span property="contributor"><?=$this->escapeHtml($field)?></span><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
                 <? $isbns = $this->driver->getISBNs(); if (!empty($isbns)): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('ISBN')?></td>
@@ -528,6 +658,69 @@
         }
         $('body').css({"overflow-y":"auto"});
         $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
+
+        // do some expansion checking for long details
+        $(".accordionParagraph").each( function() {
+          var contents = $(this).html().replace(/ {2,}/g,' ');
+          if(contents.length > 300) {
+            var hash = hashString(contents);
+            // remove links, since those blow out our string length
+            var cleanContents = contents.substring(0);
+            var removedLinks = {};
+            var openStartPos, openEndPos, closeStartPos, closeEndPos;
+            while((openStartPos = cleanContents.lastIndexOf("<a")) > 0) {
+              openEndPos = cleanContents.indexOf(">", openStartPos) + 1;
+              closeStartPos = cleanContents.indexOf("</a>", openStartPos);
+              closeEndPos = cleanContents.indexOf(">", closeStartPos) + 1;
+              removedLinks[openStartPos] = cleanContents.substring(openStartPos, openEndPos);
+              removedLinks[closeStartPos] = cleanContents.substring(closeStartPos, closeEndPos);
+              cleanContents = cleanContents.substring(0, openStartPos) + cleanContents.substring(openEndPos, closeStartPos) + cleanContents.substring(closeEndPos);
+            }
+            if(cleanContents.length > 300) {
+              var breakPoint = cleanContents.indexOf("<br>");
+              while(breakPoint > -1 && cleanContents.indexOf("<br>", breakPoint + 1) < 300) {
+                breakPoint = cleanContents.indexOf("<br>", breakPoint + 1);
+              }
+              if( breakPoint == -1 || breakPoint > 300 ) {
+                breakPoint = 300;
+              }
+              // put the links back in for the less version
+              var closeLink = false;
+              var finished = false;
+              for(var key in removedLinks) {
+                if( !finished && ((key < breakPoint) || closeLink) ) {
+                  if( key >= breakPoint ) {
+                    breakPoint = parseInt(key) + 4;
+                    finished = true;
+                  } else {
+                    breakPoint += removedLinks[key].length;
+                  }
+                  closeLink = !closeLink;
+                }
+              }
+              $(this).html("");
+              $(this).append("<span id=\"accordionLess" + hash + "\">" + contents.substring(0,breakPoint) + " ... <a class=\"moreLink\" onClick=\"ToggleAccordion(" + hash + ",1)\">More</a></span>");
+              $(this).append("<span id=\"accordionMore" + hash + "\" style=\"display:none\">" + contents + " <a class=\"moreLink\" onClick=\"ToggleAccordion(" + hash + ",0)\">Less</a></span>");
+            }
+          }
+        } );
+
+        function ToggleAccordion(hashCode,showMore) {
+          $('#accordionMore' + hashCode).css({"display":(showMore ? "inline" : "none")});
+          $('#accordionLess' + hashCode).css({"display":(showMore ? "none" : "inline")});
+          moveButtons();
+        }
+
+        function hashString(str){
+          var hash = 0;
+          if (str.length == 0) return hash;
+          for (i = 0; i < str.length; i++) {
+            char = str.charCodeAt(i);
+            hash = ((hash<<5)-hash)+char;
+            hash = hash & hash; // Convert to 32bit integer
+          }
+          return hash;
+        }
       </script>
     </div>
   </div>

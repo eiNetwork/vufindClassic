@@ -459,9 +459,8 @@ trait OverDriveTrait {
                     $hold['expirationDate'] = strtotime($curTitle->holdExpires);
                 }
                 $availability = $this->getProductAvailability($curTitle->reserveId);
-                $count = ceil($hold['holdQueuePosition'] / $availability->copiesOwned);
-                $hold['position'] = $count . (($count == 1) ? " person" : " people") . " ahead of you (hold #" . 
-                                    $hold['holdQueuePosition'] . " on " . $availability->copiesOwned . " copies)";
+                $hold['position'] = "You are hold #" . $hold['holdQueuePosition'] . " on " . $availability->copiesOwned . 
+                                    " cop" . (($availability->copiesOwned == 1) ? "y" : "ies");
 
                 $holds[count($holds)] = $hold;
             }

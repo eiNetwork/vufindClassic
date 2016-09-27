@@ -361,9 +361,7 @@ class AjaxController extends AbstractBase
                 }
                 
                 // fix the hold message
-                $peopleCount = ceil(($thisHold["position"] + 1) / $copyCount);
-                $holdMessage = $peopleCount . " " . (($peopleCount == 1) ? "person": "people") . " ahead of you (hold #" . 
-                               ($thisHold["position"] + 1) . " on " . $copyCount . " cop" . (($copyCount == 1) ? "y" : "ies") . ")";
+                $holdMessage = "You are hold #" . ($thisHold["position"] + 1) . " on " . $copyCount . " cop" . (($copyCount == 1) ? "y" : "ies");
 
                 $statuses[] = [
                     'id'                   => $record[0]['id'],

@@ -294,7 +294,7 @@
       $('body').css({"overflow-y":"auto"});
       $('#profileAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});
       <? if( isset($this->reloadParent) && $this->reloadParent ): ?>
-        parent.location.reload();
+        parent.location.href=parent.location.href;
       <? endif; ?>
     </script>
   </div>

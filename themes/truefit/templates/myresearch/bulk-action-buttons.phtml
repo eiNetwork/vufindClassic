@@ -82,6 +82,8 @@
       form.find('#bulkAction' + id).attr('name','addBulk');
       form.find('#bulkAction2' + id).attr('name','addListID');
       form.find('#bulkAction2' + id).attr('value',listID);
+      form.find('.bulkButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...');
+      form.submit();
     }
   }
 

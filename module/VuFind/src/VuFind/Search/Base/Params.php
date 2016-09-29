@@ -299,6 +299,7 @@ class Params implements ServiceLocatorAwareInterface
             $legalOptions = $this->getOptions()->getLimitOptions();
             if (in_array($limit, $legalOptions)
                 || ($limit > 0 && $limit < max($legalOptions))
+                || (isset($request['listContents']) && $request['listContents'])
             ) {
                 $this->limit = $limit;
                 return;

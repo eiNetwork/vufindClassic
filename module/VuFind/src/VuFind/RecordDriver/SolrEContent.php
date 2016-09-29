@@ -1007,55 +1007,13 @@ class SolrEContent extends SolrDefault
      * @param array $field The MARC Field to retrieve
      * @param array $data  A keyed array of data to retrieve from subfields
      *
-     * @return array
+     * @return empty array
      */
-/*
     public function getFormattedMarcDetails($field, $data)
     {
-        // Initialize return array
-        $matches = [];
-        $i = 0;
-
-        // Try to look up the specified field, return empty array if it doesn't
-        // exist.
-        $fields = $this->marcRecord->getFields($field);
-        if (!is_array($fields)) {
-            return $matches;
-        }
-
-        // Extract all the requested subfields, if applicable.
-        foreach ($fields as $currentField) {
-            foreach ($data as $key => $info) {
-                $split = explode("|", $info);
-                if ($split[0] == "msg") {
-                    if ($split[1] == "true") {
-                        $result = true;
-                    } elseif ($split[1] == "false") {
-                        $result = false;
-                    } else {
-                        $result = $split[1];
-                    }
-                    $matches[$i][$key] = $result;
-                } else {
-                    // Default to subfield a if nothing is specified.
-                    if (count($split) < 2) {
-                        $subfields = ['a'];
-                    } else {
-                        $subfields = str_split($split[1]);
-                    }
-                    $result = $this->getSubfieldArray(
-                        $currentField, $subfields, true
-                    );
-                    $matches[$i][$key] = count($result) > 0
-                        ? (string)$result[0] : '';
-                }
-            }
-            $matches[$i]['id'] = $this->getUniqueID();
-            $i++;
-        }
-        return $matches;
+        // Return empty array
+        return [];
     }
-*/
 
     /**
      * Return an XML representation of the record using the specified format.

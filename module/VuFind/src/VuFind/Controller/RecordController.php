@@ -313,17 +313,29 @@ class RecordController extends AbstractRecord
      * @return mixed
      */
     public function saveAction() {
-        // keep a hold of the referring page since we are skipping the submit step
-        $referer = $this->getRequest()->getServer()->get('HTTP_REFERER');
-        if (substr($referer, -5) != '/Save'
-            && stripos($referer, 'MyResearch/EditList/NEW') === false
-        ) {
-            $this->setFollowupUrlToReferer();
-        } else {
-            $this->clearFollowupUrl();
-        }
+        try {
+            // keep a hold of the referring page since we are skipping the submit step
+            $referer = $this->getRequest()->getServer()->get('HTTP_REFERER');
+            if (substr($referer, -5) != '/Save'
+                && stripos($referer, 'MyResearch/EditList/NEW') === false
+            ) {
+                $this->setFollowupUrlToReferer();
+            } else {
+                $this->clearFollowupUrl();
+            }
 
-        return parent::saveAction();
+            return parent::saveAction();
+        } catch (\Exception $e) {
+            switch(get_class($e)) {
+            case 'VuFind\Exception\ListSize':
+                $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+                return $this->redirect()->toUrl($referer);
+            case 'VuFind\Exception\LoginRequired':
+                return $this->forceLogin();
+            default:
+                throw $e;
+            }
+        }
     }
 
     /**

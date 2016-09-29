@@ -360,7 +360,7 @@ $(document).ready(function() {
               if (json.status == 'OK' && json.data.length > 0) {
                 var datums = [];
                 for (var i=0;i<json.data.length;i++) {
-                  datums.push({val:json.data[i]});
+                  datums.push({val:json.data[i].replace(/^\s+|[\s/.]+$/gm,'')});
                 }
                 cb(datums);
               } else {

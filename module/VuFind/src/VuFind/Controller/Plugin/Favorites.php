@@ -27,6 +27,7 @@
  */
 namespace VuFind\Controller\Plugin;
 use VuFind\Exception\LoginRequired as LoginRequiredException,
+    VuFind\Exception\ListSize as ListSizeException,
     Zend\Mvc\Controller\Plugin\AbstractPlugin;
 
 /**
@@ -70,6 +71,12 @@ class Favorites extends AbstractPlugin
         } else {
             $list = $table->getExisting($listId);
             $list->rememberLastUsed(); // handled by save() in other case
+        }
+
+        // make sure there is space for these items
+        $listMaxCount = 300;
+        if( ($list->count() + count($params['ids'])) > $listMaxCount ) {
+            throw new ListSizeException('<i class="fa fa-exclamation-triangle"></i>Lists cannot contain more than ' . $listMaxCount . ' items.');
         }
 
         // Loop through all the IDs and save them:

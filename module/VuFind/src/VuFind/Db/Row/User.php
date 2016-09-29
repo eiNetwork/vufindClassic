@@ -410,10 +410,17 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
      * existing tags (true) or append to the existing list (false).
      *
      * @return void
+     * @throws \VuFind\Exception\ListSize
      */
     public function saveResource(
         $resource, $list, $tagArray, $notes, $replaceExisting = true
     ) {
+        // make sure there is room for this item
+        $listMaxCount = 300;
+        if( $list->count() >= $listMaxCount ) {
+            throw new \VuFind\Exception\ListSize('<i class="fa fa-exclamation-triangle"></i>Lists cannot contain more than ' . $listMaxCount . ' items.');
+        }
+
         // Create the resource link if it doesn't exist and update the notes in any
         // case:
         $linkTable = $this->getDbTable('UserResource');

@@ -616,24 +616,37 @@ class MyResearchController extends AbstractBase
             return $this->forceLogin();
         }
 
-        // Get target URL for after deletion:
-        $listID = $this->params()->fromPost('listID');
-        $this->session->lastList = $listID;
-        $listID = $this->params()->fromPost('addListID');
+        // Process form within a try..catch so we can handle errors appropriately:
+        try {
+            // Get target URL for after deletion:
+            $listID = $this->params()->fromPost('listID');
+            $this->session->lastList = $listID;
+            $listID = $this->params()->fromPost('addListID');
 
-        // Fail if we have nothing to delete:
-        $ids = $this->params()->fromPost('ids');
-        if (!is_array($ids) || empty($ids)) {
-            $this->flashMessenger()->addMessage('bulk_noitems_advice', 'error');
-            return $this->redirect()->toUrl($newUrl);
+            // Fail if we have nothing to delete:
+            $ids = $this->params()->fromPost('ids');
+            if (!is_array($ids) || empty($ids)) {
+                $this->flashMessenger()->addMessage('bulk_noitems_advice', 'error');
+                return $this->redirect()->toUrl($newUrl);
+            }
+
+            // Process the adds:
+            $this->favorites()->saveBulk(['ids' => $ids, 'list' => $listID], $user);
+            $this->flashMessenger()->addMessage((count($ids) == 1) ? 'single_save_success' : 'multiple_save_success', 'info');
+            $view = $this->createViewModel(['skip' => true, 'reloadParent' => true]);
+            $view->setTemplate('blankModal');
+            return $view;
+        } catch (\Exception $e) {
+            switch(get_class($e)) {
+            case 'VuFind\Exception\ListSize':
+                $this->flashMessenger()->addMessage($e->getMessage(), 'error');
+                $view = $this->createViewModel(['skip' => true, 'reloadParent' => true]);
+                $view->setTemplate('blankModal');
+                return $view;
+            default:
+                throw $e;
+            }
         }
-
-        // Process the adds:
-        $this->favorites()->saveBulk(['ids' => $ids, 'list' => $listID], $user);
-        $this->flashMessenger()->addMessage((count($ids) == 1) ? 'single_save_success' : 'multiple_save_success', 'info');
-        $view = $this->createViewModel(['skip' => true, 'reloadParent' => true]);
-        $view->setTemplate('blankModal');
-        return $view;
     }
 
     /**
@@ -867,7 +880,7 @@ class MyResearchController extends AbstractBase
                 // initialize our search object:
                 $request = $this->getRequest()->getQuery()->toArray()
                     + $this->getRequest()->getPost()->toArray()
-                    + ['id' => $thisList->id];
+                    + ['id' => $thisList->id, 'limit' => 300, 'listContents' => true];
 
                 // Set up listener for recommendations:
                 $rManager = $this->getServiceLocator()
@@ -952,6 +965,7 @@ class MyResearchController extends AbstractBase
             return $view;
         } catch (\Exception $e) {
             switch(get_class($e)) {
+            case 'VuFind\Exception\ListSize':
             case 'VuFind\Exception\ListPermission':
             case 'VuFind\Exception\MissingField':
                 $this->flashMessenger()->addMessage($e->getMessage(), 'error');

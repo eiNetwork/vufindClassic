@@ -96,6 +96,7 @@ class RecordController extends AbstractRecord
         $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
         $canHold = (!empty($holdingTitleHold));
         $canCheckOut = false;
+        $hasVolumes = false;
 
         // see whether or not this bib has different volumes
         foreach($holdings as $entry) {

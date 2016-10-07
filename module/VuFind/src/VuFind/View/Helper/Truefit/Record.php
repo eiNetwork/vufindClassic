@@ -93,4 +93,41 @@ class Record extends \VuFind\View\Helper\Root\Record
             'record/checkbox.phtml', $context
         );
     }
+
+
+    /**
+     * Generate a thumbnail URL (return false if unsupported).
+     *
+     * @param string $size Size of thumbnail (small, medium or large -- small is
+     * default).
+     *
+     * @return string|bool
+     */
+    public function getThumbnail($size = 'small')
+    {
+        // Try to build thumbnail:
+        $thumb = $this->driver->tryMethod('getThumbnail', [$size]);
+
+        // No thumbnail?  Return false:
+        if (empty($thumb)) {
+            return false;
+        }
+
+        // Array?  It's parameters to send to the cover generator:
+        if (is_array($thumb)) {
+            // first let's see if it has an image in the links
+            $urls = $this->driver->getURLs();
+            foreach($urls as $thisUrl) {
+                if( in_array(substr($thisUrl["url"], -4), [".jpg", ".png", ".gif"]) ) {
+                    return $thisUrl["url"];
+                }
+            }
+
+            $urlHelper = $this->getView()->plugin('url');
+            return $urlHelper('cover-show') . '?' . http_build_query($thumb);
+        }
+
+        // Default case -- return fixed string:
+        return $thumb;
+    }
 }

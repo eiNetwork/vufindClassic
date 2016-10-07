@@ -36,7 +36,7 @@
   <div class="EIN-col-m-12 EIN-col-3">
     <div class="text-center">
       <? /* Display thumbnail if appropriate: */ ?>
-      <? $mediumThumb = $record->getThumbnail('medium'); $largeThumb = $record->getThumbnail('large'); ?>
+      <? $largeThumb = $record->getThumbnail('large'); ?>
       <? if ($largeThumb): ?>
         <a href="<?=$this->escapeHtmlAttr($largeThumb)?>">
           <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
@@ -361,11 +361,12 @@
             </h4>
           </div>
           <div id="details1" class="panel-collapse collapse">
-            <div class="panel-body">
+            <div class="panel-body" style="overflow-x:hidden">
               <? if( $noncirculatingCopies > 0 ): ?>
                 <h6 class="accordionSubheading">Noncirculating (<?=$noncirculatingCopies?>)</h6>
                 <table class="EIN-col-m-12">
-                  <tr class="availabilityHeaderRow">
+                  <? /* tablet/desktop UI (three columns) */ ?>
+                  <tr class="availabilityHeaderRow EIN-hide-m">
                     <td class="EIN-col-m-4">Location</td>
                     <td class="EIN-col-m-4">Collection</td>
                     <td class="EIN-col-m-4">Call #</td>
@@ -373,11 +374,29 @@
                   <? foreach($this->holdings as $thisHolding): ?>
                     <? foreach($thisHolding['items'] as $item): ?>
                       <? if($item['availability'] && ($item['status'] == "o")): ?>
-                        <tr class="availabilityRow">
+                        <? /* tablet/desktop UI (three columns) */ ?>
+                        <tr class="availabilityRow EIN-hide-m">
                           <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
                           <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                          <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                          <td class="EIN-col-m-4 callNumberBreaker"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
                         </tr>
+                        <? /* mobile UI (three rows) */ ?>
+                        <tr class="EIN-hide-t EIN-hide">
+                          <td class="availabilityRowFieldName">Location&nbsp;</td>
+                          <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                        </tr>
+                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                        <tr class="EIN-hide-t EIN-hide">
+                          <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                          <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                        </tr>
+                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                        <tr class="EIN-hide-t EIN-hide">
+                          <td class="availabilityRowFieldName">Call Number&nbsp;</td>
+                          <td><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                        </tr>
+                        <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
                       <? endif; ?>
                     <? endforeach; ?>
                   <? endforeach; ?>
@@ -390,7 +409,8 @@
                 <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":($isOneClick?" on OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies)?>)</h6>
                 <? if( !$isOverDrive && !$isOneClick ): ?>
                   <table class="EIN-col-m-12">
-                    <tr class="availabilityHeaderRow">
+                    <? /* tablet/desktop UI (three columns) */ ?>
+                    <tr class="availabilityHeaderRow EIN-hide-m">
                       <td class="EIN-col-m-4">Location</td>
                       <td class="EIN-col-m-4">Collection</td>
                       <td class="EIN-col-m-4">Call #</td>
@@ -398,11 +418,29 @@
                     <? foreach($this->holdings as $thisHolding): ?>
                       <? foreach($thisHolding['items'] as $item): ?>
                         <? if($item['availability'] && ($item['status'] != "o")): ?>
-                          <tr class="availabilityRow">
+                          <? /* tablet/desktop UI (three columns) */ ?>
+                          <tr class="availabilityRow EIN-hide-m">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
                             <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                            <td class="EIN-col-m-4 callNumberBreaker"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
                           </tr>
+                          <? /* mobile UI (three rows) */ ?>
+                          <tr class="EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Location&nbsp;</td>
+                            <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                          </tr>
+                          <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                          <tr class="EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                            <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                          </tr>
+                          <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                          <tr class="EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Call Number&nbsp;</td>
+                            <td><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                          </tr>
+                          <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
                         <? endif; ?>
                       <? endforeach; ?>
                     <? endforeach; ?>
@@ -416,7 +454,8 @@
                 <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
                 <? if( !$isOverDrive ): ?>
                   <table class="EIN-col-m-12">
-                    <tr class="availabilityHeaderRow">
+                    <? /* tablet/desktop UI (three columns) */ ?>
+                    <tr class="availabilityHeaderRow EIN-hide-m">
                       <td class="EIN-col-m-4">Location</td>
                       <td class="EIN-col-m-4">Collection</td>
                       <td class="EIN-col-m-4">Status</td>
@@ -424,11 +463,29 @@
                     <? foreach($this->holdings as $thisHolding): ?>
                       <? foreach($thisHolding['items'] as $item): ?>
                         <? if(!$item['availability'] && ($item['status'] != "o")): ?>
-                          <tr class="availabilityRow">
+                          <? /* tablet/desktop UI (three columns) */ ?>
+                          <tr class="availabilityRow EIN-hide-m">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
                             <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
                             <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
                           </tr>
+                          <? /* mobile UI (three rows) */ ?>
+                          <tr class=" EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Location&nbsp;</td>
+                            <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                          </tr>
+                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                          <tr class=" EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                            <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                          </tr>
+                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                          <tr class=" EIN-hide-t EIN-hide">
+                            <td class="availabilityRowFieldName">Status&nbsp;</td>
+                            <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                          </tr>
+                          <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
                         <? endif; ?>
                       <? endforeach; ?>
                     <? endforeach; ?>
@@ -660,6 +717,12 @@
                     <td><? foreach ($urls as $url): ?><div class="itemURL"><a href="<?=$url["url"]?>" target="_blank"><?=($isOneClick ? 'Download from OneClick' : $url["desc"])?></a></div><? endforeach; ?></td>
                   </tr>
                 <? endif; ?>
+                <? if( isset($this->classicLink)): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Other')?></td>
+                    <td><a href="<?=$this->classicLink?>" target="_blank">Classic View</a></td>
+                  </tr>
+                <? endif; ?>
               </table>
             </div>
           </div>
@@ -729,6 +792,16 @@
             }
           }
         } );
+
+        /***** For now, we're just showing the highlights on the search results page *****\
+        // do the search highlighting
+        var searchTerms = <?=json_encode($this->searchMemory)?>;
+        for(var index in searchTerms) {
+          var position = $(".itemTitle").html().length;
+          position = $(".itemTitle").html().lastIndexOf(searchTerms[index])
+        //$(".itemTitle").html($(".itemTitle").html().replace(/));
+        }
+        \***** For now, we're just showing the highlights on the search results page *****/
 
         function ToggleAccordion(hashCode,showMore) {
           $('#accordionMore' + hashCode).css({"display":(showMore ? "inline" : "none")});

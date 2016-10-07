@@ -145,13 +145,7 @@
             </div>
           </form>
           <div class="EIN-col-m-12" style="height:20px"></div>
-          <div id="confirmFooter">
-            <button class="btn-default btn-wide" onclick="SubmitConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
-          </div>
-          <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
-            <span><i class="fa fa-spinner"></i></span>
-            <span>&nbsp;Loading...</span>
-          </div>
+          <button class="btn-default btn-wide" id="PINconfirmButton" onclick="SubmitConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
         </div>
       </div>
     </div>
@@ -366,8 +360,7 @@
         }
 
         if( shouldSubmit ) {
-          $('#confirmFooter').css('display','none');
-          $('#loadingFooter').css('display','block');
+          $('#PINconfirmButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...');
           $('#PINForm').submit();
         }
       }

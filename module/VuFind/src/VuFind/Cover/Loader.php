@@ -189,7 +189,7 @@ class Loader extends \VuFind\ImageLoader
         $this->oclc = $oclc;
         $this->upc = $upc;
         $this->type = preg_replace("/[^a-zA-Z]/", "", $type);
-        $this->size = $size;
+        $this->size = 'large'; //$size;
 
         // Display a fail image unless our parameters pass inspection and we
         // are able to display an ISBN or content-type-based image.

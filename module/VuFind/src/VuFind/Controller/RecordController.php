@@ -208,6 +208,22 @@ class RecordController extends AbstractRecord
 
         $view->currentLocation = $catalog->getDbTable("location")->getCurrentLocation();
 
+        /***** For now, we're just showing the highlights on the search results page *****\
+        $rawTerms = explode("lookfor", $this->getSearchMemory()->retrieve());
+        unset($rawTerms[0]);
+        $searchTerms = [];
+        foreach($rawTerms as $key => $value) {
+            $equals = strpos($value, "=") + 1;
+            $ampersand = strpos($value, "&", $equals);
+            $searchTerms = array_merge($searchTerms, explode("+", substr($value, $equals, $ampersand - $equals)));
+        }
+        $view->searchMemory = $searchTerms;
+        \***** For now, we're just showing the highlights on the search results page *****/
+
+        if( substr($bib, 0, 2) == ".b" ) {
+            $view->classicLink = $this->getILS()->getConfigVar("Catalog","classic_url") . "/record=" . substr($bib, 1, -1);
+        }
+
         return $view;
     }
 

@@ -123,6 +123,7 @@ function addGroup(firstTerm, firstField, join)
   // Show join menu
   if(nextGroup > 0) {
     $('#groupJoin').removeClass('hidden');
+    $('#groupJoin').prev().addClass('EIN-col-t-6');
     // Show x
     $('.advSearchGroup').children('.close').removeClass('hidden');
   }
@@ -138,6 +139,7 @@ function deleteGroup(group)
     addGroup();
   } else if($('#advSearchForm .advSearchGroup ').length == 1) {
     $('#groupJoin').addClass('hidden'); // Hide join menu
+    $('#groupJoin').prev().removeClass('EIN-col-t-6'); // Hide join menu
     $('.advSearchGroup').children('.close').addClass('hidden'); // Hide x
   }
 }

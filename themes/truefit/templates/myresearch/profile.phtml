@@ -120,8 +120,38 @@
       <div id="profile_security" class="panel-collapse collapse">
         <div class="panel-body" style="text-align:center">
           <div class="EIN-col-m-12" style="height:5px"></div>
-          <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:20px"></div>
-          <button class="btn-default btnWide" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'security','property':'PIN','propertyName':'pin','currentValue':'<?=hash_hmac("sha256", $this->profile["cat_password"], "eiNetwork")?>','barcode':'<?=$this->profile["cat_username"]?>'}})">Change PIN</button>
+          <form id="PINForm" action="<?=$this->url('myresearch-profile')?>" method="post">
+            <input type="hidden" name="profileSection" value="security">
+            <input type="hidden" name="confirm" value="true">
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Current PIN</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <input type="text" class="form-control textBox editProperty" id="current_PIN" onfocus="TestFocus(this)" value="Enter Current PIN" />
+              <i class="fa fa-exclamation-circle formErrorIcon"></i>
+              <span class="formError"></span>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">New PIN</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="new_PIN" name="pin" value="Enter New PIN" />
+              <i class="fa fa-exclamation-circle formErrorIcon"></i>
+              <span class="formError"></span>
+            </div>
+            <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Confirm New PIN</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+              <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="confirm_PIN" value="Confirm New PIN" />
+              <i class="fa fa-exclamation-circle formErrorIcon"></i>
+              <span class="formError"></span>
+            </div>
+          </form>
+          <div class="EIN-col-m-12" style="height:20px"></div>
+          <div id="confirmFooter">
+            <button class="btn-default btn-wide" onclick="SubmitConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
+          </div>
+          <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
+            <span><i class="fa fa-spinner"></i></span>
+            <span>&nbsp;Loading...</span>
+          </div>
         </div>
       </div>
     </div>
@@ -267,6 +297,81 @@
       </div>
     </div>
     <script type="text/javascript">
+      function TestFocus(element) {
+        if( !($(element).hasClass("userHasFocused")) ) {
+          $(element).attr("value", "");
+          $(element).addClass("userHasFocused");
+          $(element).attr("type", "password");
+        }
+        $(element).css("border", "1px solid #949494");
+        $(element).next().css("display","none");
+        $(element).next().next().css("display","none");
+        $(element).next().next().html("");
+      }
+
+      function ShowInputError(field, message) {
+        $(field).css("border", "1px solid #ed0000");
+        $(field).next().css("display","block");
+        $(field).next().next().css("display","block");
+        $(field).next().next().html(message);
+      }
+
+      function SubmitConfirmation() {
+        // do some testing
+        var shouldSubmit = true;
+        $('#current_PIN').each( function() { 
+          if( !$(this).hasClass('userHasFocused') || ($(this).val() == "") ) {
+            ShowInputError(this, "Please enter your current PIN");
+            shouldSubmit = false;
+          }
+        });
+        if( !shouldSubmit ) {
+          return;
+        }
+
+        $('#new_PIN').each( function() { 
+          if( !$(this).hasClass('userHasFocused') || ($(this).val() == "") ) {
+            ShowInputError(this, "Please enter your new PIN");
+            shouldSubmit = false;
+          }
+        });
+        if( !shouldSubmit ) {
+          return;
+        }
+
+        $('#confirm_PIN').each( function() { 
+          if( !$(this).hasClass('userHasFocused') || ($(this).val() == "") ) {
+            ShowInputError(this, "Please confirm your new PIN");
+            shouldSubmit = false;
+          } else if( $(this).val() != $('#new_PIN').val() ) {
+            ShowInputError(this, "Your new value doesn't match the confirm value");
+            shouldSubmit = false;
+          }
+        });
+        if( !shouldSubmit ) {
+          return;
+        }
+
+        if( ($('#new_PIN').val().length != 4) || ($('#new_PIN').val().match(/\d{4}/) == null) ) {
+          ShowInputError($('#new_PIN'), "PINs must be exactly four digits");
+          return;
+        }
+        if( $('#new_PIN').val() == $('#current_PIN').val() ) {
+          ShowInputError($('#new_PIN'), "New PIN is the same as the current PIN");
+          return;
+        }
+        if( CryptoJS.HmacSHA256($('#current_PIN').val(), "eiNetwork") != '<?=hash_hmac("sha256", $this->profile["cat_password"], "eiNetwork")?>' ) {
+          ShowInputError($('#current_PIN'), "Current PIN is not correct");
+          return;
+        }
+
+        if( shouldSubmit ) {
+          $('#confirmFooter').css('display','none');
+          $('#loadingFooter').css('display','block');
+          $('#PINForm').submit();
+        }
+      }
+
       function ChangeButtonToLoading(id) {
         $('#' + id).removeClass('btn-alternate');
         $('#' + id).addClass('btn-default');

@@ -112,12 +112,12 @@
                 <div id="search<?=$group.'_'.$search ?>" class="EIN-col-m-12 advSearchSearch">
                   <button class="btn-noBorderAlternate close hidden"><i class="fa fa-close"></i></button>
                   <div class="EIN-col-m-12">
-                    <div class="EIN-col-m-12 EIN-col-t-7 EIN-col-8">
+                    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-7">
                       <? $value = isset($setQueries[$group][$search]) ? $this->escapeHtml($setQueries[$group][$search]->getString()) : ""; ?>
                       <input name="lookfor<?=$group ?>[]" id="search_lookfor<?=$group.'_'.$search ?>"<? if($value==""): ?> onfocus="SearchFocus(this)"<? endif; ?> class="form-control textBox<?=(($value=="")?" initialSearch":"")?>" type="text" value="<?=$value?>" onkeypress="return CheckForEnter(event);">
                     </div>
                     <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:5px"></div>
-                    <div class="EIN-col-m-12 EIN-col-t-5 EIN-col-4 center">
+                    <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-5 center">
                       <span class="advSearchGroupTitle">in</span>
                       <div style="display:inline;position:relative">
                         <input class="type"  type="hidden" name="type<?=$group?>[]" id="search_type<?=$group.'_'.$search ?>" value="">

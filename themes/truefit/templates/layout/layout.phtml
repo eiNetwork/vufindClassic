@@ -137,6 +137,14 @@
           moveButtons();
           $(window).scroll(moveButtons);
           $(window).resize(moveButtons);
+
+<?    /* log them out if they're at a library location AND */ 
+  if( $this->ils()->getDriver()->getDbTable("location")->getCurrentLocation() && 
+      /* they're logged in OR not on the home page */
+      ($account->isLoggedIn() || ($_SERVER["REQUEST_URI"] != "/")) ): 
+?>
+          autoLogoutResetTimer();
+<? endif; ?>
         });
 
         function moveButtons() {

@@ -274,11 +274,24 @@ class MyResearchController extends AbstractBase
      *
      * @return mixed
      */
+    public function logoutWarningAction()
+    {
+        $view = $this->createViewModel();
+        return $view;
+    }
+
+    /**
+     * Logout Action
+     *
+     * @return mixed
+     */
     public function logoutAction()
     {
         $config = $this->getConfig();
         if (isset($config->Site->logOutRoute)) {
             $logoutTarget = $this->getServerUrl($config->Site->logOutRoute);
+        } else if ($targetRoute = $this->params()->fromQuery('target', false)) {
+            $logoutTarget = $this->getServerUrl($targetRoute);
         } else {
             $logoutTarget = $this->getRequest()->getServer()->get('HTTP_REFERER');
             if (empty($logoutTarget)) {

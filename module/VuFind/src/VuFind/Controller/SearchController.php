@@ -577,6 +577,13 @@ class SearchController extends AbstractSearch
 
         // Default case -- standard behavior.
         $view = parent::resultsAction();
+
+        // redirect to the record if it's an ISBN search with only one result
+        if( $this->getRequest()->getQuery("type") == "ISN" && $view->results->getResultTotal() == 1) {
+            $details = $this->getRecordRouter()->getTabRouteDetails($view->results->getResults()[0]->getUniqueID());
+            $target = $this->url()->fromRoute($details['route'], $details['params']);
+            return $this->redirect()->toUrl($target);
+        }
         $view->formatCategories = $this->getConfig()->FormatCategories;
         return $view;
     }

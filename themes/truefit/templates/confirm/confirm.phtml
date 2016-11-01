@@ -1,6 +1,6 @@
 <h2><?=$this->transEsc($this->title) ?></h2>
 <div class="EIN-hide-m EIN-hide-t EIN-hide">
-<?=$this->flashmessages();?>
+<?=$this->flashmessages(false);?>
 </div>
 <? foreach( $this->messages as $msg ): ?>
   <? if (true === is_array($msg)): ?>

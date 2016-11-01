@@ -641,7 +641,7 @@ trait OverDriveTrait {
         if (!empty($response)){
             if (isset($response->expires)){
                 $result['result'] = true;
-                $result['message'] = '<i class="fa fa-info"></i>Your title was checked out successfully.';
+                $result['message'] = '<i class="fa fa-info"></i>Your title was checked out successfully.  <a href="/MyResearch/CheckedOut">Your Checked Out Items</a>.';
             }else{
                 $result['message'] = '<i class="fa fa-exclamation-triangle"></i>Sorry, we could not check out this title to you.  ' . $response->message;
             }

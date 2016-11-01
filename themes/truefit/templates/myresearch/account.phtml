@@ -1,5 +1,5 @@
 <span id="registerFlashMessages">
-  <?=($this->suppressFlashMessages) ? "" : $this->flashmessages()?>
+  <?=($this->suppressFlashMessages) ? "" : $this->flashmessages(false)?>
 </span>
 <? if( isset($this->reloadParent) && $this->reloadParent ): ?>
   <script type='text/javascript'>parent.location.href=parent.location.href;</script>

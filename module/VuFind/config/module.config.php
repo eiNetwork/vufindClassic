@@ -754,7 +754,7 @@ $staticRoutes = [
     'LibraryCards/Home', 'LibraryCards/SelectCard',
     'LibraryCards/DeleteCard',
     'MyResearch/Account', 'MyResearch/AddBulk', 'MyResearch/ChangePassword', 'MyResearch/CheckedOut',
-    'MyResearch/Delete', 'MyResearch/DeleteList', 'MyResearch/Edit', 'MyResearch/EditList',
+    'MyResearch/Delete', 'MyResearch/DeleteList', 'MyResearch/DismissAnnouncement', 'MyResearch/Edit', 'MyResearch/EditList',
     'MyResearch/Email', 'MyResearch/BookCart', 'MyResearch/Fines',
     'MyResearch/Holds', 'MyResearch/Home',
     'MyResearch/ILLRequests', 'MyResearch/Logout', 'MyResearch/LogoutWarning', 'MyResearch/MyList',

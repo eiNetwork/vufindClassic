@@ -1,6 +1,6 @@
 <h2>Edit <?=$this->transEsc($this->property) ?></h2>
 <div class="EIN-hide-m EIN-hide-t EIN-hide">
-  <?=$this->flashmessages();?>
+  <?=$this->flashmessages(false);?>
 </div>
 <form id="confirmForm" action="<?=$this->url($this->path)?>" method="post">
   <input type="hidden" name="suppressFlashMessages" value="true">

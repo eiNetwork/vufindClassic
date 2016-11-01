@@ -807,6 +807,45 @@ class EINetwork extends Sierra2 implements
         return $notifications;
     }
 
+    /**
+     * Get announcements
+     *
+     * This is responsible for grabbing system-wide announcements that haven't been dismissed by the user.
+     *
+     * @param string  $ns      The namespace of the desired announcements
+     *
+     * @return array           Associative array of announcements
+     */
+    public function getAnnouncements($ns=null){
+        $announcements = [];
+        foreach($this->config['Site']['announcement'] as $news) {
+            $hash = md5($news);
+            // see if we need to unblock this
+            if( !$this->session->patronLogin && isset($this->session->dismissedAnnouncements[$hash]) && ($this->session->dismissedAnnouncements[$hash] + 300) < time() ) {
+                unset($this->session->dismissedAnnouncements[$hash]);
+            }
+            // add it to the array if they haven't dismissed it
+            if( !isset($this->session->dismissedAnnouncements[$hash]) ) {
+                $announcements[] = ['html' => true, 'msg' => $news, 'announceHash' => $hash];
+            }
+        }
+        return $announcements;
+    }
+
+    /**
+     * Dismiss announcement
+     *
+     * This is responsible for dismissing a system-wide announcement until the user changes.
+     *
+     * @param string  $hash    The hash of the desired announcement
+     */
+    public function dismissAnnouncement($hash){
+        if( !isset($this->session->dismissedAnnouncements) ) {
+            $this->session->dismissedAnnouncements = [];
+        }
+        $this->session->dismissedAnnouncements[$hash] = time();
+    }
+
 
 
     /**

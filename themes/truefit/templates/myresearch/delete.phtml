@@ -1,6 +1,6 @@
 <h2><?=$this->transEsc((count($this->records) == 1) ? 'confirm_delete_brief' : 'confirm_delete_multiple_brief')?></h2>
 <form action="<?=$this->url('myresearch-delete')?>" id="deleteForm" method="post" name="bulkDelete">
-  <div id="popupMessages"><?=$this->flashmessages()?></div>
+  <div id="popupMessages"><?=$this->flashmessages(false)?></div>
   <div id="popupDetails" class="lightboxText">
     <span>Remove the following item<?=((count($this->records) == 1) ? "" : "s")?> from your <?=($this->list->isBookCart() ? "" : "list ")?>
     <span class="bold"><?=$this->list->title?></span>?</span><br /><br />

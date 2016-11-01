@@ -309,8 +309,9 @@ class MyResearchController extends AbstractBase
         }
 
         // clear out the patron info
-        unset($this->getILS()->session->patronLogin);
-        unset($this->getILS()->session->patron);
+        $this->getILS()->clearSessionVar("patronLogin");
+        $this->getILS()->clearSessionVar("patron");
+        $this->getILS()->clearSessionVar("dismissedAnnouncements");
 
         return $this->redirect()
             ->toUrl($this->getAuthManager()->logout($logoutTarget));
@@ -1236,7 +1237,7 @@ class MyResearchController extends AbstractBase
 
             // Build record driver:
             $current["driver"] = $this->getDriverForILSRecord($current);
-            $group = ($current["status"] == "i") ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'));
+            $group = (($current["status"] == "i") || ($current["status"] == "b") || ($current["status"] == "j")) ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'));
             $key = $current["driver"]->GetTitle().$current["hold_id"];
             $holdList[$group][$key] = $current;
         }
@@ -1908,6 +1909,21 @@ class MyResearchController extends AbstractBase
                 $holds = $catalog->getMyTransactions($patron);
             }
         }
+        $view = $this->createViewModel();
+        $view->setTemplate('blankModal');
+        $view->suppressFlashMessages = true;
+        return $view;
+    }
+
+    /**
+     * Flag this announcement to not appear anymore until they log out
+     */
+    public function dismissAnnouncementAction()
+    {
+        // Connect to the ILS:
+        $this->getILS()->dismissAnnouncement($this->params()->fromQuery('hash'));
+
+        // return a blank
         $view = $this->createViewModel();
         $view->setTemplate('blankModal');
         $view->suppressFlashMessages = true;

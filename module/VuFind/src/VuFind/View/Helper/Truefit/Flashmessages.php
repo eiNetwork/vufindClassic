@@ -43,17 +43,21 @@ class Flashmessages extends \VuFind\View\Helper\Bootstrap3\Flashmessages
      *
      * @return string $html
      */
-    public function __invoke()
+    public function __invoke($showAnnouncements = true)
     {
         $html = '';
         $namespaces = ['error', 'info'];
+        if( $showAnnouncements ) {
+            array_splice($namespaces, 0, 0, 'announcement');
+        }
         foreach ($namespaces as $ns) {
             $this->fm->setNamespace($ns);
-            $messages = array_merge(
-                $this->fm->getMessages(), $this->fm->getCurrentMessages()
-            );
+            if( $ns == 'announcement' ) {
+                $messages = $this->getView()->ils()->getDriver()->getAnnouncements($ns);
+            } else {
+                $messages = array_merge($this->fm->getMessages(), $this->fm->getCurrentMessages());
+            }
             foreach (array_unique($messages, SORT_REGULAR) as $msg) {
-                $html .= '<div class="' . $this->getClassForNamespace($ns) . ' alert-dismissible"><button type="button" class="close" data-dismiss="alert"><i aria-hidden="true" class="fa fa-close"></i><span class="sr-only">Close</span></button><p class="message">';
                 // Advanced form:
                 if (!is_array($msg)) {
                     $msg = ['html' => true, 'msg' => $msg];
@@ -72,10 +76,16 @@ class Flashmessages extends \VuFind\View\Helper\Bootstrap3\Flashmessages
                     ? $this->getView()->plugin($helper) : false;
                 $tokens = isset($msg['tokens']) ? $msg['tokens'] : [];
                 $default = isset($msg['default']) ? $msg['default'] : null;
-                $html .= $helper
-                    ? $helper($msg['msg'], $tokens, $default) : $msg['msg'];
 
+                // append the message to the html
+                $html .= '<div class="' . $this->getClassForNamespace($ns) . ' alert-dismissible">';
+                $closeCode = ($ns == 'announcement') ? (' onclick="$(\'#bonusFrame' . $msg['announceHash'] . '\').attr(\'src\', \'/MyResearch/DismissAnnouncement?hash=' . $msg['announceHash'] . '\')"') : '';
+                $html .= '<button type="button" class="close" data-dismiss="alert"' . $closeCode . '><i aria-hidden="true" class="fa fa-close"></i><span class="sr-only">Close</span></button>';
+                $html .= '<p class="message">' . ($helper ? $helper($msg['msg'], $tokens, $default) : $msg['msg']);
                 $html .= '</p></div>';
+                if( $ns == 'announcement' ) {
+                    $html .= '<iframe id="bonusFrame' . $msg['announceHash'] .'" style="display:none"></iframe>';
+                }
             }
             $this->fm->clearMessages();
             $this->fm->clearCurrentMessages();

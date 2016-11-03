@@ -616,7 +616,7 @@ trait OverDriveTrait {
      *
      * @param string $overDriveId
      * @param int $format
-     * @param int $lendingPeriod  the number of days that the user would like to have the title chacked out. or -1 to use the default
+     * @param int $lendingPeriod  the number of days that the user would like to have the title checked out. or -1 to use the default
      * @param User $user
      *
      * @return array results (result, message)
@@ -644,6 +644,19 @@ trait OverDriveTrait {
                 $result['message'] = '<i class="fa fa-info"></i>Your title was checked out successfully.  <a href="/MyResearch/CheckedOut">Your Checked Out Items</a>.';
             }else{
                 $result['message'] = '<i class="fa fa-exclamation-triangle"></i>Sorry, we could not check out this title to you.  ' . $response->message;
+            }
+        }
+
+        // if it was successful and that item was in their holds, invalidate the cache
+        if( isset($result['result']) && $result['result'] && isset($this->session->holds) ) {
+            $clearHolds = false;
+            foreach( $this->session->holds as $thisHold ) {
+                if( isset($thisHold['overDriveId']) && $thisHold['overDriveId'] == strtoupper($overDriveId) ) {
+                    $clearHolds = true;
+                }
+            }
+            if( $clearHolds ) {
+                unset($this->session->holds);
             }
         }
 

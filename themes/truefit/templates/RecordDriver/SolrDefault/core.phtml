@@ -154,7 +154,8 @@
           $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"";
         else:
           if( $isOverDrive ) {
-            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . "?hashKey=" . json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
+            $hashKey = json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
+            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
             $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";

@@ -14,69 +14,78 @@
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
     </td>
     <td class="EIN-col-m-11" style="padding-right:10px">
-      <div class="EIN-col-m-12">
+      <div class="EIN-col-m-12<?= ((isset($this->hold["overDriveId"]) && $this->hold["status"] == "i") ? " EIN-col-t-8 EIN-col-8" : "" ) ?>">
         <h1 property="name" class="itemTitle"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml((($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))))?>
           <? if( isset($this->hold["item_id"]) ): ?>
             <span class="hidden volumeInfo"><?=substr($this->hold["item_id"], 2, -1)?></span>
           <? endif; ?>
         </a></h1>
 
-      <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
-      <? if (isset($authors['main']) && !empty($authors['main'])): ?>
-        <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
-      <? endif; ?>
+        <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
+        <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+          <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
+        <? endif; ?>
 
-      <table>
-        <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
-          <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
-            <tr>
-              <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
-              <td style="padding-bottom:5px; width:100%">
-                <span class="formatTag"><?=$thisFormat?></span>
+        <table>
+          <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
+            <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
+              <tr>
+                <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
+                <td style="padding-bottom:5px; width:100%">
+                  <span class="formatTag"><?=$thisFormat?></span>
 
-                <? if( $firstTime ): ?>
-                  <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
-                    <? foreach ($publications as $field): ?>
-                      <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
-                        <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
-                      <? endif; ?>
-                    <? endforeach; ?>
+                  <? if( $firstTime ): ?>
+                    <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
+                      <? foreach ($publications as $field): ?>
+                        <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
+                          <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
+                        <? endif; ?>
+                      <? endforeach; ?>
+                    <? endif; ?>
+                    <? $firstTime = false; ?>
                   <? endif; ?>
-                  <? $firstTime = false; ?>
+                </td>
+              </tr>
+            <? endforeach; ?>
+          <? endif; ?>
+
+          <? if( !isset($this->hold["overDriveId"]) ): ?>
+            <tr>
+              <td colspan="2">
+                <div class="EIN-col-m-12" style="height:10px"></div>
+                Pick up at: <span class="bold"><?=$this->hold["location"]?></span>
+              </td>
+            </tr>
+            <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && isset($this->hold["expire"]) ): ?>
+              <tr>
+                <td colspan="2">
+                  Not wanted after: <span class="bold"><?=strftime("%b %e, %Y", strtotime($this->hold["expire"]))?></span>
+                </td>
+              </tr>
+            <? endif; ?>
+          <? endif; ?>
+          <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && $this->hold["status"] != "t" ): ?>
+            <tr>
+              <td colspan="2">
+                <? if( isset($this->hold["overDriveId"]) ): ?>
+                  <span class="bold"><?=$this->hold["position"]?></span>
+                <? else: ?>
+                  <span class="bold ajax-holdStatus holdStatus"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
                 <? endif; ?>
               </td>
             </tr>
-          <? endforeach; ?>
-        <? endif; ?>
-
-        <? if( !isset($this->hold["overDriveId"]) ): ?>
-          <tr>
-            <td colspan="2">
-              <div class="EIN-col-m-12" style="height:10px"></div>
-              Pick up at: <span class="bold"><?=$this->hold["location"]?></span>
-            </td>
-          </tr>
-          <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && isset($this->hold["expire"]) ): ?>
-            <tr>
-              <td colspan="2">
-                Not wanted after: <span class="bold"><?=strftime("%b %e, %Y", strtotime($this->hold["expire"]))?></span>
-              </td>
-            </tr>
           <? endif; ?>
-        <? endif; ?>
-        <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && $this->hold["status"] != "t" ): ?>
-          <tr>
-            <td colspan="2">
-              <? if( isset($this->hold["overDriveId"]) ): ?>
-                <span class="bold"><?=$this->hold["position"]?></span>
-              <? else: ?>
-                <span class="bold ajax-holdStatus holdStatus"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
-              <? endif; ?>
-            </td>
-          </tr>
-        <? endif; ?>
-      </table>
-    </div>
+        </table>
+      </div>
+      <? if( isset($this->hold["overDriveId"]) && $this->hold["status"] == "i" ): ?>
+        <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
+          <div class="singleButtonGap">
+            <a href="<?= $this->recordLink()->getActionUrl($this->driver, "Checkout") ?>" target="loginFrame">
+              <button class="btn-default singleButton" onclick="$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i> Loading...')">Check Out</button>
+            </a>
+          </div>
+        </div>
+      <? endif; ?>
     </td>
   </tr></table>
   <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>

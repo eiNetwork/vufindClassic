@@ -45,16 +45,18 @@ class AuthorController extends AbstractSearch
      */
     public function resultsAction()
     {
-        $this->searchClassId = 'SolrAuthor';
+        //$this->searchClassId = 'SolrAuthor';
 
         // Save author searches if next_prev_navigation is enabled - otherwise
         // there are wacky results when trying to page through results (the
         // next/prev links only appear for records which were included in the
         // results for the previous keyword search, and the next/prev links will
         // iterate you through that search).
-        $this->saveToHistory = $this->resultScrollerActive();
+        //$this->saveToHistory = $this->resultScrollerActive();
 
-        return parent::resultsAction();
+        //return parent::resultsAction();
+
+        return $this->redirect()->toUrl("/Search/Results?lookfor=" . $this->params()->fromQuery('author') . "&type=Author&sort=relevance");
     }
 
     /**

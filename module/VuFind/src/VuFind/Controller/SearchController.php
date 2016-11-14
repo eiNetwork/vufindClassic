@@ -575,6 +575,83 @@ class SearchController extends AbstractSearch
             return $this->forwardTo('Tag', 'Home');
         }
 
+        // parse out advanced style lookfors
+        $searchTypes = ["Keyword" => "Keyword", "AllFields" => "All Fields", "Title" => "Title", "Author" => "Author",
+                        "Contributor" => "Author/Artist/Contributor", "Subject" => "Subject", "ISN" => "ISBN/ISSN/UPC",
+                        "publisher" => "Publisher", "Series" => "Series", "year" => "Year of Publication", "toc" => "Table of Contents"];
+        $regExStr = "";
+        foreach($searchTypes as $thisType) {
+            $regExStr .= (($regExStr == "") ? "/(" : "|") . str_replace("/", "\/", $thisType);
+        }
+        $regExStr .= "):/";
+        $query = $this->getRequest()->getQuery();
+        if( isset($query->lookfor) && (substr($query->lookfor, 0, 1) == "(") && (substr($query->lookfor, -1) == ")") && 
+            preg_match($regExStr, $query->lookfor) ) {
+            $queryArgs = $query->toArray();
+
+            // default groups to be ANDed together
+            $queryArgs["join"] = "AND";
+            $currentGroup = 0;
+
+            // split this query into groups
+            foreach( explode(")", $queryArgs['lookfor']) as $thisGroup ) {
+                if(count($innerBits = explode("(", $thisGroup)) > 1) {
+                    // default to AND
+                    $queryArgs["bool" . $currentGroup][0] = "AND";
+
+                    // test if this is a NOT group
+                    if( trim($innerBits[0]) == "NOT" ) {
+                        $queryArgs["bool" . $currentGroup][0] = "NOT";
+                    // or if the groups are ORed together
+                    } else if( trim($innerBits[0]) == "OR" ) {
+                        $queryArgs["join"] = "OR";
+                    }
+
+                    // split the group into terms
+                    $terms = [$innerBits[count($innerBits)-1]];
+                    foreach( $searchTypes as $thisCode => $thisType ) {
+                        for( $i=count($terms)-1; $i>=0; $i-- ) {
+                            $splitTerms = explode($thisType . ":", $terms[$i]);
+                            if( count($splitTerms) > 1 ) {
+                                for( $j=count($splitTerms)-1; $j>0; $j-- ) {
+                                    array_splice($splitTerms, $j, 0, $thisCode);
+                                }
+                                // peel off the empty guy at the beginning of the array, if present
+                                if( $splitTerms[0] == "" ) {
+                                    unset($splitTerms[0]);
+                                }
+                                array_splice($terms, $i, 1, $splitTerms);
+                            }
+                        }
+                    }
+
+                    // add these items to the query args
+                    $queryArgs["type" . $currentGroup] = [];
+                    $queryArgs["lookfor" . $currentGroup] = [];
+                    for( $i=0; $i<count($terms); $i+=2 ) {
+                        $queryArgs["type" . $currentGroup][] = $terms[$i];
+
+                        // remove the bool operator from the search term
+                        if( $i + 2 < count($terms) && substr($terms[$i+1], -4) == " OR ") {
+                            // flip this to an OR
+                            if( $queryArgs["bool" . $currentGroup][0] == "AND" ) {
+                                $queryArgs["bool" . $currentGroup][0] = "OR";
+                            }
+                            $terms[$i+1] = substr($terms[$i+1], 0, -4);
+                        } else if( $i + 2 < count($terms) && substr($terms[$i+1], -5) == " AND ") {
+                            $terms[$i+1] = substr($terms[$i+1], 0, -5);
+                        }
+                        $queryArgs["lookfor" . $currentGroup][] = $terms[$i+1];
+                    }
+                    
+                    $currentGroup++;
+                }
+            }
+            unset($queryArgs["lookfor"]);
+            unset($queryArgs["type"]);
+            $query->fromArray($queryArgs);
+        }
+
         // Default case -- standard behavior.
         $view = parent::resultsAction();
 
@@ -584,6 +661,7 @@ class SearchController extends AbstractSearch
             $target = $this->url()->fromRoute($details['route'], $details['params']);
             return $this->redirect()->toUrl($target);
         }
+        $view->searchType = ($this->getRequest()->getQuery("type") != null) ? $this->getRequest()->getQuery("type") : "Advanced";
         $view->formatCategories = $this->getConfig()->FormatCategories;
         return $view;
     }

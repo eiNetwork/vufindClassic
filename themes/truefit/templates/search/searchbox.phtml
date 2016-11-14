@@ -47,7 +47,7 @@
         </td>
       </tr>
     </table>
-    <input type="hidden" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
+    <input type="hidden" class="searchTypeInput" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
 
     <? $shards = $options->getShards(); if ($options->showShardCheckboxes() && !empty($shards)): ?>
       <?

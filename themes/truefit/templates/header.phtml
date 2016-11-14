@@ -83,9 +83,26 @@
     <div class="dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
         <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
-        <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown">Advanced Search</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Keyword')"><i class="fa fa-check greenCheck searchTypeCheck stcKeyword" style="display:none"></i>Keyword</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('AllFields')"><i class="fa fa-check greenCheck searchTypeCheck stcAllFields" style="display:none"></i>All Fields</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Title')"><i class="fa fa-check greenCheck searchTypeCheck stcTitle" style="display:none"></i>Title</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Author')"><i class="fa fa-check greenCheck searchTypeCheck stcAuthor" style="display:none"></i>Author</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Contributor')"><i class="fa fa-check greenCheck searchTypeCheck stcContributor" style="display:none"></i>Author/Artist/Contributor</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Subject')"><i class="fa fa-check greenCheck searchTypeCheck stcSubject" style="display:none"></i>Subject</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('ISN')"><i class="fa fa-check greenCheck searchTypeCheck stcISN" style="display:none"></i>ISBN/ISSN</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('publisher')"><i class="fa fa-check greenCheck searchTypeCheck stcpublisher" style="display:none"></i>Publisher</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Series')"><i class="fa fa-check greenCheck searchTypeCheck stcSeries" style="display:none"></i>Series</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('year')"><i class="fa fa-check greenCheck searchTypeCheck stcyear" style="display:none"></i>Year of Publication</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('toc')"><i class="fa fa-check greenCheck searchTypeCheck stctoc" style="display:none"></i>Table of Contents</button></a></li>
+        <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown"><i class="fa fa-check greenCheck searchTypeCheck stcAdvanced" style="display:none"></i>Advanced Search</button></a></li>
       </ul>
     </div>
+    <script type="text/javascript">
+      function doSearchType(newType) {
+        $('.searchTypeInput').attr("value", newType);
+        $(mostRecentSearchBtn).parents("form").submit();
+      }
+    </script>
   </div>
 <? if ($this->layout()->searchbox !== false): ?>
   <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="border-bottom:1px solid #949494">

@@ -818,15 +818,17 @@ class EINetwork extends Sierra2 implements
      */
     public function getAnnouncements($ns=null){
         $announcements = [];
-        foreach($this->config['Site']['announcement'] as $news) {
-            $hash = md5($news);
-            // see if we need to unblock this
-            if( !$this->session->patronLogin && isset($this->session->dismissedAnnouncements[$hash]) && ($this->session->dismissedAnnouncements[$hash] + 300) < time() ) {
-                unset($this->session->dismissedAnnouncements[$hash]);
-            }
-            // add it to the array if they haven't dismissed it
-            if( !isset($this->session->dismissedAnnouncements[$hash]) ) {
-                $announcements[] = ['html' => true, 'msg' => $news, 'announceHash' => $hash];
+        if( isset($this->config['Site']['announcement']) ) {
+            foreach($this->config['Site']['announcement'] as $news) {
+                $hash = md5($news);
+                // see if we need to unblock this
+                if( !$this->session->patronLogin && isset($this->session->dismissedAnnouncements[$hash]) && ($this->session->dismissedAnnouncements[$hash] + 300) < time() ) {
+                    unset($this->session->dismissedAnnouncements[$hash]);
+                }
+                // add it to the array if they haven't dismissed it
+                if( !isset($this->session->dismissedAnnouncements[$hash]) ) {
+                    $announcements[] = ['html' => true, 'msg' => $news, 'announceHash' => $hash];
+                }
             }
         }
         return $announcements;

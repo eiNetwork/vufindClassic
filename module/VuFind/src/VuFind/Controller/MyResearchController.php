@@ -546,7 +546,39 @@ class MyResearchController extends AbstractBase
      */
     public function comingsoonAction()
     {
-        return $this->createViewModel();
+        return $this->redirect()->toUrl("/");
+    }
+
+    /**
+     * Action for showing the SMS help (archival, some libraries linked directly here, so redirect)
+     *
+     * @return mixed
+     */
+    public function smshelpAction()
+    {
+        return $this->forwardTo('Search', 'Home');
+    }
+
+    /**
+     * PIN Reset action
+     * This is archival, some libraries are still linking to it for some reason, so we just redirect to the correct dialog.
+     * 
+     * @return mixed
+     */
+    public function PINresetAction()
+    {
+        return $this->forwardTo('Search', 'Home');
+    }
+
+    /**
+     * Get Card action
+     * This is archival, some libraries are still linking to it for some reason, so we just redirect to the correct dialog.
+     * 
+     * @return mixed
+     */
+    public function GetCardAction()
+    {
+        return $this->forwardTo('Search', 'Home');
     }
 
     /**

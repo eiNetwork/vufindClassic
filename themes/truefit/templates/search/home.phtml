@@ -67,6 +67,30 @@
     leftBtn.disabled = false;
     rightBtn.disabled = (slider.showIndex + 3) >= childTDs.length;
   }
+
+  jQuery(document).ready(function() {
+    // if they're trying to show the text notices help, give it to them
+    if( window.location.href.toLowerCase().indexOf("/myresearch/smshelp") != -1 ) {
+      Lightbox.addOpenAction( function() { 
+        $('#modal').on('shown.bs.modal', function() { location.hash = "#section3-6" });
+      } );
+      Lightbox.get('Help','Home');
+    }
+    // if they're trying to show the pin reset dialog, give it to them
+    else if( window.location.href.toLowerCase().indexOf("/myresearch/pinreset") != -1 ) {
+      Lightbox.addOpenAction( function() { 
+        $('#modal').on('shown.bs.modal', function() { ToggleLoginModal(document.getElementById('loginModalReset')); });
+      } );
+      Lightbox.get('MyResearch','Login');
+    }
+    // if they're trying to show the register dialog, give it to them
+    else if( window.location.href.toLowerCase().indexOf("/myresearch/getcard") != -1 ) {
+      Lightbox.addOpenAction( function() { 
+        $('#modal').on('shown.bs.modal', function() { ToggleLoginModal(document.getElementById('loginModalRegister')); });
+      } );
+      Lightbox.get('MyResearch','Login');
+    }
+  } );
 </script>
 <div class="splashNewest">
   <? if(is_object($this->BookResults) && count($BookResults = $this->BookResults->results->getResults()) > 0): ?>

@@ -362,6 +362,8 @@ i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 .helpSubsection{border:1px solid #949494;border-radius:4px;padding:5px;margin-top:10px}
 .helpLink.subsection{margin-left:20px}
 .helpQuickJumpSection{margin-top:20px}
+.helpFAQHeader{margin-top:25px;font-size:16px;font-weight:700}
+.helpFAQSection{margin:10px}
 .helpLink.disabled,.helpLink.disabled:hover,.helpLink.disabled:active,.helpLink.disabled:focus{color:#ededed !important;text-decoration:none !important;cursor:default}
 
 .historyNote{font-size:14px}

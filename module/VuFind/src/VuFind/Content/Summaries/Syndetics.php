@@ -76,7 +76,7 @@ class Syndetics extends \VuFind\Content\AbstractSyndetics
     public function loadByIsbn($key, \VuFindCode\ISBN $isbnObj)
     {
         // Initialize return value
-        $summary = [];
+        $review = [];
 
         // Find out if there are any reviews
         $isbn = $this->getIsbn10($isbnObj);

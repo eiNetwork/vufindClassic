@@ -188,4 +188,5 @@
   $('#saveSearchButton').prop('disabled', false);
   $('#saveSearchButton').parent().removeClass('disabled');
   $('#saveSearchButton').parent().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
+  $('.searchTypeCheck.stc<?=$this->searchType?>').css({"display":"initial"});
 </script>

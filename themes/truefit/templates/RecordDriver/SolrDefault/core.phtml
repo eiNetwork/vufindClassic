@@ -557,6 +557,46 @@
               <? endif; ?>
               <h6 class="accordionSubheading accordionGap">Additional Information</h6>
               <table class="EIN-col-m-12 accordionTable">
+                <? if( isset($this->tabs['Series']) ): ?>
+                  <? $seriesInfo = $this->tabs['Series']->getContent($this->driver->getCleanISBN()); ?>
+                  <? if( count($seriesInfo) > 0 ): ?>
+                    <tr>
+                      <td class="colophonHeading"><?=$this->transEsc('Series')?></td>
+                      <td><span class="accordionParagraph">
+                        <? foreach($seriesInfo as $sourceIndex => $thisSource): ?>
+                          <? if( $sourceIndex == "Syndetics" ): ?>
+                            <? foreach($thisSource as $seriesIndex => $thisSeries): ?>
+                              <? $marcSeriesTitle = $this->driver->getSeries(); ?>
+                              <? $marcSeriesTitle = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["name"])) ? $marcSeriesTitle[0]["name"] : ""); ?>
+                              <span style="font-weight:700"><?=($marcSeriesTitle ? $marcSeriesTitle : $thisSeries["title"]) ?></span><br>
+                              <? if( isset($thisSeries["notes"]) ): ?>
+                                <span><?=$thisSeries["notes"] ?></span><br>
+                              <? endif; ?>
+                              <? $i=1; while( isset($thisSeries[$i]) ): ?>
+                                <span>#<?=$i?> - <a href="<?=$this->record($this->driver)->getLink('title', $thisSeries[$i]["title"])?>"><?=$thisSeries[$i]["title"]?></a></span><br>
+                                <? $i++; ?>
+                              <? endwhile; ?>
+                            <? endforeach; ?>
+                          <? endif; ?>
+                        <? endforeach; ?>
+                      </span></td>
+                    </tr>
+                  <? endif; ?>
+                <? endif; ?>
+                <? $subjects = $this->driver->getAllSubjectHeadings(); if (!empty($subjects)): ?>
+                  <tr>
+                    <td class="colophonHeading"><?=$this->transEsc('Subjects')?></td>
+                    <td><span class="accordionParagraph">
+                      <? foreach($subjects as $thisSubject): ?>
+                        <? $subjectSearch = ""; ?>
+                        <? foreach( $thisSubject as $headingIndex => $thisHeading ): ?>
+                          <? $subjectSearch .= ($headingIndex ? "  " : "") . $thisHeading; ?>
+                          <span><?=($headingIndex ? " -- " : "")?><a href="<?=$this->record($this->driver)->getLink('subject', $subjectSearch)?>"><?= $thisHeading ?></a></span>
+                        <? endforeach; ?><br>
+                      <? endforeach; ?>
+                    </span></td>
+                  </tr>
+                <? endif; ?>
                 <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Publisher')?></td>
@@ -571,7 +611,11 @@
                     <td><?=$this->escapeHtml($edition)?></td>
                   </tr>
                 <? endif; ?>
-                <? $otherTitles = array_merge($this->driver->getNewerTitles(), $this->driver->getPreviousTitles(), $this->driver->getFormattedMarcDetails(730, ['|a']), $this->driver->getFormattedMarcDetails(740, ['|a']), $this->driver->getFormattedMarcDetails(700, ['|t']), $this->driver->getFormattedMarcDetails(710, ['|t']), $this->driver->getFormattedMarcDetails(711, ['|t'])); if (!empty($otherTitles)): ?>
+                <? $otherTitles = array_merge($this->driver->getNewerTitles(), $this->driver->getPreviousTitles(), $this->driver->getFormattedMarcDetails(730, ['|a']), $this->driver->getFormattedMarcDetails(740, ['|a']), $this->driver->getFormattedMarcDetails(700, ['|t']), $this->driver->getFormattedMarcDetails(710, ['|t']), $this->driver->getFormattedMarcDetails(711, ['|t']), $this->driver->getFormattedMarcDetails(240, ['|a']), $this->driver->getFormattedMarcDetails(246, ['|a'])); ?>
+                <? foreach( $otherTitles as $otIndex => $thisTitle ): ?>
+                  <? if( isset($thisTitle["0"]) && ($thisTitle["0"] == "") ): unset($otherTitles[$otIndex]); endif; ?>
+                <? endforeach; ?>
+                <? if (!empty($otherTitles)): ?>
                   <tr>
                     <td class="colophonHeading"><?=$this->transEsc('Other Titles')?></td>
                     <td><span class="accordionParagraph"><? foreach ($otherTitles as $altTitle): ?>
@@ -591,7 +635,7 @@
                     <td><span class="accordionParagraph">
                       <? foreach ($contributors as $key => $field): ?>
                         <span property="contributor">
-                          <a href="<?=$this->record($this->driver)->getLink('author', $field[0])?>"><?=$this->escapeHtml($field[0])?></a>
+                          <a href="<?=$this->record($this->driver)->getLink('contributor', $field[0])?>"><?=$this->escapeHtml($field[0])?></a>
                           <? if( $roles[$key][0] != "" ): ?>
                             <?= $roles[$key][0] ?>
                           <? endif; ?>
@@ -744,6 +788,7 @@
         $('body').css({"overflow-y":"hidden"});
         if($(document).width() >= 600) {
           $('.panel-heading<?=($isOverDrive?".overdriveHeader":"")?> a').first().click();
+          $('.panel-heading<?=($isOverDrive?".overdriveHeader":"")?> a[href="#details3"]').click();
         }
         $('body').css({"overflow-y":"auto"});
         $('#detailsAccordion').css({"min-height":$('.accordionButtonsLeft').height() + "px"});

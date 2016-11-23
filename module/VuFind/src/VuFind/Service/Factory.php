@@ -176,6 +176,18 @@ class Factory
     }
 
     /**
+     * Construct the Content\Series Plugin Manager.
+     *
+     * @param ServiceManager $sm Service manager.
+     *
+     * @return \VuFind\Content\Series\PluginManager
+     */
+    public static function getContentSeriesPluginManager(ServiceManager $sm)
+    {
+        return static::getGenericPluginManager($sm, 'Content\Series');
+    }
+
+    /**
      * Construct the Content\Summaries Plugin Manager.
      *
      * @param ServiceManager $sm Service manager.

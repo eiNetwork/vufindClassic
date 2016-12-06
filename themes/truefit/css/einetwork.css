@@ -371,7 +371,7 @@ i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 .historyItem{border-bottom:1px solid #949494}
 .checkBoxLabel{margin:0}
 
-.feedbackButton{padding:10px;border:4px solid #ededed;border-radius:10px;background:#3f51b5;display:inline-block;color:#ededed;font-size:20px;font-weight:500;line-height:35px}
+.feedbackButton{padding:5px;border:2px solid #ededed;border-radius:10px;background:#3f51b5;display:inline-block;color:#ededed;font-size:15px;font-weight:500;line-height:20px;}
 
 .forgotText{color:#000; font-size:16px; text-align:left}
 

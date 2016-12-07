@@ -190,3 +190,56 @@
   $('#saveSearchButton').parent().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
   $('.searchTypeCheck.stc<?=$this->searchType?>').css({"display":"initial"});
 </script>
+<div class="dropdown" id="saveButtonDropdown">
+  <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+    <? if($user = $this->auth()->isLoggedIn()):  foreach($user->getLists() as $list): ?>
+      <li>
+        <form class="removeFromList" method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
+          <input type="hidden" name="confirm" value="1">
+          <input type="hidden" name="delete" value="">
+          <input type="hidden" name="source" value="">
+          <input type="hidden" name="list" value="<?=$list->id?>">
+          <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+        </form>
+        <form class="addToList" method="post" action="">
+          <input type="hidden" name="submit" value="1">
+          <input type="hidden" name="id" value="">
+          <input type="hidden" name="source" value="">
+          <input type="hidden" name="list" value="<?=$list->id?>">
+          <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
+        </form>
+      </li>
+    <? endforeach;  endif; ?>
+    <li><button class="btn-dropdown btn-standardDropdown newListButton" onclick="">New list...</button></li>
+    <hr class="stretchHR">
+    <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
+  </ul>
+</div>
+<script type="text/javascript">
+  function moveSaveDropdown(button, itemData) {
+    $(button).after($("#saveButtonDropdown"));
+    itemData = JSON.parse(itemData.replace(/'/g, "\""));
+    $("#saveButtonDropdown").find(".removeFromList").each( function() {
+      var myId = parseInt($(this).find("input[name='list']").attr("value"));
+      if( itemData.lists.indexOf(myId) != -1 ) {
+        $(this).find("input[name='delete']").attr("value", itemData.id.split("|")[1]);
+        $(this).find("input[name='source']").attr("value", itemData.id.split("|")[0]);
+        $(this).css({"display":"inherit"});
+      } else {
+        $(this).css({"display":"none"});
+      }
+    });
+    $("#saveButtonDropdown").find(".addToList").each( function() {
+      var myId = parseInt($(this).find("input[name='list']").attr("value"));
+      if( itemData.lists.indexOf(myId) == -1 ) {
+        $(this).attr("action", itemData.saveLink);
+        $(this).find("input[name='id']").attr("value", itemData.id.split("|")[1]);
+        $(this).find("input[name='source']").attr("value", itemData.id.split("|")[0]);
+        $(this).css({"display":"inherit"});
+      } else {
+        $(this).css({"display":"none"});
+      }
+    });
+    $("#saveButtonDropdown").find(".newListButton").attr("onClick", "Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'" + itemData.id.split("|")[1] + "'})");
+  }
+</script>

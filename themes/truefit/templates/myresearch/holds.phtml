@@ -65,6 +65,7 @@
                     <? endforeach; ?>
                   </div>
                 </form>
+                <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? foreach ($this->holdList[$holdType] as $current): ?>
                   <?=$this->record($current["driver"])->getHoldEntry($current)?>
                 <? endforeach; ?>

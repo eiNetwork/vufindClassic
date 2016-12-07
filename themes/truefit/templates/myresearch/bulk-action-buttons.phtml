@@ -31,7 +31,8 @@
   function ScanBulkButton(form) {
     var target = form.find('.bulkButton');
     target.prop('disabled', true);
-    form.siblings('.ajaxItem').find('.checkbox-select-item').each( function() {
+    var testSet = (form.siblings('.ajaxListContents').length > 0) ? form.siblings('.ajaxListContents').find('.ajaxItem') : form.siblings('.ajaxItem')
+    testSet.find('.checkbox-select-item').each( function() {
       if(this.checked) {
         target.prop('disabled', false);
       }
@@ -90,7 +91,7 @@
   setTimeout(ScanBulkButton, 10, $('#bulkAction<?=$bulkID?>').parent());
 </script>
 <div class="checkbox EIN-col-m-12">
-  <label class="EIN-col-m-12">
+  <span class="EIN-col-m-12">
     <input type="checkbox" name="selectAll" class="checkbox-select-all" style="display:none"/>
     <button class="btn-default btn-wide EIN-hide-m" onclick="ToggleAll($(this).siblings('.checkbox-select-all')); ScanBulkButton($(this).parents('form')); return false;"><?=$this->transEsc('select_page')?></button>
     <div class="EIN-col-m-6 EIN-hide-t EIN-hide">
@@ -160,7 +161,4 @@
       </div>
     </div>
   </label>
-</div>
-<div class="EIN-col-m-12">
-  <hr style="margin:5px 0">
 </div>

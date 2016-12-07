@@ -926,7 +926,7 @@ class MyResearchController extends AbstractBase
                 // initialize our search object:
                 $request = $this->getRequest()->getQuery()->toArray()
                     + $this->getRequest()->getPost()->toArray()
-                    + ['id' => $thisList->id, 'limit' => 300, 'listContents' => true];
+                    + ['id' => $thisList->id, 'limit' => 0, 'page' => 1, 'listContents' => true];
 
                 // Set up listener for recommendations:
                 $rManager = $this->getServiceLocator()
@@ -939,16 +939,17 @@ class MyResearchController extends AbstractBase
                     $listener->attach($runner->getEventManager()->getSharedManager());
                 };
 
-                $results[] = ['list' => $thisList, 'items' => $runner->run($request, 'Favorites', $setupCallback)];
+                $results[] = ['list' => $thisList, 'items' => ((!$this->params()->fromRoute('id') && !$this->params()->fromQuery('id')) ? [] : $runner->run($request, 'Favorites', $setupCallback))];
             }
 
             $args = $this->getRequest()->getQuery()->toArray();
             $listToShow = isset($args["listToShow"]) ? $args["listToShow"] : $this->session->lastList;
+            $sort = isset($args["sort"]) ? $args["sort"] : "title";
             if( !isset($args["listToShow"]) ) {
                 unset($this->session->lastList);
             }
             return $this->createViewModel(
-                ['results' => $results, 'showList' => $listToShow]
+                ['results' => $results, 'showList' => $listToShow, 'sort' => $sort]
             );
         } catch (ListPermissionException $e) {
             if (!$this->getUser()) {

@@ -26,7 +26,8 @@
  * @link     http://vufind.org/wiki/vufind2:building_a_controller Wiki
  */
 namespace VuFind\Controller;
-use VuFind\Exception\Auth as AuthException;
+use VuFind\Exception\Auth as AuthException,
+    VuFind\Search\RecommendListener;
 
 /**
  * This controller handles global AJAX functionality
@@ -398,6 +399,64 @@ class AjaxController extends AbstractBase
 
 
     /**
+     * Get List Contents
+     *
+     * This is responsible for printing the contents information for a
+     * patron list in JSON format.
+     *
+     * @return \Zend\Http\Response
+     * @author Chris Delis <cedelis@uillinois.edu>
+     * @author Tuan Nguyen <tuan@yorku.ca>
+     * @author Brad Patton <pattonb@einetwork.net>
+     */
+    protected function getListContentsAjax()
+    {
+        $this->writeSession();  // avoid session write timing bug
+        $catalog = $this->getILS();
+        if($user = $this->getUser()) {
+            $id = $this->params()->fromQuery('id')[0];
+            $page = $this->params()->fromQuery('page')[0];
+            $path = $this->params()->fromQuery('path')[0];
+            $sort = $this->params()->fromQuery('sort')[0];
+
+            $results = [];
+            $limit = 20;
+            $request = ['id' => $id, 'limit' => $limit, 'page' => $page, 'listContents' => true, 'sort' => $sort];
+
+            // Set up listener for recommendations:
+            $runner = $this->getServiceLocator()->get('VuFind\SearchRunner');
+            $rManager = $this->getServiceLocator()->get('VuFind\RecommendPluginManager');
+            $setupCallback = function ($runner, $params, $searchId) use ($rManager) {
+                $listener = new RecommendListener($rManager, $searchId);
+                $listener->setConfig(
+                    $params->getOptions()->getRecommendationSettings()
+                );
+                $listener->attach($runner->getEventManager()->getSharedManager());
+            };
+
+            $items = $runner->run($request, 'Favorites', $setupCallback);
+            foreach($items->getResults() as $i => $thisResult) {
+                $record = $this->getRecordLoader()->load($thisResult->getUniqueID(), $thisResult->getResourceSource(), true);
+                if( !($record instanceof \VuFind\RecordDriver\Missing) ) {
+                    $results[] = $record;
+                }
+            }
+
+            $html = $this->getViewRenderer()->render('myresearch/listContents.phtml', ['results' => $results, 'list' => $this->getTable('UserList')->getExisting($id)]);
+            $continue = (($page * $limit) < $items->getResultTotal());
+            $sortHtml = $continue ? "" : $this->getViewRenderer()->render('search/controls/sort.phtml', ['params' => $items->getParams(), 'id' => $id, 'list' => $id, 'path' => $path]);
+            $bulkHtml = "";
+            if( !$continue ) {
+                $bulkHtml = $this->getViewRenderer()->render('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'list' => $this->getTable('UserList')->getExisting($id)));
+            }
+            return $this->output(['html' => $html, 'id' => $id, 'page' => $page, 'continue' => $continue, 'sortHtml' => $sortHtml, 'bulkHtml' => $bulkHtml], self::STATUS_OK);
+        } else {
+            return $this->output($this->translate('You must be logged in first'), self::STATUS_NEED_AUTH);
+        }
+    }
+
+
+    /**
      * Support method for getItemStatuses() -- when presented with multiple values,
      * pick which one(s) to send back via AJAX.
      *
@@ -605,7 +664,7 @@ class AjaxController extends AbstractBase
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
             $volumeNumbers[] = isset($info['number']) ? $info['number'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
-            if( !isset($itsHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
+            if( (!isset($itsHere) || ($itsHere['status'] == 'o')) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
             if( !isset($holdableCopyHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {

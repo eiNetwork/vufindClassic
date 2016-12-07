@@ -15,9 +15,10 @@
   $urls = $this->driver->getURLs();
 ?>
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
+  <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
   <table class="EIN-col-m-12"><tr>
     <td class="EIN-col-m-1" style="margin:auto" rowspan="2">
-      <label class="pull-left flip"><?=$this->record($this->driver)->getCheckbox() ?></label>
+      <label class="pull-left flip"><?=$record->getCheckbox() ?></label>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
     </td>
@@ -65,7 +66,6 @@
               </tr>
             <? endforeach; ?>
           <? endif; ?>
-
           <tr>
             <td class="EIN-hide-m itemDetailCategory">Availability:</td>
             <td style="padding-bottom:5px">
@@ -86,11 +86,23 @@
       </div>
       <?
         if($user):
+          $myLists = $user->getLists();
+          $hasLists = $user->getLists($this->driver->getResourceSource()."|".$this->driver->getUniqueID());
+          $containingLists = [];
+          foreach($hasLists as $thisList):
+            $containingLists[] = $thisList->list_id;
+          endforeach;
+
+          $itemData = json_encode(["id" => $this->driver->getResourceSource() . "|" . $this->driver->getUniqueID(), "lists" => $containingLists, "saveLink" => $this->recordLink()->getActionUrl($this->driver, 'Save')]);
+          $itemData = str_replace("\"", "\\'", $itemData);
+
           $holdClick = "";
-          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown" . str_replace(".", "", $this->driver->getUniqueID()) . ",#saveButtonDropdownMobile" . str_replace(".", "", $this->driver->getUniqueID()) . "\"";
+          $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\" onclick=\"moveSaveDropdown(this, '" . $itemData . "');\"";
+          $mobileSaveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\" onclick=\"moveSaveDropdown($(this).parent().next().children('span'), '" . $itemData . "');\"";
         else:
           $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
           $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+          $mobileSaveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
         endif;
       ?>
       <div class="EIN-hide-m EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
@@ -101,40 +113,8 @@
             </ul>
           </div>
         </div>
-        <? if($user):
-             $myLists = $user->getLists(); 
-           endif;
-        ?>
         <div class="EIN-col-m-12">
           <button class="btn-default rightButton"<?=$saveClick?>><?=$this->transEsc("list_manage")?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-          <div class="dropdown EIN-hide-m" id="saveButtonDropdown<?=str_replace(".", "", $this->driver->getUniqueID())?>">
-            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
-              <? if($user):  foreach($myLists as $list): ?>
-                <li>
-                  <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
-                    <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
-                      <input type="hidden" name="confirm" value="1">
-                      <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
-                    </form>
-                  <? else: ?>
-                    <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
-                      <input type="hidden" name="submit" value="1">
-                      <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
-                    </form>
-                  <? endif; ?>
-                </li>
-              <? endforeach;  endif; ?>
-              <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
-              <hr class="stretchHR">
-              <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
-            </ul>
-          </div>
         </div>
       </div>
     </td>
@@ -149,72 +129,12 @@
           </div>
         </div>
         <div class="EIN-col-m-6">
-          <button class="btn-default rightButton"<?=$saveClick?>><?=$this->transEsc("list_manage")?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
-          <div class="dropdown EIN-hide-m" id="saveButtonDropdownMobile<?=str_replace(".", "", $this->driver->getUniqueID())?>">
-            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
-              <? if($user):  foreach($myLists as $list): ?>
-                <li>
-                  <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
-                    <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
-                      <input type="hidden" name="confirm" value="1">
-                      <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
-                    </form>
-                  <? else: ?>
-                    <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
-                      <input type="hidden" name="submit" value="1">
-                      <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
-                    </form>
-                  <? endif; ?>
-                </li>
-              <? endforeach;  endif; ?>
-              <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
-              <hr class="stretchHR">
-              <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
-            </ul>
-          </div>
+          <button class="btn-default rightButton"<?=$mobileSaveClick?>><?=$this->transEsc("list_manage")?><?=($user?"<i class=\"fa fa-caret-down\"></i>":"")?></button>
         </div>
         <div class="EIN-col-m-12">
-          <div class="dropdown EIN-hide-t EIN-hide" id="saveButtonDropdownMobile<?=str_replace(".", "", $this->driver->getUniqueID())?>">
-            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
-              <? if($user):  foreach($myLists as $list): ?>
-                <li>
-                  <? if($list->contains($this->driver->getResourceSource()."|".$this->driver->getUniqueID())): ?>
-                    <form method="post" action="<?=$this->url('userList', array('id' => $list->id))?>">
-                      <input type="hidden" name="confirm" value="1">
-                      <input type="hidden" name="delete" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
-                    </form>
-                  <? else: ?>
-                    <form method="post" action="<?=$this->recordLink()->getActionUrl($this->driver, 'Save')?>">
-                      <input type="hidden" name="submit" value="1">
-                      <input type="hidden" name="id" value="<?=$this->driver->getUniqueID()?>">
-                      <input type="hidden" name="source" value="<?=$this->driver->getResourceSource()?>">
-                      <input type="hidden" name="list" value="<?=$list->id?>">
-                      <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><?=$list->title?></button>
-                    </form>
-                  <? endif; ?>
-                </li>
-              <? endforeach;  endif; ?>
-              <li><button class="btn-dropdown btn-standardDropdown" onclick="Lightbox.get('MyResearch','EditList',{'id':'NEW','recordId':'<?=$this->driver->getUniqueID()?>'})">New list...</button></li>
-              <hr class="stretchHR">
-              <li><span class="modalNote">Click a non-checked list to add this title.  Click a checked list to remove this title.</span></li>
-            </ul>
-          </div>
-          <div class="dropdown EIN-hide-t EIN-hide" id="holdButtonDropdownMobile<?=str_replace(".", "", $this->driver->getUniqueID())?>">
-            <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
-            </ul>
-          </div>
+          <span></span>
         </div>
       </div>
     </td>
   </tr></table>
-  <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
 </div>

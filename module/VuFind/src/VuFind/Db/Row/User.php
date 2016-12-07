@@ -332,31 +332,26 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
      *
      * @return \Zend\Db\ResultSet\AbstractResultSet
      */
-    public function getLists()
+    public function getLists($itemId=null)
     {
         $userId = $this->id;
-        $callback = function ($select) use ($userId) {
+        $callback = function ($select) use ($userId, $itemId) {
             $select->columns(
                 [
-                    '*',
-                    'cnt' => new Expression(
-                        'COUNT(DISTINCT(?))', ['ur.resource_id'],
-                        [Expression::TYPE_IDENTIFIER]
-                    )
+                    '*'
                 ]
-            );
-            $select->join(
-                ['ur' => 'user_resource'], 'user_list.id = ur.list_id',
-                [], $select::JOIN_LEFT
             );
             $select->where->equalTo('user_list.user_id', $userId);
-            $select->group(
-                [
-                    'user_list.id', 'user_list.user_id', 'title', 'description',
-                    'created', 'public'
-                ]
-            );
-            $select->order(['title']);
+            if (!is_null($itemId)) {
+                $select->join(
+                    ['ur' => 'user_resource'], 'user_list.id = ur.list_id'
+                )->join(
+                    ['r' => 'resource'], 'r.id = ur.resource_id'
+                );
+                $select->where->equalTo('r.source', explode("|", $itemId)[0])
+                              ->equalTo('r.record_id', explode("|", $itemId)[1]);
+            }
+            $select->order(['user_list.title']);
         };
 
         $table = $this->getDbTable('UserList');

@@ -13,7 +13,7 @@
       item.addClass('checkToggleOn');
 
       var target = item.prevAll('.checkbox-select-item').get(0);
-      var parentForm = $(target).parents('.ajaxItem').siblings('form');
+      var parentForm = ($(target).parents('.ajaxListContents').length > 0) ? $(target).parents('.ajaxListContents').siblings('form') : $(target).parents('.ajaxItem').siblings('form');
       parentForm.find('.checkbox-select-item[value=\'' + $(target).attr('value') + '\']').prop('checked',item.hasClass('fa-check-square'));
       parentForm.find('.checkbox-select-all').prop('checked', true);
       parentForm.find('.checkbox-select-item').each( function() {

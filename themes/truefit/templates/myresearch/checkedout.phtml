@@ -64,6 +64,7 @@
                     <? endforeach; ?>
                   </div>
                 </form>
+                <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? foreach ($this->checkoutList[$checkoutType] as $current): ?>
                   <?=$this->record($current["driver"])->getCheckoutEntry($current, $user)?>
                 <? endforeach; ?>

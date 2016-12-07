@@ -220,18 +220,19 @@ class Record extends AbstractHelper
     {
         // Get list of lists containing this entry
         $lists = null;
-        if ($user) {
+        if ($user && $this->driver) {
             $lists = $this->driver->getContainingLists($user->id);
+            return $this->renderTemplate(
+                'list-entry.phtml',
+                [
+                    'driver' => $this->driver,
+                    'list' => $list,
+                    'user' => $user,
+                    'lists' => $lists
+                ]
+            );
         }
-        return $this->renderTemplate(
-            'list-entry.phtml',
-            [
-                'driver' => $this->driver,
-                'list' => $list,
-                'user' => $user,
-                'lists' => $lists
-            ]
-        );
+        return "";
     }
 
     /**

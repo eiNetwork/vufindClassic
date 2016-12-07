@@ -15,7 +15,7 @@
       </ul>
     </div>
   </div>
-  <form class="form-inline" action="<?=$this->currentPath()?>" method="get" name="sort<?=$this->id?>">
+  <form class="form-inline" action="<?=($this->path ? $this->path : $this->currentPath())?>" method="get" name="sort<?=$this->id?>">
     <input type="hidden" id="sort_options_1_<?=$this->id?>" name="sort">
     <? if( !isset($this->list) || !$this->list ): ?>
       <?=$this->results->getUrlQuery()->asHiddenFields(array('sort' => '/.*/'));?>

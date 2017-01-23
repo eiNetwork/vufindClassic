@@ -58,6 +58,7 @@ class Module
     {
         return [
             'Zend\Loader\ClassMapAutoloader' => [
+                __DIR__ . '/autoload_classmap.php',
                 'classes' => [
                     'minSO' => __DIR__ . '/src/VuFind/Search/minSO.php'
                 ]

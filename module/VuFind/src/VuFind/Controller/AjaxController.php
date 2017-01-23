@@ -600,7 +600,7 @@ class AjaxController extends AbstractBase
         // see if they can check this out
         if( !$canHold ) {
             foreach($record as $item) {
-                $overDriveInfo["canCheckOut"] |=  $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
+                $overDriveInfo["canCheckOut"] |= isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
             }
         }
 
@@ -664,10 +664,10 @@ class AjaxController extends AbstractBase
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
             $volumeNumbers[] = isset($info['number']) ? $info['number'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
-            if( (!isset($itsHere) || ($itsHere['status'] == 'o')) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) ) {
+            if( (!isset($itsHere) || ($itsHere['status'] == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
-            if( !isset($holdableCopyHere) && $currentLocation && $available && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
+            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
                 $holdableCopyHere = $info;
             }
         }
@@ -693,7 +693,7 @@ class AjaxController extends AbstractBase
                         ($available ? 'available' : 
                          ($onOrder ? 'order' : 
                           ($isOneClick ? 'oneclick' : 'unavailable')))];
-        if ($onOrder) {
+        if (isset($onOrder) && $onOrder) {
             $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
         }
         if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {

@@ -44,6 +44,8 @@ use Zend\Http\Client\Adapter\AdapterInterface;
 
 use InvalidArgumentException;
 
+use Memcached;
+
 /**
  * SOLR connector.
  *
@@ -114,6 +116,8 @@ class Connector implements \Zend\Log\LoggerAwareInterface
      */
     protected $adapter = 'Zend\Http\Client\Adapter\Socket';
 
+    protected $memcached = null;
+
     /**
      * Constructor
      *
@@ -128,6 +132,9 @@ class Connector implements \Zend\Log\LoggerAwareInterface
         $this->url = $url;
         $this->map = $map;
         $this->uniqueKey = $uniqueKey;
+
+        $this->memcached = new Memcached();
+        $this->memcached->addServer('localhost', 11211);
     }
 
     /// Public API
@@ -412,25 +419,29 @@ class Connector implements \Zend\Log\LoggerAwareInterface
      */
     protected function send(HttpClient $client)
     {
-        $this->debug(
-            sprintf('=> %s %s', $client->getMethod(), $client->getUri())
-        );
+        $key = md5("solrCache" . $client->getMethod() . $client->getUri());
+        if( !$this->memcached->get($key) ) {
+            $this->debug(
+                sprintf('=> %s %s', $client->getMethod(), $client->getUri())
+            );
 
-        $time     = microtime(true);
-        $response = $client->send();
-        $time     = microtime(true) - $time;
+            $time     = microtime(true);
+            $response = $client->send();
+            $time     = microtime(true) - $time;
 
-        $this->debug(
-            sprintf(
-                '<= %s %s', $response->getStatusCode(),
-                $response->getReasonPhrase()
-            ), ['time' => $time]
-        );
+            $this->debug(
+                sprintf(
+                    '<= %s %s', $response->getStatusCode(),
+                    $response->getReasonPhrase()
+                ), ['time' => $time]
+            );
 
-        if (!$response->isSuccess()) {
-            throw HttpErrorException::createFromResponse($response);
+            if (!$response->isSuccess()) {
+                throw HttpErrorException::createFromResponse($response);
+            }
+            $this->memcached->set($key, $response->getBody(), 3600);
         }
-        return $response->getBody();
+        return $this->memcached->get($key);
     }
 
     /**

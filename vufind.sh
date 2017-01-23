@@ -138,7 +138,9 @@ findDirectory()
 # JAVA_OPTIONS="-server -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
 if [ -z "$JAVA_OPTIONS" ]
 then
-  JAVA_OPTIONS="-server -Xms1024m -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
+  #JAVA_OPTIONS="-server -Xms1024m -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
+  JAVA_OPTIONS="-server -Xms8192m -Xmx8192m -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:+AggressiveOpts -XX:NewRatio=5 -Xloggc:/usr/local/vufind2/logs/gc.log"
+  #JAVA_OPTIONS="-server -Xms16384m -Xmx16384m -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:+AggressiveOpts -XX:NewRatio=5 -Xloggc:/usr/local/vufind2/logs/gc.log"
 fi
 
 ##################################################

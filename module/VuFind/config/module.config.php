@@ -211,11 +211,7 @@ $config = [
         ],
     ],
     'view_manager' => [
-        'display_not_found_reason' => APPLICATION_ENV == 'development',
-        'display_exceptions'       => APPLICATION_ENV == 'development',
-        'not_found_template'       => 'error/404',
-        'exception_template'       => 'error/index',
-        'template_path_stack'      => [],
+        'template_map' => include __DIR__  .'/../template_map.php',
     ],
     // This section contains all VuFind-specific settings (i.e. configurations
     // unrelated to specific Zend Framework 2 components).

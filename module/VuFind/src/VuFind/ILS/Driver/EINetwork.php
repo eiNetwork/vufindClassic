@@ -9,6 +9,7 @@ namespace VuFind\ILS\Driver;
 use VuFind\Exception\ILS as ILSException;
 use Zend\Session\Container as SessionContainer;
 use DateTime;
+use Memcached;
 
 class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
@@ -17,6 +18,7 @@ class EINetwork extends Sierra2 implements
     use \VuFind\ILS\Driver\OverDriveTrait;
 
     protected $session = null;
+    protected $memcached = null;
 
     /**
      * Initialize the driver.
@@ -33,6 +35,10 @@ class EINetwork extends Sierra2 implements
 
         // create the session
         $this->session = new SessionContainer("EINetwork");
+
+        // start memcached
+        $this->memcached = new Memcached();
+        $this->memcached->addServer('localhost', 11211);
     }
 
     public function getConfigVar($section, $name) {
@@ -217,8 +223,8 @@ class EINetwork extends Sierra2 implements
      */
     public function getPickUpLocations($patron = false, $holdInfo = null)
     {
-        if( $this->session->pickup_locations ) {
-            return $this->session->pickup_locations;
+        if( $this->memcached->get("pickup_locations") ) {
+            return $this->memcached->get("pickup_locations");
         }
 
         $locations = $this->getDbTable('Location')->getPickupLocations();
@@ -226,7 +232,7 @@ class EINetwork extends Sierra2 implements
         foreach( $locations as $loc ) {
             $pickupLocations[] = ["locationID" => $loc->code, "locationDisplay" => $loc->displayName];
         }
-        $this->session->pickup_locations = $pickupLocations;
+        $this->memcached->set("pickup_locations", $pickupLocations);
         return $pickupLocations;
     }
 
@@ -254,90 +260,95 @@ class EINetwork extends Sierra2 implements
 	
     public function getHolding($id, array $patron = null)
     {
-        if( ($overDriveId = $this->getOverDriveID($id)) ) {
-            $availability = $this->getProductAvailability($overDriveId);
-            return [[
-                    "id" => $id,
-                    "location" => "OverDrive",
-                    "isOverDrive" => true,
-                    "copiesOwned" => $availability->collections[0]->copiesOwned,
-                    "copiesAvailable" => $availability->collections[0]->copiesAvailable,
-                    "numberOfHolds" => $availability->collections[0]->numberOfHolds,
-                    "availability" => ($availability->collections[0]->copiesAvailable > 0)
-                   ]];
-        }
-        $results = parent::getHolding($id, $patron);
-
-        // add in the extra details we need
-        $results2 = [];
-        for($i=0; $i<count($results); $i++) {
-            // clean call number
-            $pieces = explode("|f", $results[$i]['callnumber']);
-            $results[$i]['callnumber'] = "";
-            foreach( $pieces as $piece ) {
-                $results[$i]['callnumber'] .= (($results[$i]['callnumber'] == "") ? "" : "<br>") . trim($piece);
+        // see if it's there
+        if( !$this->memcached->get("holdingID" . $id) ) {
+            if( ($overDriveId = $this->getOverDriveID($id)) ) {
+                $availability = $this->getProductAvailability($overDriveId);
+                $this->memcached->set("holdingID" . $id, [[
+                        "id" => $id,
+                        "location" => "OverDrive",
+                        "isOverDrive" => true,
+                        "copiesOwned" => $availability->collections[0]->copiesOwned,
+                        "copiesAvailable" => $availability->collections[0]->copiesAvailable,
+                        "numberOfHolds" => $availability->collections[0]->numberOfHolds,
+                        "availability" => ($availability->collections[0]->copiesAvailable > 0)
+                       ]], 120);
+                return $this->memcached->get("holdingID" . $id);
             }
+            $results = parent::getHolding($id, $patron);
 
-            // insert the display status
-            if( $results[$i]['status'] == '-' ) {
-                $results[$i]['displayStatus'] = ($results[$i]['duedate'] == null) ? "AVAILABLE" : "CHECKED OUT";
-            } else if( $results[$i]['status'] == 'n' ) {
-                $results[$i]['displayStatus'] = "BILLED";
-            } else if( $results[$i]['status'] == 'q' ) {
-                $results[$i]['displayStatus'] = "BINDERY";
-            } else if( $results[$i]['status'] == 'z' ) {
-                $results[$i]['displayStatus'] = "CLMS RETD";
-            } else if( $results[$i]['status'] == 'd' ) {
-                $results[$i]['displayStatus'] = "DAMAGED";
-            } else if( $results[$i]['status'] == 'p' ) {
-                $results[$i]['displayStatus'] = "DISPLAY";
-            } else if( $results[$i]['status'] == '%' ) {
-                $results[$i]['displayStatus'] = "ILL RETURNED";
-            } else if( $results[$i]['status'] == 'i' ) {
-                $results[$i]['displayStatus'] = "IN PROCESSING";
-            } else if( $results[$i]['status'] == 't' ) {
-                $results[$i]['displayStatus'] = "IN TRANSIT";
-            } else if( $results[$i]['status'] == 'f' ) {
-                $results[$i]['displayStatus'] = "LONG OVERDUE";
-            } else if( $results[$i]['status'] == '$' ) {
-                $results[$i]['displayStatus'] = "LOST AND PAID";
-            } else if( $results[$i]['status'] == 'm' ) {
-                $results[$i]['displayStatus'] = "MISSING";
-            } else if( $results[$i]['status'] == 'o' ) {
-                $results[$i]['displayStatus'] = "NONCIRCULATING";
-            } else if( $results[$i]['status'] == '!' ) {
-                $results[$i]['displayStatus'] = "ON HOLDSHELF";
-            } else if( $results[$i]['status'] == 'v' ) {
-                $results[$i]['displayStatus'] = "ONLINE";
-            } else if( $results[$i]['status'] == 'y' ) {
-                $results[$i]['displayStatus'] = "ONLINE REFERENCE";
-            } else if( $results[$i]['status'] == '^' ) {
-                $results[$i]['displayStatus'] = "RENOVATION";
-            } else if( $results[$i]['status'] == 'r' ) {
-                $results[$i]['displayStatus'] = "REPAIR";
-            } else if( $results[$i]['status'] == 'u' ) {
-                $results[$i]['displayStatus'] = "STAFF USE";
-            } else if( $results[$i]['status'] == '?' ) {
-                $results[$i]['displayStatus'] = "STORAGE";
-            } else if( $results[$i]['status'] == 'w' ) {
-                $results[$i]['displayStatus'] = "WITHDRAWN";
-            } else if( $results[$i]['status'] == 'order' ) {
-                $results[$i]['displayStatus'] = "ON ORDER";    
-            } else {
-                $results[$i]['displayStatus'] = "UNKNOWN";
+            // add in the extra details we need
+            $results2 = [];
+            for($i=0; $i<count($results); $i++) {
+                // clean call number
+                $pieces = explode("|f", $results[$i]['callnumber']);
+                $results[$i]['callnumber'] = "";
+                foreach( $pieces as $piece ) {
+                    $results[$i]['callnumber'] .= (($results[$i]['callnumber'] == "") ? "" : "<br>") . trim($piece);
+                }
+
+                // insert the display status
+                if( $results[$i]['status'] == '-' ) {
+                    $results[$i]['displayStatus'] = ($results[$i]['duedate'] == null) ? "AVAILABLE" : "CHECKED OUT";
+                } else if( $results[$i]['status'] == 'n' ) {
+                    $results[$i]['displayStatus'] = "BILLED";
+                } else if( $results[$i]['status'] == 'q' ) {
+                    $results[$i]['displayStatus'] = "BINDERY";
+                } else if( $results[$i]['status'] == 'z' ) {
+                    $results[$i]['displayStatus'] = "CLMS RETD";
+                } else if( $results[$i]['status'] == 'd' ) {
+                    $results[$i]['displayStatus'] = "DAMAGED";
+                } else if( $results[$i]['status'] == 'p' ) {
+                    $results[$i]['displayStatus'] = "DISPLAY";
+                } else if( $results[$i]['status'] == '%' ) {
+                    $results[$i]['displayStatus'] = "ILL RETURNED";
+                } else if( $results[$i]['status'] == 'i' ) {
+                    $results[$i]['displayStatus'] = "IN PROCESSING";
+                } else if( $results[$i]['status'] == 't' ) {
+                    $results[$i]['displayStatus'] = "IN TRANSIT";
+                } else if( $results[$i]['status'] == 'f' ) {
+                    $results[$i]['displayStatus'] = "LONG OVERDUE";
+                } else if( $results[$i]['status'] == '$' ) {
+                    $results[$i]['displayStatus'] = "LOST AND PAID";
+                } else if( $results[$i]['status'] == 'm' ) {
+                    $results[$i]['displayStatus'] = "MISSING";
+                } else if( $results[$i]['status'] == 'o' ) {
+                    $results[$i]['displayStatus'] = "NONCIRCULATING";
+                } else if( $results[$i]['status'] == '!' ) {
+                    $results[$i]['displayStatus'] = "ON HOLDSHELF";
+                } else if( $results[$i]['status'] == 'v' ) {
+                    $results[$i]['displayStatus'] = "ONLINE";
+                } else if( $results[$i]['status'] == 'y' ) {
+                    $results[$i]['displayStatus'] = "ONLINE REFERENCE";
+                } else if( $results[$i]['status'] == '^' ) {
+                    $results[$i]['displayStatus'] = "RENOVATION";
+                } else if( $results[$i]['status'] == 'r' ) {
+                    $results[$i]['displayStatus'] = "REPAIR";
+                } else if( $results[$i]['status'] == 'u' ) {
+                    $results[$i]['displayStatus'] = "STAFF USE";
+                } else if( $results[$i]['status'] == '?' ) {
+                    $results[$i]['displayStatus'] = "STORAGE";
+                } else if( $results[$i]['status'] == 'w' ) {
+                    $results[$i]['displayStatus'] = "WITHDRAWN";
+                } else if( $results[$i]['status'] == 'order' ) {
+                    $results[$i]['displayStatus'] = "ON ORDER";    
+                } else {
+                    $results[$i]['displayStatus'] = "UNKNOWN";
+                }
+
+                // get shelving details
+                $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
+                $location = (isset($shelfLoc) && $shelfLoc) ? $this->getDBTable('location')->getByLocationId($shelfLoc->locationId) : null;
+                $results[$i]['branchName'] = $location ? $location->displayName : null;
+                $results[$i]['branchCode'] = $location ? $location->code : null;
+                $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
+
+                for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
+                array_splice($results2, $j, 0, [$results[$i]]);
             }
-
-            // get shelving details
-            $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
-            $location = (isset($shelfLoc) && $shelfLoc) ? $this->getDBTable('location')->getByLocationId($shelfLoc->locationId) : null;
-            $results[$i]['branchName'] = $location ? $location->displayName : null;
-            $results[$i]['branchCode'] = $location ? $location->code : null;
-            $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
-
-            for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
-            array_splice($results2, $j, 0, [$results[$i]]);
+            $this->memcached->set("holdingID" . $id, $results2, 120);
         }
-        return $results2;
+        return $this->memcached->get("holdingID" . $id);
     }
 
     public function updateMyProfile($patron, $updatedInfo){
@@ -420,13 +431,8 @@ class EINetwork extends Sierra2 implements
      * @return mixed  OverDrive ID if the Solr ID maps to an OverDrive item, false if not
      */
     public function getOverDriveID($id) {
-        // see if we're keeping a list of overdrive items
-        if( !isset($this->session->overdriveIDs) ) {
-            $this->session->overdriveIDs = array();
-        }
-
         // see if it's there
-        if( !isset($this->session->overdriveChecks[$id]) ) {
+        if( !$this->memcached->get("overdriveID" . $id) ) {
             // grab a bit more information from Solr
             $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=id%3A%22" . $id . "%22&fl=econtent_source,externalId&wt=csv";
             $curl_connection = curl_init($curl_url);
@@ -438,15 +444,12 @@ class EINetwork extends Sierra2 implements
 
             // is it an OverDrive item?
             if( explode(",", $values[1])[0] == "OverDrive" ) {
-                $this->session->overdriveIDs[$id] = explode(",", $values[1])[1];
-            // not OverDrive
-            } else {
-                $this->session->overdriveIDs[$id] = false;
+                $this->memcached->set("overdriveID" . $id, explode(",", $values[1])[1]);
             }
         }
 
         // send it back
-        return $this->session->overdriveIDs[$id];
+        return $this->memcached->get("overdriveID" . $id);
     }
 
     /**
@@ -457,6 +460,10 @@ class EINetwork extends Sierra2 implements
      * @return mixed  A Solr record if the externalId maps to a Solr item, false if not
      */
     public function getSolrRecordFromExternalId($id) {
+        if( $this->memcached->get("solrRecordForID" . $id) ) {
+            return $this->memcached->get("solrRecordForID" . $id);
+        }
+
         // grab a bit more information from Solr
         $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv";
         $curl_connection = curl_init($curl_url);
@@ -482,7 +489,8 @@ class EINetwork extends Sierra2 implements
             for($i=0; $i<count($fieldNames); $i++) {
                 $item[$fieldNames[$i]] = $fieldValues[$i];
             }
-            return $item;
+            $this->memcached->set("solrRecordForID" . $id, $item);
+            return $this->memcached->get("solrRecordForID" . $id);
         }
 
         // not in Solr

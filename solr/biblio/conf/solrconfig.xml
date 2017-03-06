@@ -44,7 +44,7 @@
 
     <useCompoundFile>false</useCompoundFile>
 
-    <mergeFactor>10</mergeFactor>
+    <mergeFactor>2</mergeFactor>
 
 
     <!-- ramBufferSizeMB sets the amount of RAM that may be used by Lucene

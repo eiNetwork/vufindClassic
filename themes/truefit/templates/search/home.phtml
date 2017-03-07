@@ -1,6 +1,6 @@
 <?
   // Set page title.
-  $this->headTitle($this->translate('Search Home'));
+  $this->headTitle($this->translate('Catalog'));
 
   // Disable top search box -- this page has a special layout.
   $this->layout()->searchbox = false;
@@ -32,40 +32,45 @@
   <?=$this->render("search/splashsearchbox.phtml")?>
 </div>
 <script type="text/javascript">
-  function MoveSliderLeft(slider) {
-    var leftBtn = slider.children[0].children[0];
-    var rightBtn = slider.children[2].children[0];
-    var sliderTable = slider.children[1].children[0];
-    var childTDs = $(sliderTable).find("td");
-    for( var i=slider.showIndex; i<slider.showIndex + 3 && i<childTDs.length; i++) {
-      childTDs.eq(i).addClass("newestItemHidden").removeClass("newestItem");
-    }
-    slider.showIndex -= 3
-    for( var i=slider.showIndex; i<slider.showIndex + 3; i++) {
-      childTDs.eq(i).addClass("newestItem").removeClass("newestItemHidden");
-    }
-    leftBtn.disabled = (slider.showIndex == 0);
-    rightBtn.disabled = false;
+  var sliderTimeout = null;
+  var scrollSpeed = 0;
+  var MAX_SPEED = 25;
+  function MoveSlider2(slider) {
+    sliderTimeout = setTimeout( function() {
+      var leftBtn = slider.children[0].children[0];
+      var rightBtn = slider.children[2].children[0];
+      var sliderTable = slider.children[1].children[0];
+
+      leftBtn.disabled = false;
+      rightBtn.disabled = false;
+      var newLeft = parseInt($(sliderTable).css("left")) + scrollSpeed;
+      var halt = false;
+      if( newLeft >= 0 ) {
+        newLeft = 0;
+        leftBtn.disabled = true;
+        halt = true;
+      } else if( newLeft <= (-3 * sliderTable.parentElement.offsetWidth) ) {
+        newLeft = -3 * sliderTable.parentElement.offsetWidth;
+        rightBtn.disabled = true;
+        halt = true;
+      }
+
+      $(sliderTable).css("left", newLeft);
+
+      if( halt ) {
+        sliderTimeout = null;
+      } else if( scrollSpeed ) {
+        scrollSpeed = (scrollSpeed <= -MAX_SPEED) ? -MAX_SPEED : ((scrollSpeed >= MAX_SPEED) ? MAX_SPEED : ((scrollSpeed < 0) ? (scrollSpeed - 1) : (scrollSpeed + 1)));
+        MoveSlider2(slider);
+      }
+    }, 33);
   }
 
-  function MoveSliderRight(slider) {
-    if( !slider.hasOwnProperty("showIndex") ) {
-      slider.showIndex = 0;
-    }
-
-    var leftBtn = slider.children[0].children[0];
-    var rightBtn = slider.children[2].children[0];
-    var sliderTable = slider.children[1].children[0];
-    var childTDs = $(sliderTable).find("td");
-    for( var i=slider.showIndex; i<slider.showIndex + 3; i++) {
-      childTDs.eq(i).addClass("newestItemHidden").removeClass("newestItem");
-    }
-    slider.showIndex += 3
-    for( var i=slider.showIndex; i<slider.showIndex + 3 && i<childTDs.length; i++) {
-      childTDs.eq(i).addClass("newestItem").removeClass("newestItemHidden");
-    }
-    leftBtn.disabled = false;
-    rightBtn.disabled = (slider.showIndex + 3) >= childTDs.length;
+  function HaltSlider(button) {
+    clearTimeout(sliderTimeout);
+    sliderTimeout = null;
+    button.blur();
+    scrollSpeed = 0;
   }
 
   jQuery(document).ready(function() {
@@ -90,108 +95,95 @@
       } );
       Lightbox.get('MyResearch','Login');
     }
+
+    // bind events to the buttons
+    $(".neSliderButton").each( function() { 
+      $(this).css({"height":$(this).parent().css("height")});
+      $(this).on("touchstart", function() { 
+        $(this).addClass("noHover"); 
+        $(this).focus();
+        $(this).mouseenter();
+      } );
+      $(this).on("touchend", function() { 
+        $(this).mouseout(); 
+      } ); 
+      $(this).on("click", function() { 
+        if( $(this).hasClass("noHover") ) {
+          $(this).mouseout(); 
+        }
+      } ); 
+    } );
   } );
 </script>
 <div class="splashNewest">
   <? if(is_object($this->BookResults) && count($BookResults = $this->BookResults->results->getResults()) > 0): ?>
-    <h1 class="newestHeader">Newest Print Books</h1>
+    <a href="Search/Results?type=Keyword&sort=date_added+desc&filter%5B%5D=%7Eformat%3A%22Large+Print%22&filter%5B%5D=%7Eformat%3A%22Print+Book%22&filter%5B%5D=%7Etime_since_added%3A%22Month%22"><div class="neHeader">Newest Print Books</div></a>
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
-          <table style="width:100%"><tr>
-          <? $count = 0; foreach ($BookResults as $entry): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
-              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-            </div></div></div></a></td>
+          <table style="width:400%; position:relative; left:0px"><tr>
+          <? foreach ($BookResults as $entry): ?>
+            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </a></td>
           <? endforeach ?>
-          <? while( $count % 3 ): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
-          <? endwhile; ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->BookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
+    <br>
   <? endif; ?>
   <? if(is_object($this->DVDResults) && count($DVDResults = $this->DVDResults->results->getResults()) > 0): ?>
-    <h1 class="newestHeader">Newest DVDs</h1>
+    <a href="Search/Results?type=Keyword&sort=date_added+desc&filter%5B%5D=%7Eformat%3A%22DVD%22&filter%5B%5D=%7Etime_since_added%3A%22Month%22"><div class="neHeader">Newest DVDs</div></a>
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
-          <table style="width:100%"><tr>
-          <? $count = 0; foreach ($DVDResults as $entry): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
-              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-            </div></div></div></a></td>
+          <table style="width:400%; position:relative; left:0px"><tr>
+          <? foreach ($DVDResults as $entry): ?>
+            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </a></td>
           <? endforeach ?>
-          <? while( $count % 3 ): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
-          <? endwhile; ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->DVDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
+    <br>
   <? endif; ?>
   <? if(is_object($this->eBookResults) && count($ebookResults = $this->eBookResults->results->getResults()) > 0): ?>
-    <h1 class="newestHeader">Newest eBooks</h1>
+    <a href="Search/Results?type=Keyword&sort=date_added+desc&filter%5B%5D=%7Eformat%3A%22Adobe+EPUB+ebook%22&filter%5B%5D=%7Eformat%3A%22Adobe+PDF+eBook%22&filter%5B%5D=%7Eformat%3A%22Ebook+Download%22&filter%5B%5D=%7Eformat%3A%22Kindle+Book%22&filter%5B%5D=%7Eformat%3A%22OverDrive+Read%22&filter%5B%5D=%7Etime_since_added%3A%22Month%22"><div class="neHeader">Newest eBooks</div></a>
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
-          <table style="width:100%"><tr>
-          <? $count = 0; foreach ($ebookResults as $entry): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
-              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-            </div></div></div></a></td>
+          <table style="width:400%; position:relative; left:0px"><tr>
+          <? foreach ($ebookResults as $entry): ?>
+            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+            </a></td>
           <? endforeach ?>
-          <? while( $count % 3 ): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
-          <? endwhile; ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->eBookResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
-  <? endif; ?>
-  <? if(false && is_object($this->CDResults) && count($CDResults = $this->CDResults->results->getResults()) > 0): ?>
-    <h1 class="newestHeader">Newest Music CDs</h1>
-    <table style="width:100%">
-      <tr>
-        <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderLeft(this.parentElement.parentElement)" disabled><i class="fa fa-chevron-left"></i></button>
-        </td>
-        <td style="width:76%" class="sliderWindow">
-          <table style="width:100%"><tr>
-          <? $count = 0; foreach ($CDResults as $entry): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"><a href="<?=$this->recordLink()->getUrl($entry)?>"><div class="newestEntryLev1" style="width:100%; margin:0"><div class="newestEntryLev2"><div class="newestEntryLev3">
-              <img class="newestEntryImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
-            </div></div></div></a></td>
-          <? endforeach ?>
-          <? while( $count % 3 ): ?>
-            <td class="newestItem<? echo ($count < 3) ? "" : "Hidden"; $count++; ?>"></td>
-          <? endwhile; ?>
-          </tr></table>
-        </td>
-        <td style="width:12%">
-          <button class="sliderButton" onclick="MoveSliderRight(this.parentElement.parentElement)"<?= (($this->CDResults->results->getResultTotal() <= 3) ? " disabled" : "") ?>><i class="fa fa-chevron-right"></i></button>
-        </td>
-      </tr>
-    </table>
+    <br>
   <? endif; ?>
   <h1 class="newestHeader">Additional Resources</h1>
   <table style="width:100%">

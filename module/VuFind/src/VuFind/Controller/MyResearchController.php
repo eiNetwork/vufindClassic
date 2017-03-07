@@ -110,6 +110,21 @@ class MyResearchController extends AbstractBase
             try {
                 if (!$this->getAuthManager()->isLoggedIn()) {
                     $this->getAuthManager()->login($this->getRequest());
+                    // store their info to use again later
+                    if( $this->getAuthManager()->isLoggedIn() ) {
+                        $expiration = $this->getILS()->getCurrentLocation() ? 0 : (time() + 1209600);
+                        setcookie("einStoredBarcode", $this->params()->fromPost('username'), $expiration, '/');
+                        setcookie("einStoredPIN", $this->params()->fromPost('password'), $expiration, '/');
+
+                        // dismiss the lightbox
+                        if( $this->params()->fromPost('clearLightbox') ) {
+                            $view = $this->createViewModel();
+                            $view->setTemplate('blankModal');
+                            $view->title = "Logging in...";
+                            $view->reloadParent = true;
+                            return $view;
+                        }
+                    }
                 }
             } catch (AuthException $e) {
                 $this->processAuthenticationException($e);
@@ -148,7 +163,10 @@ class MyResearchController extends AbstractBase
         if ($page == 'Favorites' && !$this->listsEnabled()) {
             return $this->forwardTo('Search', 'History');
         }
-        return $this->forwardTo('MyResearch', $page);
+        $this->flashMessenger()->addMessage("<span id='redirectMessage'>" . $page . "</span>", "info");        
+        $view = $this->createViewModel();
+        $view->setTemplate('myresearch/resetpin');
+        return $view;
     }
 
     /**
@@ -240,6 +258,15 @@ class MyResearchController extends AbstractBase
             }
         }
 
+        // see if they have a stored cookie
+        if( isset($_COOKIE["einStoredBarcode"]) && isset($_COOKIE["einStoredPIN"]) && !$this->params()->fromPost('clearLightbox', false) ) {
+            $this->getRequest()->getPost()->set('username', $_COOKIE["einStoredBarcode"]);
+            $this->getRequest()->getPost()->set('password', $_COOKIE["einStoredPIN"]);
+            $this->getRequest()->getPost()->set('auth_method', "ILS");
+            $this->getRequest()->getPost()->set('clearLightbox', true);
+            return $this->forwardTo('MyResearch', 'Home');
+        }
+
         // Make request available to view for form updating:
         $view = $this->createViewModel();
         $view->inLightbox = $this->inLightbox();
@@ -312,6 +339,8 @@ class MyResearchController extends AbstractBase
         $this->getILS()->clearSessionVar("patronLogin");
         $this->getILS()->clearSessionVar("patron");
         $this->getILS()->clearSessionVar("dismissedAnnouncements");
+        setcookie("einStoredBarcode", "", time() - 1209600, '/');
+        setcookie("einStoredPIN", "", time() - 1209600, '/');
 
         return $this->redirect()
             ->toUrl($this->getAuthManager()->logout($logoutTarget));
@@ -1184,6 +1213,23 @@ class MyResearchController extends AbstractBase
             }
         }
 
+        // see if we are trying to change the notification email
+        if( $this->params()->fromPost('changeEmail') ) {
+            if( $this->params()->fromPost('placeHold') ) {
+                $view->updateResults = $this->holds()->updateHolds($catalog, $patron);
+                $view->setTemplate('blankModal');
+                $view->suppressFlashMessages = true;
+                $view->reloadParent = true;
+                return $view;
+            } else {
+                $view->setTemplate('record/email');
+                $view->referrer = $this->params()->fromPost('referrer');
+                $view->skip = true;
+                $view->ids = $this->params()->fromPost('ids');
+                return $view;
+            }
+        }
+
         // see if we are trying to do a bulk hold
         if( $this->params()->fromPost('bulkHold') ) {
             if( $this->params()->fromPost('placeHold') ) {
@@ -1274,10 +1320,13 @@ class MyResearchController extends AbstractBase
             $key = $current["driver"]->GetTitle().$current["hold_id"];
             $holdList[$group][$key] = $current;
         }
+        $allList = [];
         foreach($holdList as $name => $grouping) {
             ksort($grouping);
             $holdList[$name] = $grouping;
+            $allList = array_merge($allList, $holdList[$name]);
         }
+        $holdList['all'] = $allList;
 
         // Get List of PickUp Libraries based on patron's home library
         try {
@@ -1469,6 +1518,7 @@ class MyResearchController extends AbstractBase
         }
 
         // sort lists by due date, then title
+        $allList = [];
         foreach( $checkoutList as $key => $thisList ) {
             usort($checkoutList[$key], function($co1, $co2) {
                 if($co1["duedate"] > $co2["duedate"]) {
@@ -1483,7 +1533,9 @@ class MyResearchController extends AbstractBase
                     return 0;
                 }
             } );
+            $allList = array_merge($allList, $checkoutList[$key]);
         }
+        $checkoutList['all'] = $allList;
 
         $view->checkoutList = $checkoutList;
         $view->showCheckoutType = $this->session->lastCheckoutType;

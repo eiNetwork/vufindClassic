@@ -70,18 +70,21 @@
           <tr>
             <td class="EIN-hide-m itemDetailCategory">Return Date:</td>
             <td style="padding-bottom:5px">
+              <? if( ($this->checkout["dateDiff"]->invert == 0) || ($this->checkout["dateDiff"]->days <= 7) ): ?>
+                <span class="<?=((($this->checkout["dateDiff"]->invert == 0) && ($this->checkout["dateDiff"]->days != 0)) ? "un" : "")?>availableTag">
+                  <? if( $this->checkout["dateDiff"]->days == 0 ): ?>
+                    <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> today!
+                  <? elseif( $this->checkout["dateDiff"]->invert == 0 ): ?>
+                    Due <?=($this->checkout["dateDiff"]->days == 1) ? "yesterday!" : ($this->checkout["dateDiff"]->days . " days ago!")?>
+                  <? elseif( $this->checkout["dateDiff"]->days == 1 ): ?>
+                    <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> tomorrow!
+                  <? elseif( $this->checkout["dateDiff"]->days <= 7 ): ?>
+                    <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> in <?=$this->checkout["dateDiff"]->days?> days!
+                  <? endif; ?>
+                </span><br><div style="height:5px"></div>
+              <? endif; ?>
               <span class="<?=((($this->checkout["dateDiff"]->invert == 0) && ($this->checkout["dateDiff"]->days != 0)) ? "un" : "")?>availableTag">
-                <? if( $this->checkout["dateDiff"]->days == 0 ): ?>
-                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> today!
-                <? elseif( $this->checkout["dateDiff"]->invert == 0 ): ?>
-                  Due <?=($this->checkout["dateDiff"]->days == 1) ? "yesterday!" : ($this->checkout["dateDiff"]->days . " days ago!")?>
-                <? elseif( $this->checkout["dateDiff"]->days == 1 ): ?>
-                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> tomorrow!
-                <? elseif( $this->checkout["dateDiff"]->days <= 7 ): ?>
-                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> in <?=$this->checkout["dateDiff"]->days?> days!
-                <? else: ?>
-                  <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> <?= date_format(date_create($this->checkout["duedate"]), "m/d/Y")?>
-                <? endif; ?>
+                <?=isset($this->checkout["expiresOn"])?"Auto-returned":"Due"?> <?= date_format(date_create($this->checkout["duedate"]), "m/d/Y")?>
               </span>
               <? if( isset($this->checkout["numberOfRenewals"]) && ($this->checkout["numberOfRenewals"] > 0) ): ?>
                 &nbsp;<span class="publishDate">Renewed <?=$this->checkout["numberOfRenewals"]?> time<?=($this->checkout["numberOfRenewals"]==1)?"":"s"?></span>
@@ -93,20 +96,20 @@
       <?
         if($user):
           if( isset($this->checkout["overDriveId"]) ):
-            $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown" . str_replace(".", "", $id) . "\"";
+            $holdClick = " data-toggle=\"dropdown\" data-target=\"#holdButtonDropdown" . str_replace(".", "", $id) . ($this->addAllID ? "All" : "") . "\"";
           else:
             $thisType = (($this->checkout["dateDiff"]->invert == 0) && ($this->checkout["dateDiff"]->days != 0)) ? 'overdue' : (($this->checkout["dateDiff"]->days <= 7) ? 'due_this_week' : 'other');
             $holdClick = " onClick=\"Lightbox.get('MyResearch','CheckedOut', false, {'renew':'true','renewSelected':'true','confirm':'0','renewSelectedIDS[]':'" . $this->checkout["checkout_id"] . "','checkoutType':'" . $thisType . "'})\"";
           endif;
         else:
-          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"";
         endif;
       ?>
       <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4" style="padding:5px 0px 10px">
         <div class="singleButtonGap">
           <? if( isset($this->checkout["overDriveId"]) ): ?>
             <button class="btn-default singleButton" <?=$holdClick?>>Actions<i class="fa fa-caret-down"></i></button>
-            <div class="dropdown" id="holdButtonDropdown<?=str_replace(".", "", $id)?>">
+            <div class="dropdown" id="holdButtonDropdown<?=str_replace(".", "", $id) . ($this->addAllID ? "All" : "")?>">
               <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
                 <? if( isset($this->checkout["overdriveRead"]) && $this->checkout["overdriveRead"] && isset($this->checkout["overdriveReadUrl"]) && $this->checkout["overdriveReadUrl"] ): ?>
                   <li>

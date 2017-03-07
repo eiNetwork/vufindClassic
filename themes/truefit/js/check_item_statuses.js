@@ -8,14 +8,14 @@ function checkHoldStatuses() {
     return;
   }
   $(".ajax-holdStatus").removeClass('hidden');
-  $('.ajaxItem').each( function() {
+  while (id.length) {
     $.ajax({
       dataType: 'json',
       url: path + '/AJAX/JSON?method=getHoldStatuses',
-      data: {id:[$(this).find('.hiddenId')[0].value]},
+      data: {id:id.splice(0,4)},
       success: handleHoldStatusResponse
     });
-  });
+  }
 }
 
 function handleHoldStatusResponse(response) {
@@ -23,12 +23,13 @@ function handleHoldStatusResponse(response) {
     $.each(response.data, function(i, result) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
       item.find('.holdStatus').empty().append(result.hold_status_message);
+      item.find(".ajax-holdStatus").removeClass('ajax-holdStatus');
     });
   } else {
     // display the error message on each of the ajax status place holder
     $(".ajax-holdStatus").empty().append(response.data);
+    $(".ajax-holdStatus").removeClass('ajax-holdStatus');
   }
-  $(".ajax-holdStatus").removeClass('ajax-holdStatus');
 }
 
 function checkItemStatuses() {
@@ -39,17 +40,17 @@ function checkItemStatuses() {
     return;
   }
   $(".ajax-availability").removeClass('hidden');
-  $('.ajaxItem').each( function() {
+  while( id.length ) {
     $.ajax({
       dataType: 'json',
       url: path + '/AJAX/JSON?method=getItemStatuses',
-      data: {id:[$(this).find('.hiddenId')[0].value]},
+      data: {id:id.splice(0,4)},
       success: handleItemStatusResponse
     });
-  });
+  }
 }
 
-function handleItemStatusResponse(response) {
+function handleItemStatusResponse(response) {  
   if(response.status == 'OK') {
     $.each(response.data, function(i, result) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
@@ -164,12 +165,24 @@ function handleItemStatusResponse(response) {
           : result.location
         );
       }
+      item.find(".ajax-availability").removeClass('ajax-availability');
     });
+  // it was a time out.  try again.
+  } else if( response.data.msg.indexOf("timed out") != -1 ) {
+    $.ajax({
+      dataType: 'json',
+      url: path + '/AJAX/JSON?method=getItemStatuses',
+      data: {id:JSON.parse(response.data.id)},
+      success: handleItemStatusResponse
+    });
+  // display the error message on each of the ajax status place holder
   } else {
-    // display the error message on each of the ajax status place holder
-    $(".ajax-availability").empty().append(response.data);
+    $.each(JSON.parse(response.data.id), function(i, bib) {
+      var item = $('.hiddenId[value="' + bib + '"]').parents('.ajaxItem');
+      item.find(".ajax-availability").empty().append(response.data.msg);
+      item.find(".ajax-availability").removeClass('ajax-availability');
+    });
   }
-  $(".ajax-availability").removeClass('ajax-availability');
 }
 
 $(document).ready(function() {

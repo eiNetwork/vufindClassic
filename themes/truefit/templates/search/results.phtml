@@ -121,6 +121,7 @@
     <? if ($recordTotal > 0): ?>
       <div class="EIN-col-m-12">
         <table style="margin:auto;text-align:center">
+          <tr><td colspan=3><span style="font-weight:700" id="searchTypeLabel"><?=$this->searchType?></span> search for <span style="font-weight:700"><?=$lookfor?></span></td></tr>
           <tr>
             <td style="padding-left:10px" class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
             <td style="padding-left:10px" id="resultsCount"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
@@ -129,6 +130,14 @@
         </table>
         <script type="text/javascript">
           jQuery(document).ready(function() {
+            // change the search type label to be the display text, not the search type
+            <? if( $this->searchType != "Advanced" ): ?>
+              $('#searchTypeLabel').html($('#searchTypeBtn_' + $('#searchTypeLabel').html()).text());
+              $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
+            <? else: ?>
+              $('#searchTypeLabel').html("Advanced");
+            <? endif; ?>
+
             setTimeout(function() {
               while($('#resultsCount').parents("table").width() > $(window).innerWidth()) {
                 var fontSize = parseInt($('#resultsCount').css("font-size"));
@@ -162,9 +171,20 @@
           <? if (isset($this->overrideEmptyMessage)): ?>
             <?=$this->overrideEmptyMessage?>
           <? else: ?>
-            <?=$this->transEsc('nohit_prefix')?> - <strong><?=$this->escapeHtml($lookfor)?></strong> - <?=$this->transEsc('nohit_suffix')?>
+            <?=$this->transEsc('Your')?> <strong id="searchTypeLabel"><?=$this->searchType?></strong> <?=$this->transEsc('search')?> - <strong><?=$this->escapeHtml($lookfor)?></strong> - <?=$this->transEsc('nohit_suffix')?>
           <? endif; ?>
         </p>
+        <script type="text/javascript">
+          jQuery(document).ready(function() {
+            // change the search type label to be the display text, not the search type
+            <? if( $this->searchType != "Advanced" ): ?>
+              $('#searchTypeLabel').html($('#searchTypeBtn_' + $('#searchTypeLabel').html()).text());
+              $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
+            <? else: ?>
+              $('#searchTypeLabel').html("Advanced");
+            <? endif; ?>
+          });
+        </script>
         <? if (isset($this->parseError)): ?>
           <p class="alert alert-danger"><?=$this->transEsc('nohit_parse_error')?></p>
         <? endif; ?>
@@ -188,6 +208,7 @@
   $('#saveSearchButton').prop('disabled', false);
   $('#saveSearchButton').parent().removeClass('disabled');
   $('#saveSearchButton').parent().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
+  $('.searchTypeCheck').css({"display":"none"});
   $('.searchTypeCheck.stc<?=$this->searchType?>').css({"display":"initial"});
 </script>
 <div class="dropdown" id="saveButtonDropdown">

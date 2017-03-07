@@ -65,7 +65,8 @@ class Generator
         $this->themeTools = $themeTools;
         $default = [
             'mode'         => 'grid',
-            'authorFont'   => 'DroidSerif-Bold.ttf',
+            //'authorFont'   => 'DroidSerif-Bold.ttf',
+            'authorFont'   => 'OpenSans-Bold.ttf',
             'fontSize'     => 12,
             'lightness'    => 220,
             'maxLines'     => 6,
@@ -73,7 +74,8 @@ class Generator
             'saturation'   => 80,
             'size'         => 128,
             'textAlign'    => 'center',
-            'titleFont'    => 'DroidSerif-Bold.ttf',
+            //'titleFont'    => 'DroidSerif-Bold.ttf',
+            'titleFont'    => 'OpenSans-Bold.ttf',
             'topPadding'   => 19,
             'wrapWidth'    => 80,
         ];
@@ -174,7 +176,7 @@ class Generator
     }
 
     /**
-     * Halfway between solid and combo.  Shows a solid background, overlaid with text of full title
+     * Halfway between solid and grid.  Shows a solid background, overlaid with text of full title
      *
      * @param string $title      Title of the book
      * @param string $author     Author of the book

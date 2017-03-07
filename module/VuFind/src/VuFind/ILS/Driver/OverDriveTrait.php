@@ -52,9 +52,6 @@ trait OverDriveTrait {
         'periodicals-nook' => 'NOOK Periodical'
     );
 
-    private $tokenData;
-    private $patronTokenData;
-
     public function getOverDriveLendingOptions($userinfo){
         // overdrive info
         $lendingOptions = array("renewalInDays" => array());
@@ -116,7 +113,8 @@ trait OverDriveTrait {
 */
 
     private function _connectToAPI($forceNewConnection = false){
-        if( $forceNewConnection || $this->tokenData == null || time() >= $this->tokenData->expirationTime ) {
+        $tokenData = $this->session["tokenData"];
+        if( $forceNewConnection || $tokenData == null || time() >= $tokenData->expirationTime ) {
             $ch = curl_init("https://oauth.overdrive.com/token");
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -131,15 +129,18 @@ trait OverDriveTrait {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             $return = curl_exec($ch);
             curl_close($ch);
-            $this->tokenData = json_decode($return);
+            $tokenData = json_decode($return);
 
-            $this->tokenData->expirationTime = time() + $this->tokenData->expires_in;
+            $tokenData->expirationTime = time() + $tokenData->expires_in;
+
+            $this->session["tokenData"] = $tokenData;
         }
-        return $this->tokenData;
+        return $tokenData;
     }
 
     private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
-        if( $forceNewConnection || $this->patronTokenData == null || time() >= $this->patronTokenData->expirationTime ) {
+        $patronTokenData = $this->session["patronTokenData"];
+        if( $forceNewConnection || $patronTokenData == null || time() >= $patronTokenData->expirationTime ) {
             $ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
             $websiteId = $this->config['OverDrive']['patronWebsiteId'];
             //$websiteId = 100300;
@@ -175,22 +176,24 @@ trait OverDriveTrait {
             $return = curl_exec($ch);
             $curlInfo = curl_getinfo($ch);
             curl_close($ch);
-            $this->patronTokenData = json_decode($return);
-            if( isset($this->patronTokenData->expires_in) ) {
-                $this->patronTokenData->expirationTime = time() + $this->patronTokenData->expires_in;
+            $patronTokenData = json_decode($return);
+            if( isset($patronTokenData->expires_in) ) {
+                $patronTokenData->expirationTime = time() + $patronTokenData->expires_in;
             } else {
-                $this->patronTokenData = null;
+                $patronTokenData = null;
             }
+            $this->session["patronTokenData"] = $patronTokenData;
         }
-        return $this->patronTokenData;
+        return $patronTokenData;
     }
 
     private function _callUrl($url){
         if ( $this->_connectToAPI() ){
+            $tokenData = $this->session["tokenData"];
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$this->tokenData->token_type} {$this->tokenData->access_token}", "User-Agent: VuFind-Plus"));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -211,16 +214,16 @@ trait OverDriveTrait {
     }
 
     private function _callPatronUrl($patronBarcode, $patronPin, $url, $params = null, $requestType = null){
-
         if ($this->_connectToPatronAPI($patronBarcode, $patronPin, false)){
+            $patronTokenData = $this->session["patronTokenData"];
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-            $authorizationData = $this->patronTokenData->token_type . ' ' . $this->patronTokenData->access_token;
+            $authorizationData = $patronTokenData->token_type . ' ' . $patronTokenData->access_token;
             $headers = array(
                 "Authorization: $authorizationData",
                 "User-Agent: VuFind-Plus",
-                "Host: " . str_replace('http://', '', $this->config['OverDrive']['patronApiUrl'])
+                "Content-Type: application/json"
             );
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -240,9 +243,7 @@ trait OverDriveTrait {
                     );
                 }
                 $postData = json_encode($jsonData);
-                //print_r($postData);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-                $headers[] = 'Content-Type: application/vnd.overdrive.content.api+json';
             }else{
                 curl_setopt($ch, CURLOPT_HTTPGET, true);
             }
@@ -527,7 +528,7 @@ trait OverDriveTrait {
         // invalidate the cache
         unset($this->session->holds);
 
-        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
+        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
         $params = array(
             'reserveId' => $overDriveId,
             'emailAddress' => $user["email"]
@@ -550,6 +551,34 @@ trait OverDriveTrait {
         }
 
         return $holdResult;
+    }
+
+    /**
+     * @param User $user
+     * @param string $overDriveId
+     * @return array
+     */
+    public function updateOverDriveHold($overDriveId, $user, $newEmail){
+        // invalidate the cache
+        unset($this->session->holds);
+
+        $url = $this->config['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
+        $params = array(
+            'reserveId' => $overDriveId,
+            'emailAddress' => $newEmail
+        );
+        $response = $this->_callPatronUrl($user["cat_username"], $user["cat_password"], $url, $params, 'PUT');
+
+        $updateHoldResult = array();
+        $updateHoldResult['result'] = false;
+        $updateHoldResult['message'] = '';
+        if ($response === true){
+            $updateHoldResult['result'] = true;
+            $updateHoldResult['message'] = 'Your hold was updated successfully.';
+        }else{
+            $updateHoldResult['message'] = 'There was an error updating your hold.  ' . $response->message;
+        }
+        return $updateHoldResult;
     }
 
     /**

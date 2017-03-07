@@ -148,6 +148,13 @@
     $('.facetAccordionContent').on('hide.bs.collapse', function() { $('.modalScrollBar').css("display","none"); } );
     $('.facetAccordionContent').on('shown.bs.collapse', function() { CheckForResize(this); } );
     $('.facetAccordionContent').on('hidden.bs.collapse', function() { CheckForResize(this); } );
+
+    // hide any facets that don't have any options
+    $('.facetAccordionContent .facetAccordionList').each( function() {
+      if( !($(this).children("li").length) ) {
+        $(this).parents(".panel-facetAccordion").css({"display":"none"});
+      }
+    } );
   } );
 </script>
 <? $sideFacetSet = $this->recommend->getFacetSet(); $rangeFacets = $this->recommend->getAllRangeFacets(); ?>
@@ -163,7 +170,28 @@
         <div id="facet<?=($facetCount++)?>" class="facetAccordionContent panel-collapse collapse">
           <div class="panel-body">
             <ul class="facetAccordionList">
-              <? if( $title != "format" ): ?>
+              <? if( $title == "time_since_added" ): ?>
+                <?
+                  // All we are showing are last 2 months, month, and week.
+                  $sorted = array();
+                  $find = array("2 Months", "Month", "Week");
+                  foreach ($cluster['list'] as $i => $value) {
+                    if (!empty($value['displayText']) && in_array($value['displayText'], $find)) {
+                      $sorted[$i] = $value['displayText'];
+                    }
+                  }
+                  natcasesort($sorted);
+                  $sorted = array_reverse($sorted, true);
+                ?>
+                <? foreach ($sorted as $i=>$dummy): ?>
+                  <? $thisFacet = $cluster['list'][$i]; ?>
+                  <li>
+                    <i class="fa fa-check-square facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(URLify($thisFacet['value']))?>%22"></i>
+                    <i class="fa fa-square-o facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"></i>
+                    <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                  </li>
+                <? endforeach; ?>
+              <? elseif( $title != "format" ): ?>
                 <?
                   // Sort the current facet list alphabetically; we'll use this data
                   // along with the foreach below to display facet options in the

@@ -9,7 +9,7 @@
   $account = $this->auth()->getManager();
   $user = $this->auth()->isLoggedIn();
 
-  $order = ['overdue','due_this_week','other'];
+  $order = ['all','overdue','due_this_week','other'];
   $totalCheckouts = 0;
 ?>
 
@@ -66,7 +66,7 @@
                 </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? foreach ($this->checkoutList[$checkoutType] as $current): ?>
-                  <?=$this->record($current["driver"])->getCheckoutEntry($current, $user)?>
+                  <?=$this->record($current["driver"])->getCheckoutEntry($current, $user, ($checkoutType == "all"))?>
                 <? endforeach; ?>
               </div>
             </div>
@@ -88,7 +88,7 @@
           $('body').css({"overflow-y":"hidden"});
           if($(document).width() >= <?=(isset($this->showCheckoutType) ? 0 : 600)?>) {
             <? if( isset($this->showCheckoutType) ): ?>
-              $('#details_<?=$this->showCheckoutType?>').parents('.listAccordion').find('.panel-heading a').click();
+              $($('#details_<?=$this->showCheckoutType?>').length ? '#details_<?=$this->showCheckoutType?>' : '#details_all').parents('.listAccordion').find('.panel-heading a').click();
             <? else: ?>
               $('.panel-heading a.active').first().click();
             <? endif; ?>

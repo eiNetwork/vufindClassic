@@ -9,9 +9,10 @@
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
   <table class="EIN-col-m-12"><tr>
     <td class="EIN-col-m-1" style="margin:auto">
-      <label class="pull-left flip"><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"]) ?></label>
+      <label class="pull-left flip"<?=(($this->showStatus) ? " style=\"display:none\"" : "")?>><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"]) ?></label>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
+      <input type="hidden" value="<?=(isset($this->hold["overDriveId"]) ? "email" : "pickup")?>" class="changeTarget" />
     </td>
     <td class="EIN-col-m-11" style="padding-right:10px">
       <div class="EIN-col-m-12<?= ((isset($this->hold["overDriveId"]) && $this->hold["status"] == "i") ? " EIN-col-t-8 EIN-col-8" : "" ) ?>">
@@ -49,13 +50,30 @@
             <? endforeach; ?>
           <? endif; ?>
 
-          <? if( !isset($this->hold["overDriveId"]) ): ?>
+          <? if( $this->showStatus ): ?>
             <tr>
               <td colspan="2">
                 <div class="EIN-col-m-12" style="height:10px"></div>
+                Status: <span class="bold"><?=$this->transEsc('holdtype_' . (($this->hold["status"] == "i" || $this->hold["status"] == "b" || $this->hold["status"] == "j") ? 'ready' : (($this->hold["status"] == "t") ? 'transit' : ($this->hold["frozen"] ? 'frozen' : 'hold'))))?></span>
+              </td>
+            </tr>
+          <? endif; ?>
+          <? if( !isset($this->hold["overDriveId"]) ): ?>
+            <tr>
+              <td colspan="2">
+                <? if( !$this->showStatus ): ?>
+                  <div class="EIN-col-m-12" style="height:10px"></div>
+                <? endif; ?>
                 Pick up at: <span class="bold"><?=$this->hold["location"]?></span>
               </td>
             </tr>
+            <? if( isset($this->hold["available"]) && $this->hold["available"] && isset($this->hold["released"]) ): ?>
+              <tr>
+                <td colspan="2">
+                  Pick up by: <span class="bold"><?=$this->hold["released"]?></span>
+                </td>
+              </tr>
+            <? endif; ?>
             <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && isset($this->hold["expire"]) ): ?>
               <tr>
                 <td colspan="2">
@@ -63,6 +81,15 @@
                 </td>
               </tr>
             <? endif; ?>
+          <? else: ?>
+            <tr>
+              <td colspan="2">
+                <? if( !$this->showStatus ): ?>
+                  <div class="EIN-col-m-12" style="height:10px"></div>
+                <? endif; ?>
+                Notify me at: <span class="bold"><?=$this->hold["notifyEmail"]?></span>
+              </td>
+            </tr>
           <? endif; ?>
           <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && $this->hold["status"] != "t" ): ?>
             <tr>

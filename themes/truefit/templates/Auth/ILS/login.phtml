@@ -15,6 +15,9 @@
       <span id="login_passwordError" class="formError"></span>
     </div>
     </div>
+    <? if( isset( $this->request->clearLightbox ) ): ?>
+      <input type="hidden" name="clearLightbox" value="<?=$this->request->clearLightbox?>">
+    <? endif; ?>
     <? if( isset( $this->followup ) ): ?>
       <input type="hidden" name="lightboxFollowup" value="<?=$this->followup?>">
     <? endif; ?>
@@ -198,6 +201,7 @@
 
       var messages = frame.contentDocument.getElementById("loginFlashMessages");
       var lightboxFollowup = frame.contentDocument.getElementById("lightboxFollowup");
+      var redirectMessage = frame.contentDocument.getElementById("redirectMessage");
       // success, but need to reuse the lightbox
       if( lightboxFollowup != null ) {
         var lightboxArgs = jQuery.parseJSON(lightboxFollowup.innerHTML.replace(/'/g,"\""));
@@ -208,6 +212,9 @@
       // success, but they have messages, so send them to the message center
       } else if( $(frame.contentDocument).find('.notificationsCount').length > 0 ) {
         window.location.replace("/MyResearch/Notifications");
+      // success, reload the desired page
+      } else if( redirectMessage != null ) {
+        window.location.replace("/MyResearch/" + redirectMessage.innerHTML);
       // success, reload this page
       } else if( messages == null || messages.children.length == 0 ) {
         location.reload(true);

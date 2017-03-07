@@ -41,18 +41,20 @@ class Record extends \VuFind\View\Helper\Root\Record
     /**
      * Render an entry for this item being checked out.
      *
-     * @param \VuFind\Db\Row\User     $user Current logged in user (false if none)
+     * @param Object               $checkout  Object containing checkout information
+     * @param \VuFind\Db\Row\User  $user      Current logged in user (false if none)
      *
      * @return string
      */
-    public function getCheckoutEntry($checkout, $user = false)
+    public function getCheckoutEntry($checkout, $user = false, $onAllTab = false)
     {
         return $this->renderTemplate(
             'checkout-entry.phtml',
             [
                 'driver' => $this->driver,
                 'checkout' => $checkout,
-                'user' => $user
+                'user' => $user,
+                'addAllID' => $onAllTab
             ]
         );
     }
@@ -60,19 +62,19 @@ class Record extends \VuFind\View\Helper\Root\Record
     /**
      * Render an entry for a hold on this item.
      *
-     * @param Object                  Object containing hold information
-     * @param \VuFind\Db\Row\User     $user Current logged in user (false if none)
+     * @param Object  $hold        Object containing hold information
+     * @param bool    $showStatus  Whether to show the status of this hold (false if none)
      *
      * @return string
      */
-    public function getHoldEntry($hold, $user = false)
+    public function getHoldEntry($hold, $showStatus = false)
     {
         return $this->renderTemplate(
             'hold-entry.phtml',
             [
                 'driver' => $this->driver,
                 'hold' => $hold,
-                'user' => $user
+                'showStatus' => $showStatus
             ]
         );
     }
@@ -105,6 +107,11 @@ class Record extends \VuFind\View\Helper\Root\Record
      */
     public function getThumbnail($size = 'small')
     {
+        // no driver? return false
+        if( !isset($this->driver) ) {
+            return false;
+        }
+
         // Try to build thumbnail:
         $thumb = $this->driver->tryMethod('getThumbnail', [$size]);
 

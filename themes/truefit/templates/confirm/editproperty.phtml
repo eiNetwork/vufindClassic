@@ -121,7 +121,7 @@
     if( shouldSubmit ) {
       $('#confirmFooter').css('display','none');
       $('#loadingFooter').css('display','block');
-      Lightbox.submit($('#confirmForm'), function(html) { location.reload() } );
+      Lightbox.submit($('#confirmForm'), function(html) { window.location.href = "/MyResearch/Profile" } );
     }
   }
 </script>

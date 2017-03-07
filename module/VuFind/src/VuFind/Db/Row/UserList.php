@@ -259,7 +259,8 @@ class UserList extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterf
                     '*'
                 ]
             );
-            $select->where->equalTo('list_id', $listId);
+            $select->where->equalTo('list_id', $listId)
+                          ->equalTo('hideFlag', 'N');
         };
         $table = $this->getDbTable('UserResource');
         $results = $table->select($callback);

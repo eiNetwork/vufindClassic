@@ -13,37 +13,37 @@
 <div class="navbar-header row">
   <div class="EIN-col-m-12">
     <table class="EIN-col-m-12" style="white-space:nowrap"><tr>
-    <td><div style="margin-right:20px">
-      <a href="<?=$this->url('home')?>"><button class="btn-noBorderAlternate">Library Catalog</button></a>
-    </div></td>
-    <td class="EIN-col-m-12">
+      <td><div style="margin-right:20px">
+        <a href="<?=$this->url('home')?>"><button class="btn-noBorderAlternate">Library Catalog</button></a>
+      </div></td>
+      <td class="EIN-col-m-12">
 <? if ($this->layout()->searchbox !== false): ?>
-    <div style="margin:0 4px"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #949494;border-right:1px solid #949494;padding-right:2px">
-      <?=$this->layout()->searchbox ?>
-    </div></div>
+      <div style="margin:0 4px"><div class="EIN-hide-m EIN-col-t-12" style="border-left:1px solid #949494;border-right:1px solid #949494;padding-right:2px">
+        <?=$this->layout()->searchbox ?>
+      </div></div>
 <? endif; ?>
-    </td>
-    <td class="EIN-hide">
-      <div class="dropdown EIN-hide">
-        <button type="button" class="dropdown-toggle btn-noBorderAlternate" data-toggle="dropdown" href="#navDropdown">
-          <span class="sr-only">Toggle navigation</span>
-          <i class="fa fa-bars"></i>
-        </button>
-      </div>
-    </td>
-    <td class="EIN-hide-m EIN-hide-t" style="padding-right:4px">
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('Help','Home')"><span class="headerLink">Help</span></button>
-    </td>
-    <td class="EIN-hide-m EIN-hide-t">
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none"><span class="headerLink">Locations</span></button>
-    </td>
-    <td class="EIN-hide-m EIN-hide-t">
+      </td>
+      <td class="EIN-hide">
+        <div class="dropdown EIN-hide">
+          <button type="button" class="dropdown-toggle btn-noBorderAlternate" data-toggle="dropdown" href="#navDropdown">
+            <span class="sr-only">Toggle navigation</span>
+            <i class="fa fa-bars"></i>
+          </button>
+        </div>
+      </td>
+      <td class="EIN-hide-m EIN-hide-t" style="padding-right:4px">
+        <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('Help','Home')"><span class="headerLink">Help</span></button>
+      </td>
+      <td class="EIN-hide-m EIN-hide-t">
+        <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none"><span class="headerLink">Locations</span></button>
+      </td>
+      <td class="EIN-hide-m EIN-hide-t">
 <? if ($user): ?>
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
+        <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" data-toggle="dropdown" data-target="#navDropdown"><span class="headerLink">Account<i class="fa fa-caret-down" style="margin-left:4px;margin-bottom:5px"></i></span></button>
 <? else: ?>
-      <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
+        <button class="EIN-hide-m EIN-hide-t btn-noBorderAlternate" onClick="Lightbox.get('MyResearch', 'Login')"><span class="headerLink">Log In or Register</span></button>
 <? endif; ?>
-    </td>
+      </td>
     </tr></table>
   </div>
   <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="border-top:1px solid #949494"></div>
@@ -61,14 +61,14 @@
     <? endif; ?>
   <? endforeach; ?>
         <li class="loggedInName"><?= $displayName ?></li>
-        <li><a href="<?=$this->url('myresearch-notifications')?>"><button class="btn-dropdown btn-whiteDropdown">Message Center<? if(count($notifications)>0): ?><span class="badge notificationsCount"><?=count($notifications)?></span><? endif; ?></button></a></li>
+        <li><a href="<?=$this->url('myresearch-checkedout')?>"><button class="btn-dropdown btn-whiteDropdown">Checked Out<? if($checkoutsCount>0): ?><span class="badge"><?=$checkoutsCount?></span><? endif; ?></button></a></li>
+        <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds<? if($holdsCount>0): ?><span class="badge"><?=$holdsCount?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-mylist')?>"><button class="btn-dropdown btn-whiteDropdown">Lists<? if($listCount>0): ?><span class="badge"><?=$listCount?></span><? endif; ?></button></a></li>
         <li><a href="<?=$this->url('myresearch-bookcart')?>"><button class="btn-dropdown btn-whiteDropdown">Book Cart<? if($bookCartCount>0): ?><span class="badge"><?=$bookCartCount?></span><? endif; ?></button></a></li>
-        <li><a href="<?=$this->url('myresearch-holds')?>"><button class="btn-dropdown btn-whiteDropdown">Holds<? if($holdsCount>0): ?><span class="badge"><?=$holdsCount?></span><? endif; ?></button></a></li>
-        <li><a href="<?=$this->url('myresearch-checkedout')?>"><button class="btn-dropdown btn-whiteDropdown">Checked Out<? if($checkoutsCount>0): ?><span class="badge"><?=$checkoutsCount?></span><? endif; ?></button></a></li>
-        <li><a href="<?=$this->url('search-history')?>"><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></a></li>
         <li><a href="<?=$this->url('myresearch-readinghistory')?>"><button class="btn-dropdown btn-whiteDropdown">Reading History</button></a></li>
+        <li><a href="<?=$this->url('search-history')?>"><button class="btn-dropdown btn-whiteDropdown">Saved Searches</button></a></li>
         <li><a href="<?=$this->url('myresearch-profile')?>"><button class="btn-dropdown btn-whiteDropdown">Profile</button></a></li>
+        <li><a href="<?=$this->url('myresearch-notifications')?>"><button class="btn-dropdown btn-whiteDropdown">Message Center<? if(count($notifications)>0): ?><span class="badge notificationsCount"><?=count($notifications)?></span><? endif; ?></button></a></li>
         <hr class="stretchHR">
         <li><button class="btn-dropdown btn-whiteDropdown EIN-hide" onclick="Lightbox.get('Help','Home')">Help</button></li>
         <li><button class="btn-dropdown btn-whiteDropdown EIN-hide" onclick="Lightbox.get('MyResearch','comingsoon'); return false;" style="display:none">Locations</button></li>
@@ -83,24 +83,25 @@
     <div class="dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
         <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Keyword')"><i class="fa fa-check greenCheck searchTypeCheck stcKeyword" style="display:none"></i>Keyword</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('AllFields')"><i class="fa fa-check greenCheck searchTypeCheck stcAllFields" style="display:none"></i>All Fields</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Title')"><i class="fa fa-check greenCheck searchTypeCheck stcTitle" style="display:none"></i>Title</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Author')"><i class="fa fa-check greenCheck searchTypeCheck stcAuthor" style="display:none"></i>Author</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Contributor')"><i class="fa fa-check greenCheck searchTypeCheck stcContributor" style="display:none"></i>Author/Artist/Contributor</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Subject')"><i class="fa fa-check greenCheck searchTypeCheck stcSubject" style="display:none"></i>Subject</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('ISN')"><i class="fa fa-check greenCheck searchTypeCheck stcISN" style="display:none"></i>ISBN/ISSN</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('publisher')"><i class="fa fa-check greenCheck searchTypeCheck stcpublisher" style="display:none"></i>Publisher</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('Series')"><i class="fa fa-check greenCheck searchTypeCheck stcSeries" style="display:none"></i>Series</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('year')"><i class="fa fa-check greenCheck searchTypeCheck stcyear" style="display:none"></i>Year of Publication</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType('toc')"><i class="fa fa-check greenCheck searchTypeCheck stctoc" style="display:none"></i>Table of Contents</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Keyword"><i class="fa fa-check greenCheck searchTypeCheck stcKeyword" style="display:initial"></i>Keyword</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_AllFields"><i class="fa fa-check greenCheck searchTypeCheck stcAllFields" style="display:none"></i>All Fields</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Title"><i class="fa fa-check greenCheck searchTypeCheck stcTitle" style="display:none"></i>Title</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Author"><i class="fa fa-check greenCheck searchTypeCheck stcAuthor" style="display:none"></i>Author</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Contributor"><i class="fa fa-check greenCheck searchTypeCheck stcContributor" style="display:none"></i>Author/Artist/Contributor</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Subject"><i class="fa fa-check greenCheck searchTypeCheck stcSubject" style="display:none"></i>Subject</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_ISN"><i class="fa fa-check greenCheck searchTypeCheck stcISN" style="display:none"></i>ISBN/ISSN</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_publisher"><i class="fa fa-check greenCheck searchTypeCheck stcpublisher" style="display:none"></i>Publisher</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Series"><i class="fa fa-check greenCheck searchTypeCheck stcSeries" style="display:none"></i>Series</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_year"><i class="fa fa-check greenCheck searchTypeCheck stcyear" style="display:none"></i>Year of Publication</button></a></li>
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_toc"><i class="fa fa-check greenCheck searchTypeCheck stctoc" style="display:none"></i>Table of Contents</button></a></li>
         <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown"><i class="fa fa-check greenCheck searchTypeCheck stcAdvanced" style="display:none"></i>Advanced Search</button></a></li>
       </ul>
     </div>
     <script type="text/javascript">
-      function doSearchType(newType) {
-        $('.searchTypeInput').attr("value", newType);
-        $(mostRecentSearchBtn).parents("form").submit();
+      function doSearchType(searchButton) {
+        $(searchButton).parents("ul").find(".greenCheck").css({"display":"none"});
+        $('.searchTypeInput').attr("value", $(searchButton).attr("id").substr(14));
+        $(searchButton).find(".greenCheck").css({"display":"initial"});
       }
     </script>
   </div>

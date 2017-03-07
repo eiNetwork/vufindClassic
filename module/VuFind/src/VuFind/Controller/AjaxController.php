@@ -88,7 +88,7 @@ class AjaxController extends AbstractBase
                 $debugMsg = ('development' == APPLICATION_ENV)
                     ? ': ' . $e->getMessage() : '';
                 return $this->output(
-                    $this->translate('An error has occurred') . $debugMsg,
+                    ["msg" => $this->translate('An error has occurred') . $debugMsg],
                     self::STATUS_ERROR
                 );
             }
@@ -640,7 +640,7 @@ class AjaxController extends AbstractBase
         }
 
         // Summarize call number, location and availability info across all items:
-        $currentLocation = $catalog->getDbTable('location')->getCurrentLocation();
+        $currentLocation = $catalog->getCurrentLocation();
         $callNumbers = $locations = $volumeNumbers = [];
         $use_unknown_status = $available = false;
         $totalItems = 0;
@@ -667,7 +667,7 @@ class AjaxController extends AbstractBase
             if( (!isset($itsHere) || ($itsHere['status'] == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
-            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
+            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation->code == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
                 $holdableCopyHere = $info;
             }
         }

@@ -17,7 +17,7 @@ defined('APPLICATION_PATH')
 
 // Define application environment
 defined('APPLICATION_ENV')
-    || define('APPLICATION_ENV', (getenv('VUFIND_ENV') ? getenv('VUFIND_ENV') : 'production'));
+    || define('APPLICATION_ENV', ((getenv('VUFIND_ENV') && false) ? getenv('VUFIND_ENV') : 'production'));
 
 // Define path to local override directory
 defined('LOCAL_OVERRIDE_DIR')

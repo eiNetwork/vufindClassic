@@ -207,7 +207,7 @@ class RecordController extends AbstractRecord
             $view->myLists = $lists;
         }
 
-        $view->currentLocation = $catalog->getDbTable("location")->getCurrentLocation();
+        $view->currentLocation = $catalog->getCurrentLocation();
 
         /***** For now, we're just showing the highlights on the search results page *****\
         $rawTerms = explode("lookfor", $this->getSearchMemory()->retrieve());
@@ -222,7 +222,7 @@ class RecordController extends AbstractRecord
         \***** For now, we're just showing the highlights on the search results page *****/
 
         if( substr($bib, 0, 2) == ".b" ) {
-            $view->classicLink = $this->getILS()->getConfigVar("Catalog","classic_url") . "/record=" . substr($bib, 1, -1);
+            $view->classicLink = $catalog->getConfigVar("Catalog","classic_url") . "/record=" . substr($bib, 1, -1);
         }
 
         return $view;
@@ -372,7 +372,7 @@ class RecordController extends AbstractRecord
         $holdings = $driver->getRealTimeHoldings();
         $availableHoldings = [];
         $unavailableHoldings = [];
-        $currentLocation = $this->getILS()->getDbTable('location')->getCurrentLocation();
+        $currentLocation = $this->getILS()->getCurrentLocation();
         $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
         foreach($holdings as $thisBib) {
             foreach($thisBib["items"] as $item) {

@@ -338,7 +338,11 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
         $callback = function ($select) use ($userId, $itemId) {
             $select->columns(
                 [
-                    '*'
+                    '*',
+                    'isBookCart' => new Expression(
+                        'if(?="Book Cart",1,0)', ['user_list.title'],
+                        [Expression::TYPE_IDENTIFIER]
+                    )
                 ]
             );
             $select->where->equalTo('user_list.user_id', $userId);
@@ -351,7 +355,7 @@ class User extends RowGateway implements \VuFind\Db\Table\DbTableAwareInterface,
                 $select->where->equalTo('r.source', explode("|", $itemId)[0])
                               ->equalTo('r.record_id', explode("|", $itemId)[1]);
             }
-            $select->order(['user_list.title']);
+            $select->order(['isBookCart desc', 'user_list.title']);
         };
 
         $table = $this->getDbTable('UserList');

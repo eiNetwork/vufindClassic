@@ -53,6 +53,22 @@ class EINetwork extends Sierra2 implements
         unset($this->session[$name]);
     }
 
+    public function getMemcachedVar($name) {
+        return $this->memcached->get($name);
+    }
+
+    public function setMemcachedVar($name, $value) {
+        $this->memcached->set($name, $value);
+    }
+
+    public function getCurrentLocation() {
+        $myIP = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+        if( !$this->memcached->get("locationByIP" . $myIP) ) {
+            $this->memcached->set("locationByIP" . $myIP, $this->getDbTable('Location')->getCurrentLocation($myIP));
+        }
+        return $this->memcached->get("locationByIP" . $myIP);
+    }
+
     /**
      * Patron Login
      *
@@ -135,7 +151,7 @@ class EINetwork extends Sierra2 implements
                 "/([0-9]{5}|[0-9]{5}-[0-9]{4})[ ]*$/", $api_data['ADDRESS'],
                 $zipmatch
             );
-            $ret['zip'] = $zipmatch[1]; //retrieve from address
+            $ret['zip'] = (isset($zipmatch[1]) ? $zipmatch[1] : ""); //retrieve from address
             //HIDDEN//$ret['phone'] = $api_data['TELEPHONE'];
             //HIDDEN//$ret['phone2'] = $api_data['TELEPHONE2'];
             // Should probably have a translation table for patron type
@@ -181,16 +197,25 @@ class EINetwork extends Sierra2 implements
 
         $patron = parent::getMyProfile($patron);
 
-        $location = $this->getDbTable('Location')->getByCode($patron['homelibrarycode']);
+        if( !$this->memcached->get("locationByCode" . $patron['homelibrarycode']) ) {
+            $this->memcached->set("locationByCode" . $patron['homelibrarycode'], $this->getDbTable('Location')->getByCode($patron['homelibrarycode']));
+        }
+        $location = $this->memcached->get("locationByCode" . $patron['homelibrarycode']);
         $patron['homelibrary'] = $location->displayName;
 
-        // info from the database
         $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
+
         $patron['preferredlibrarycode'] = $user->preferred_library;
-        $location = $this->getDbTable('location')->getByCode($patron['preferredlibrarycode']);
+        if( !$this->memcached->get("locationByCode" . $patron['preferredlibrarycode']) ) {
+            $this->memcached->set("locationByCode" . $patron['preferredlibrarycode'], $this->getDbTable('Location')->getByCode($patron['preferredlibrarycode']));
+        }
+        $location = $this->memcached->get("locationByCode" . $patron['preferredlibrarycode']);
         $patron['preferredlibrary'] = ($location != null) ? $location->displayName : null;
         $patron['alternatelibrarycode'] = $user->alternate_library;
-        $location = $this->getDbTable('location')->getByCode($patron['alternatelibrarycode']);
+        if( !$this->memcached->get("locationByCode" . $patron['alternatelibrarycode']) ) {
+            $this->memcached->set("locationByCode" . $patron['alternatelibrarycode'], $this->getDbTable('Location')->getByCode($patron['alternatelibrarycode']));
+        }
+        $location = $this->memcached->get("locationByCode" . $patron['alternatelibrarycode'] );
         $patron['alternatelibrary'] = ($location != null) ? $location->displayName : null;
 
         // overdrive info
@@ -233,6 +258,7 @@ class EINetwork extends Sierra2 implements
             $pickupLocations[] = ["locationID" => $loc->code, "locationDisplay" => $loc->displayName];
         }
         $this->memcached->set("pickup_locations", $pickupLocations);
+
         return $pickupLocations;
     }
 
@@ -337,8 +363,14 @@ class EINetwork extends Sierra2 implements
                 }
 
                 // get shelving details
-                $shelfLoc = $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']);
-                $location = (isset($shelfLoc) && $shelfLoc) ? $this->getDBTable('location')->getByLocationId($shelfLoc->locationId) : null;
+                if( !$this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode']) ) {
+                    $this->memcached->set("shelvingLocationByCode" . $results[$i]['locationCode'], $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']));
+                }
+                $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode'] );
+                if( isset($shelfLoc) && $shelfLoc && !$this->memcached->get("locationByID" . $shelfLoc->locationId) ) {
+                    $this->memcached->set("locationByID" . $shelfLoc->locationId, $this->getDBTable('location')->getByLocationId($shelfLoc->locationId));
+                }
+                $location = (isset($shelfLoc) && $shelfLoc) ? $this->memcached->get("locationByID" . $shelfLoc->locationId ) : null;
                 $results[$i]['branchName'] = $location ? $location->displayName : null;
                 $results[$i]['branchCode'] = $location ? $location->code : null;
                 $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
@@ -434,7 +466,8 @@ class EINetwork extends Sierra2 implements
         // see if it's there
         if( !$this->memcached->get("overdriveID" . $id) ) {
             // grab a bit more information from Solr
-            $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=id%3A%22" . $id . "%22&fl=econtent_source,externalId&wt=csv";
+            $solrBaseURL = $this->config['Solr']['url'];
+            $curl_url = $solrBaseURL . "/biblio/select?q=*%3A*&fq=id%3A%22" . $id . "%22&fl=econtent_source,externalId&wt=csv";
             $curl_connection = curl_init($curl_url);
             curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
             curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -443,7 +476,7 @@ class EINetwork extends Sierra2 implements
             $values = explode("\n", $sresult);
 
             // is it an OverDrive item?
-            if( explode(",", $values[1])[0] == "OverDrive" ) {
+            if( count($values) > 1 && explode(",", $values[1])[0] == "OverDrive" ) {
                 $this->memcached->set("overdriveID" . $id, explode(",", $values[1])[1]);
             }
         }
@@ -465,7 +498,8 @@ class EINetwork extends Sierra2 implements
         }
 
         // grab a bit more information from Solr
-        $curl_url = "http://localhost:8080/solr/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv";
+        $solrBaseURL = $this->config['Solr']['url'];
+        $curl_url = $solrBaseURL . "/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv";
         $curl_connection = curl_init($curl_url);
         curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -535,6 +569,8 @@ class EINetwork extends Sierra2 implements
         }
 
         $sierraHolds = parent::getMyHolds($patron);
+        $sierraHolds = $this->addHoldPickupDates($patron, $sierraHolds);
+
         $overDriveHolds = $this->getOverDriveHolds((object)$patron);
         foreach($overDriveHolds as $hold) {
             $solrInfo = $this->getSolrRecordFromExternalId($hold["overDriveId"]);
@@ -769,7 +805,9 @@ class EINetwork extends Sierra2 implements
         // invalidate the cached data
         $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
-        // weed out overdrive holds, there's nothing we can do there
+        // pull out overdrive holds, since we're updating their email
+        $success = true;
+        $overDriveHolds = [];
         for($i=0; $i<count($holds["details"]); $i++ )
         {
             if( substr($holds["details"][$i], 0, 9) == "OverDrive" ) {
@@ -778,11 +816,19 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // process the overdrive holds
+        foreach($overDriveHolds as $overDriveID ) {
+            $overDriveResults = $this->updateOverDriveHold($overDriveID, $holds["patron"], $holds["newEmail"]);
+            $success &= $overDriveResults["result"];
+        }
+
+        // process the sierra holds
         if( count($holds["details"]) > 0 ) {
             return parent::updateHolds($holds);
-        } else {
-            return [];
+            $success &= $sierraResults["success"];
         }
+
+        return ["success" => $success];
     }
 
     /**
@@ -797,20 +843,22 @@ class EINetwork extends Sierra2 implements
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $notifications[] = ["subject" => "<span class=\"messageWarning\">You have fines.</span>", "message" => "You currently have $" . number_format($profile["moneyOwed"],2) . " in fines.<br><br>" . 
-                                             "<a target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . $profile["id"] . "/overdues\"><button class=\"btn-default btn-wide\">Pay Online</button></a><br><br>" . 
-                                             "(You will be sent to the old version of the Catalog and will need to login into your account again.)"];
+            $notifications[] = ["subject" => "<span class=\"messageWarning\">You have fines.</span>", 
+                                "message" => "You currently have $" . number_format($profile["moneyOwed"],2) . " in fines.<br><br><a target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . $profile["id"] . 
+                                             "/overdues\"><button class=\"btn-default btn-wide\">Pay Online</button></a><br><br>(You will be sent to the old version of the Catalog and will need to login into your account again.)", 
+                                "extra" => " (Total: $" . number_format($profile["moneyOwed"],2) . ") Click here for details."];
         }
         if( $profile["preferredlibrarycode"] == null ) {
-            $notifications[] = ["subject" => "Choose a preferred library", "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical " .
-                                                                                        "items much easier, since your preferred library is used as the default pickup location.  You can " .
-                                                                                        "assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];
+            $notifications[] = ["subject" => "Choose a preferred library", 
+                                "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical items much easier, since your preferred library is used as the default pickup " .
+                                             "location.  You can assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];
         }
         if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->invert == 0 ) {
-            $notifications[] = ["subject" => "<span class=\"messageWarning\">Card expired</span>", "message" => "Your library card is expired. Please visit your local library to renew your card to ensure access to all online services."];
+            $notifications[] = ["subject" => "<span class=\"messageWarning\">Card expired</span>", 
+                                "message" => "Your library card is expired. Please visit your local library to renew your card to ensure access to all online services."];
         } else if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->days <= 30 ) {
-            $notifications[] = ["subject" => "Card expiration approaching", "message" => "Your library card is due to expire within the next 30 days. Please visit your local library to " .
-                                                                                         "renew your card to ensure access to all online services."];
+            $notifications[] = ["subject" => "Card expiration approaching", 
+                                "message" => "Your library card is due to expire within the next 30 days. Please visit your local library to renew your card to ensure access to all online services."];
         }
         return $notifications;
     }
@@ -1201,6 +1249,79 @@ class EINetwork extends Sierra2 implements
         //Strip HTML comments
         $patronInfoDump = preg_replace("/<!--([^(-->)]*)-->/"," ",$patronInfoDump);
         return $patronInfoDump;
+    }
+
+    /**
+     * Add hold pickup dates to an already existing array of Sierra Holds
+     *
+     * @param   array   $patron         The patron array
+     * @param   array   $holds          The action to perform
+     *
+     * @return  array   the result of adding the screen-scraped pickup dates to the $holds array.
+     */
+    public function addHoldPickupDates($patron, $holds) {
+      //go to the holds page and get the number of holds on the account
+      $sresult = $this->_fetchPatronInfoPage($patron, "holds");
+      $sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sresult);
+      $s = substr($sresult, stripos($sresult, 'patFunc'));
+      $s = substr($s,strpos($s,">")+1);
+      $s = substr($s,0,stripos($s,"</table"));
+      $s = preg_replace ("/<br \/>/","", $s);
+
+      $srows = preg_split("/<tr([^>]*)>/",$s);
+      $scount = 0;
+      $skeys = array_pad(array(),10,"");
+      foreach ($srows as $srow) {
+        $scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+        $curHoldItemID = null;
+        $curHoldPickupDate = null;
+
+        //Holds page occassionally has a header with number of items checked out.
+        for ($i=0; $i < sizeof($scols); $i++) {				
+          $scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
+          $scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
+          $scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
+
+          if ($scount <= 2) {
+            $skeys[$i] = $scols[$i];
+          } else if ($scount > 1) {
+            // get the itemID
+            if ($skeys[$i] == "CANCEL") { //Only check Cancel key, not Cancel if not filled by
+              //Extract the id from the checkbox
+              $matches = array();
+              $numMatches = preg_match_all('/.*?cancel(.*?)x(\\d\\d).*/s', $scols[$i], $matches);
+              if ($numMatches > 0) {
+                $curHoldItemID = $matches[1][0];
+              }
+            }
+
+            if (stripos($skeys[$i],"STATUS") > -1) {
+              $status = trim(strip_tags($scols[$i]));
+              $status = strtolower($status);
+              $status = ucwords($status);
+              if ($status !="&nbsp" && preg_match('/READY.*(\d{2}-\d{2}-\d{2})/i', $status, $matches)){
+                //Get expiration date
+                $exipirationDate = $matches[1];
+                $curHoldPickupDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
+                $curHoldPickupDate = $curHoldPickupDate->format("M j, Y");
+              }
+            }
+          }
+        } //End of columns
+
+        // add this info to the correct hold
+        if ($scount > 2 && $curHoldPickupDate && $curHoldItemID) {
+          foreach( $holds as $key => $thisHold ) {
+            if( $thisHold["available"] && substr($thisHold["item_id"], 1, -1) == $curHoldItemID ) {
+              $holds[$key]["released"] = $curHoldPickupDate;
+            };
+          }
+        }
+
+        $scount++;
+      }//End of the row
+
+      return $holds;
     }
 
     /**

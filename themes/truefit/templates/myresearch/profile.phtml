@@ -125,27 +125,27 @@
             <input type="hidden" name="confirm" value="true">
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Current PIN</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <input type="text" class="form-control textBox editProperty" id="current_PIN" onfocus="TestFocus(this)" value="Enter Current PIN" />
+              <input type="text" class="form-control textBox editProperty" id="current_PIN" onfocus="TestPINFocus(this)" value="Enter Current PIN" />
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span class="formError"></span>
             </div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">New PIN</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="new_PIN" name="pin" value="Enter New PIN" />
+              <input type="text" class="form-control textBox editProperty" onfocus="TestPINFocus(this)" id="new_PIN" name="pin" value="Enter New PIN" />
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span class="formError"></span>
             </div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Confirm New PIN</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-              <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="confirm_PIN" value="Confirm New PIN" />
+              <input type="text" class="form-control textBox editProperty" onfocus="TestPINFocus(this)" id="confirm_PIN" value="Confirm New PIN" />
               <i class="fa fa-exclamation-circle formErrorIcon"></i>
               <span class="formError"></span>
             </div>
           </form>
           <div class="EIN-col-m-12" style="height:20px"></div>
-          <button class="btn-default btn-wide" id="PINconfirmButton" onclick="SubmitConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
+          <button class="btn-default btn-wide" id="PINconfirmButton" onclick="SubmitPINConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
         </div>
       </div>
     </div>
@@ -291,7 +291,7 @@
       </div>
     </div>
     <script type="text/javascript">
-      function TestFocus(element) {
+      function TestPINFocus(element) {
         if( !($(element).hasClass("userHasFocused")) ) {
           $(element).attr("value", "");
           $(element).addClass("userHasFocused");
@@ -310,7 +310,7 @@
         $(field).next().next().html(message);
       }
 
-      function SubmitConfirmation() {
+      function SubmitPINConfirmation() {
         // do some testing
         var shouldSubmit = true;
         $('#current_PIN').each( function() { 

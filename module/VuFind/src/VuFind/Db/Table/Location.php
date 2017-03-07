@@ -99,16 +99,16 @@ class Location extends Gateway
      *
      * @return mixed
      */
-    public function getCurrentLocation()
+    public function getCurrentLocation($myIP)
     {
-        $callback = function ($select) {
+        $callback = function ($select) use($myIP) {
             $select->join(
                 ['ip' => 'ip_lookup'], 'ip.locationid = location.locationId',
                 []
             );
-            $select->where('ip="' . substr($_SERVER['REMOTE_ADDR'], 0, strrpos($_SERVER['REMOTE_ADDR'], ".") + 1) . '0/24"');
+            $select->where('ip="' . substr($myIP, 0, strrpos($myIP, ".") + 1) . '0/24"');
         };
         $location = $this->select($callback);
-        return $location->current();
+        return $location->current() ? $location->current()->toArray() : false;
     }
 }

@@ -127,9 +127,9 @@
           $saveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\" onclick=\"moveSaveDropdown(this, '" . $itemData . "');\"";
           $mobileSaveClick = " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown\" onclick=\"moveSaveDropdown($(this).parent().next().children('span'), '" . $itemData . "');\"";
         else:
-          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
-          $saveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
-          $mobileSaveClick = " onClick=\"Lightbox.get('MyResearch','Login')\"";
+          $holdClick = " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"";
+          $saveClick = " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"";
+          $mobileSaveClick = " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"";
         endif;
       ?>
     </div>

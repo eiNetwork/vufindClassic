@@ -39,10 +39,10 @@
       <? $largeThumb = $record->getThumbnail('large'); ?>
       <? if ($largeThumb): ?>
         <a href="<?=$this->escapeHtmlAttr($largeThumb)?>">
-          <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
+          <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcoverdetails" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
         </a>
       <? else: ?>
-        <img src="<?=$this->url('cover-unavailable')?>" class="recordcover" alt="<?=$this->transEsc('No Cover Image')?>"/>
+        <img src="<?=$this->url('cover-unavailable')?>" class="recordcoverdetails" alt="<?=$this->transEsc('No Cover Image')?>"/>
       <? endif; ?>
 
       <? /* Display qrcode if appropriate: */ ?>
@@ -107,10 +107,10 @@
               <? else: ?>
                 <? $availableCopies += $item["availability"]; ?>
                 <? $noncirculatingCopies += ($item["status"] == "o"); ?>
-                <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation['code'])): ?>
+                <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
                   <? $itsHere = $item; ?>
                 <? endif; ?>
-                <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation['code']) && ($item["status"] != "o") && ($item["status"] != "order")): ?>
+                <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"]) && ($item["status"] != "o") && ($item["status"] != "order")): ?>
                   <? $holdableCopyHere = $item; ?>
                 <? endif; ?>
               <? endif; ?>
@@ -160,7 +160,7 @@
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";
           }
-          $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login')\"");
+          $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"");
         endif;
 
         $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));

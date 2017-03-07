@@ -376,23 +376,44 @@ class Holds extends AbstractRequestBase
         $details = $params->fromPost('updateIDs');
 
         if (!empty($details)) {
-            // Add Patron Data to Submitted Data
-            $updateResults = $catalog->updateHolds(
-                ['details' => $details, 'patron' => $patron, 'newLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"]]
-            );
-            if ($updateResults == false) {
-                $flashMsg->addMessage('hold_all_overdrive_fail', 'error');
-            } else {
-                if ($updateResults['success']) {
-                    $msg = $this->getController()
-                        ->translate((count($details) == 1) ? 'hold_update_success_single' : 'hold_update_success_multiple');
-                    $flashMsg->addMessage($msg, 'info');
+            if( $params->fromPost('changePickup') ) {
+                // Add Patron Data to Submitted Data
+                $updateResults = $catalog->updateHolds(
+                    ['details' => $details, 'patron' => $patron, 'newLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"]]
+                );
+                if ($updateResults == false) {
+                    $flashMsg->addMessage('hold_all_overdrive_fail', 'error');
                 } else {
-                    $msg = $this->getController()
-                        ->translate((count($details) == 1) ? 'hold_update_fail_single' : 'hold_update_fail_multiple');
-                    $flashMsg->addMessage($msg, 'error');
+                    if ($updateResults['success']) {
+                        $msg = $this->getController()
+                            ->translate((count($details) == 1) ? 'hold_update_success_single' : 'hold_update_success_multiple');
+                        $flashMsg->addMessage($msg, 'info');
+                    } else {
+                        $msg = $this->getController()
+                            ->translate((count($details) == 1) ? 'hold_update_fail_single' : 'hold_update_fail_multiple');
+                        $flashMsg->addMessage($msg, 'error');
+                    }
+                    return $updateResults;
                 }
-                return $updateResults;
+            } else if( $params->fromPost('changeEmail') ) {
+                // Add Patron Data to Submitted Data
+                $updateResults = $catalog->updateHolds(
+                    ['details' => $details, 'patron' => $patron, 'newEmail' => $params->fromPost('updateODEmail')]
+                );
+                if ($updateResults == false) {
+                    $flashMsg->addMessage('hold_all_overdrive_fail', 'error');
+                } else {
+                    if ($updateResults['success']) {
+                        $msg = $this->getController()
+                            ->translate((count($details) == 1) ? 'hold_update_success_single' : 'hold_update_success_multiple');
+                        $flashMsg->addMessage($msg, 'info');
+                    } else {
+                        $msg = $this->getController()
+                            ->translate((count($details) == 1) ? 'hold_update_fail_single' : 'hold_update_fail_multiple');
+                        $flashMsg->addMessage($msg, 'error');
+                    }
+                    return $updateResults;
+                }
             }
         } else {
              $flashMsg->addMessage('hold_empty_selection', 'error');

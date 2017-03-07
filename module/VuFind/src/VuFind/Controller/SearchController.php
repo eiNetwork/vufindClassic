@@ -285,7 +285,7 @@ class SearchController extends AbstractSearch
      */
     public function homeAction()
     {
-        return $this->createViewModel(
+        $view = $this->createViewModel(
             [
                 'BookResults' => $this->getNewItemsByFormatAction(["Print Book", "Large Print"]),
                 'DVDResults' => $this->getNewItemsByFormatAction(["DVD"]),
@@ -294,6 +294,8 @@ class SearchController extends AbstractSearch
                 'request' => $this->request
             ]
         );
+
+        return $view;
     }
 
     /**
@@ -362,6 +364,9 @@ class SearchController extends AbstractSearch
             $this->getRequest()->getQuery()->set('hiddenFilters', $hiddenFilters);
         }
 
+        // sort by newest first
+        $this->getRequest()->getQuery()->set('sort', 'date_added desc');
+
         // Don't save to history -- history page doesn't handle correctly:
         $this->saveToHistory = false;
 
@@ -376,6 +381,9 @@ class SearchController extends AbstractSearch
             $url->setDefaultParameter('range', $range);
             $url->setDefaultParameter('department', $dept);
             $url->setSuppressQuery(true);
+
+            // reset the sort type
+            $view->results->getOptions()->rememberLastSort("relevance");
         }
 
         return $view;
@@ -585,6 +593,20 @@ class SearchController extends AbstractSearch
         }
         $regExStr .= "):/";
         $query = $this->getRequest()->getQuery();
+/******\
+* test *
+\******
+$queryArgs = $query->toArray();
+if(isset($queryArgs["lookfor"]) && $queryArgs["lookfor"] == "magicsearch") {
+  $queryArgs["lookfor"] = "";
+  for($i=0; $i<8; $i++) {
+    $queryArgs["lookfor"] .= substr("abcdefghijklmnopqrstuvwxyz", rand(0,25), 1) . " ";
+  }
+  $query->fromArray($queryArgs);
+}
+/******\
+* test *
+\******/
         if( isset($query->lookfor) && (substr($query->lookfor, 0, 1) == "(") && (substr($query->lookfor, -1) == ")") && 
             preg_match($regExStr, $query->lookfor) ) {
             $queryArgs = $query->toArray();

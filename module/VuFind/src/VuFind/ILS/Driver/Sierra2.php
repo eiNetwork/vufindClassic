@@ -105,7 +105,8 @@ class Sierra2 extends Sierra implements
                 $client->setHeaders(
                     array('Accept' => 'application/json; charset=UTF-8',
                           'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"]),
-                          'Content-Type' => 'application/json'));
+                          'Content-Type' => 'application/json',
+                          'Connection' => 'close'));
                 if( $body != null ) 
                 {
                     $client->setRawBody($body);

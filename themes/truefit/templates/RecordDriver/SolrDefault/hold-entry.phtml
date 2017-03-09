@@ -5,14 +5,26 @@
   $account = $this->auth()->getManager();
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
+
+  $showChangeTarget = (!isset($this->hold["available"]) || !$this->hold["available"]) && ($this->hold["status"] != "t");
+  $showFreeze = $showChangeTarget && (!isset($this->hold["frozen"]) || !$this->hold["frozen"]);
+  $showUnfreeze = $showChangeTarget && isset($this->hold["frozen"]) && $this->hold["frozen"];
 ?>
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
   <table class="EIN-col-m-12"><tr>
     <td class="EIN-col-m-1" style="margin:auto">
-      <label class="pull-left flip"<?=(($this->showStatus) ? " style=\"display:none\"" : "")?>><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"]) ?></label>
+      <label class="pull-left flip"><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"]) ?></label>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
-      <input type="hidden" value="<?=(isset($this->hold["overDriveId"]) ? "email" : "pickup")?>" class="changeTarget" />
+      <? if( $showChangeTarget ): ?>
+        <input type="hidden" value="<?=(isset($this->hold["overDriveId"]) ? "email" : "pickup")?>" class="changeTarget" />
+      <? endif; ?>
+      <? if( $showFreeze ): ?>
+        <input type="hidden" value="true" class="freezeTarget" />
+      <? endif; ?>
+      <? if( $showUnfreeze ): ?>
+        <input type="hidden" value="true" class="unfreezeTarget" />
+      <? endif; ?>
     </td>
     <td class="EIN-col-m-11" style="padding-right:10px">
       <div class="EIN-col-m-12<?= ((isset($this->hold["overDriveId"]) && $this->hold["status"] == "i") ? " EIN-col-t-8 EIN-col-8" : "" ) ?>">

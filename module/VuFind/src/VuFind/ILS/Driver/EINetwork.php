@@ -499,7 +499,7 @@ class EINetwork extends Sierra2 implements
 
         // grab a bit more information from Solr
         $solrBaseURL = $this->config['Solr']['url'];
-        $curl_url = $solrBaseURL . "/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv";
+        $curl_url = $solrBaseURL . "/biblio/select?q=*%3A*&fq=externalId%3A%22" . strtolower($id) . "%22&wt=csv&csv.separator=%07&csv.encapsulator=%15";
         $curl_connection = curl_init($curl_url);
         curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -510,13 +510,16 @@ class EINetwork extends Sierra2 implements
         // is it a Solr item?
         if( count($values) > 2 ) {
             $item = array();
-            $fieldNames = explode(",", $values[0]);
+            $fieldNames = explode(chr(7), $values[0]);
 
-            // we have to do some hocus pocus here since the values can also include the  delimiter
-            $fieldValues = explode(",", $values[1]);
+            // we have to do some hocus pocus here since the values can also include the delimiter if they are multi-valued
+            $fieldValues = explode(chr(7), $values[1]);
             for($i=0;$i<count($fieldValues);$i++) {
-                while( substr($fieldValues[$i], 0, 1) == "\"" && substr($fieldValues[$i], -1) != "\"") {
+                while( substr($fieldValues[$i], 0, 1) == chr(21) && substr($fieldValues[$i], -1) != chr(21)) {
                     array_splice($fieldValues, $i, 2, $fieldValues[$i] . "\," . $fieldValues[$i+1]);
+                }
+                if( substr($fieldValues[$i], 0, 1) == chr(21) ) {
+                    $fieldValues[$i] = substr($fieldValues[$i], 1, -1);
                 }
             }
 

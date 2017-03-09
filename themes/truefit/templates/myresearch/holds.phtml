@@ -57,18 +57,14 @@
           <? if(count($this->holdList[$holdType]) > 0): ?>  
             <div id="details_<?=$holdType?>" class="panel-collapse collapse">
               <div class="panel-body">
-                <? if( $holdType != "all" ): ?>
-                  <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>">
-                    <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'hold' => $holdType, 'account' => $this->account))?>
-                    <div style="display:none">
-                      <? foreach ($this->holdList[$holdType] as $current): ?>
-                        <?=$this->record($current["driver"])->getHoldCheckbox($current["hold_id"])?>
-                      <? endforeach; ?>
-                    </div>
-                  </form>
-                <? else: ?>
-                  <span class="EIN-col-m-12 center">To modify holds, please go to the desired subsection.</span>
-                <? endif; ?>
+                <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>">
+                  <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'hold' => $holdType, 'account' => $this->account))?>
+                  <div style="display:none">
+                    <? foreach ($this->holdList[$holdType] as $current): ?>
+                      <?=$this->record($current["driver"])->getHoldCheckbox($current["hold_id"])?>
+                    <? endforeach; ?>
+                  </div>
+                </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? foreach ($this->holdList[$holdType] as $current): ?>
                   <?=$this->record($current["driver"])->getHoldEntry($current, ($holdType == 'all'))?>

@@ -385,7 +385,7 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 
 .loadingWall {text-align:center; margin:20px}
 
-.neTD { padding:5px; width: 5%}
+.neTD { padding:5px; width: 5%; max-width:10px}
 .neSliderButton { margin:0; width:100%; height:100% }
 .neSliderButton .fa { font-size:60px; pointer-events:none }
 @media only screen and (max-width: 767px) {
@@ -400,3 +400,6 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 .neHeader:hover,.neHeader:focus,.neHeader:active{background-color:#ededed}
 .neSliderButton.noHover:hover{background-color:#fff}
 .neSliderButton.noHover:focus,.neSliderButton.noHover:active{background-color:#ededed}
+
+.highlightContainer { position:relative; z-index:10 }
+.recessedHighlight { position:absolute; background:#ff6; top:0; left:0; width:100%; height: 100%; z-index: -1}

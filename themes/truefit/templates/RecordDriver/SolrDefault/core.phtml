@@ -567,8 +567,9 @@
                           <? if( $sourceIndex == "Syndetics" ): ?>
                             <? foreach($thisSource as $seriesIndex => $thisSeries): ?>
                               <? $marcSeriesTitle = $this->driver->getSeries(); ?>
-                              <? $marcSeriesTitle = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["name"])) ? $marcSeriesTitle[0]["name"] : ""); ?>
-                              <span style="font-weight:700"><?=($marcSeriesTitle ? $marcSeriesTitle : $thisSeries["title"]) ?></span><br>
+                              <? $marcSeriesNumber = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["number"])) ? $marcSeriesTitle[0]["number"] : ""); ?>
+                              <? $marcSeriesTitle = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["name"])) ? $marcSeriesTitle[0]["name"] : $thisSeries["title"]); ?>
+                              <span style="font-weight:700"><a href="<?=$this->record($this->driver)->getLink('series', $marcSeriesTitle)?>"><?=($marcSeriesTitle . " " . $marcSeriesNumber)?></a><br>
                               <? if( isset($thisSeries["notes"]) ): ?>
                                 <span><?=$thisSeries["notes"] ?></span><br>
                               <? endif; ?>
@@ -581,6 +582,18 @@
                         <? endforeach; ?>
                       </span></td>
                     </tr>
+                  <? else: ?>
+                    <? $marcSeriesTitle = $this->driver->getSeries(); ?>
+                    <? $marcSeriesNumber = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["number"])) ? $marcSeriesTitle[0]["number"] : ""); ?>
+                    <? $marcSeriesTitle = ((count($marcSeriesTitle) && isset($marcSeriesTitle[0]["name"])) ? $marcSeriesTitle[0]["name"] : ""); ?>
+                    <? if( $marcSeriesTitle ): ?>
+                      <tr>
+                        <td class="colophonHeading"><?=$this->transEsc('Series')?></td>
+                        <td><span class="accordionParagraph">
+                          <span style="font-weight:700"><a href="<?=$this->record($this->driver)->getLink('series', $marcSeriesTitle)?>"><?=($marcSeriesTitle . " " . $marcSeriesNumber)?></a></span>
+                        </span></td>
+                      </tr>
+                    <? endif; ?>
                   <? endif; ?>
                 <? endif; ?>
                 <? $subjects = $this->driver->getAllSubjectHeadings(); if (!empty($subjects)): ?>

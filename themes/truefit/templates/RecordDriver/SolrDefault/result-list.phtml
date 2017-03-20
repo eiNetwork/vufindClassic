@@ -23,7 +23,7 @@
     </div>
   </div>
   <div class="EIN-col-m-9" style="padding-right:10px">
-    <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
+    <div class="highlightContainer EIN-col-m-12 EIN-col-t-8 EIN-col-8">
       <h1 property="name" class="itemTitle"><a href="<?=$this->recordLink()->getUrl($this->driver)?>">
         <?=$this->highlight(($this->driver->getShortTitle() == "") 
              ? trim((isset($deets["title"][0]) ? $deets["title"][0] : $this->driver->getTitle()),"\0\t\n\x0B\r /") 

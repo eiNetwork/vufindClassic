@@ -740,6 +740,11 @@ class AjaxController extends AbstractBase
             'urls' => json_encode($urls)
         ];
 
+        // add the info URL if we need it for overdrive
+        if( isset($item["isOverDrive"]) && $item["isOverDrive"] && ($totalItems == 0) ) {
+          $overDriveInfo["learnMoreURL"] = $driver->getURLs()[0]["url"];
+        }
+
         // add in the overdrive info if needed
         if( $overDriveInfo["canCheckOut"] || count($overDriveInfo) > 1 ) {
             $renderer = $this->getViewRenderer();

@@ -163,9 +163,13 @@
           $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"");
         endif;
 
-        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : "Unable to Hold"))));
+        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : "Unable to Hold")))));
         if( $this->isTitleCheckedOut && $isOverDrive ):
           $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
+        elseif( $isOverDrive && $holdLabel == "Learn More" ):
+          $linkURLs = $this->driver->getURLs();
+          $holdClick = " onClick=\"window.open('" . $linkURLs[0]["url"] . "', '_blank');\"";
+          $holdLink = null;
         endif;
       ?>
     </div>
@@ -174,7 +178,7 @@
         <? if($holdLink != null): ?>
           <a href="<?=$holdLink?>" target="loginFrame">
         <? endif; ?>
-        <button class="btn-default leftButton"<?=$holdClick?><?=((($this->canHold && (!$holdableCopyHere || $hasVolumes)) || $this->canCheckOut || ($isOverDrive && $this->isTitleCheckedOut))?"":" disabled")?>><?=$holdLabel?></button>
+        <button class="btn-default leftButton"<?=$holdClick?><?=((($this->canHold && (!$holdableCopyHere || $hasVolumes)) || $this->canCheckOut || $isOverDrive)?"":" disabled")?>><?=$holdLabel?></button>
         <? if($holdLink != null): ?>
           </a>
         <? endif; ?>

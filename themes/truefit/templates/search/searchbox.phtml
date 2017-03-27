@@ -36,7 +36,7 @@
       <tr>
         <td style="width:100%">
           <div style="padding:0 5px">
-            <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?><? if($this->lookfor == ""): ?> initialSearch<? endif; ?>" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search For..." : $this->lookfor)?>" onfocus="SearchFocus(this);"/>
+            <input class="form-control search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?><?=(($this->lookfor == "") ? " initialSearch" : "")?> searchBox" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search For..." : $this->lookfor)?>" onfocus="SearchFocus(this);" onfocusout="SearchFocusOut(this);"/>
           </div>
         </td>
         <td>
@@ -48,7 +48,6 @@
       </tr>
     </table>
     <input type="hidden" class="searchTypeInput" name="type" value="<?=$this->escapeHtmlAttr($handlers[0]['value'])?>" />
-
     <? $shards = $options->getShards(); if ($options->showShardCheckboxes() && !empty($shards)): ?>
       <?
       $selectedShards = isset($this->selectedShards)
@@ -66,14 +65,9 @@
           isset($this->checkboxFilters) && is_array($this->checkboxFilters) ? $this->checkboxFilters : array()
       );
     ?>
+    <input type="hidden" class="searchRetainFilters" name="retainFilters" value="<?=($this->ils()->getDriver()->getSessionVar("retainFilters") ? "true" : "false")?>" />
     <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || !empty($filterDetails)): ?>
-      <? $defaultFilterState = $options->getRetainFilterSetting() ? ' checked="checked"' : ''; ?>
-      <div class="checkbox">
-        <label>
-          <input onChange="$('.applied-filter').click()" type="checkbox"<?=$defaultFilterState?> id="searchFormKeepFilters"/>
-          <?=$this->transEsc("basic_search_keep_filters")?>
-        </label>
-      </div>
+      <? $defaultFilterState = ($options->getRetainFilterSetting() && $this->ils()->getDriver()->getSessionVar("retainFilters")) ? ' checked="checked"' : ''; ?>
       <div class="hidden">
         <? foreach ($filterDetails as $current): ?>
           <input class="applied-filter" id="<?=$this->escapeHtmlAttr($current['id'])?>" type="checkbox"<?=$defaultFilterState?> name="filter[]" value="<?=$this->escapeHtmlAttr($current['value'])?>" />
@@ -106,11 +100,11 @@
     function SearchFocus(elem) {
       $(elem).parent().css({"background-color":"#ededed"});
       $(".initialSearch").typeahead('val', '');
-      $(".initialSearch").css({"color":"#3d3d3d"});
-      $(".initialSearch").focusout( function() {
-        $(this).parent().css({"background-color":"#fff"});
-      } );
       $(".initialSearch").removeClass("initialSearch");
+    }
+
+    function SearchFocusOut(elem) {
+      $(elem).parent().css({"background-color":"#fff"});
     }
 
     // submit the login on enter press

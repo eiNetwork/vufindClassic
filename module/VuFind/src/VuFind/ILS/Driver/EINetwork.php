@@ -46,7 +46,11 @@ class EINetwork extends Sierra2 implements
     }
 
     public function getSessionVar($name) {
-        return $this->session[$name];
+        return isset($this->session[$name]) ? $this->session[$name] : null;
+    }
+
+    public function setSessionVar($name, $value) {
+        $this->session[$name] = $value;
     }
 
     public function clearSessionVar($name) {

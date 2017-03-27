@@ -365,6 +365,7 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 .messageLink{color:#3f51b5 !important}
 .messageWarning{color:#ed0000; font-weight:700}
 
+.searchBox {color:#3d3d3d}
 .initialSearch {color:#949494}
 .filterTagDiv {padding-top:5px; display:inline-block}
 .filterTag .fa-close {color:#3d3d3d; margin-left:6px}

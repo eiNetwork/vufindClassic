@@ -583,6 +583,11 @@ class SearchController extends AbstractSearch
             return $this->forwardTo('Tag', 'Home');
         }
 
+        // set the retain filters flag
+        if( isset($this->getRequest()->getQuery()->retainFilters) ) {
+            $this->getILS()->setSessionVar("retainFilters", ($this->getRequest()->getQuery()->retainFilters == "true") ? true : false);
+        }
+
         // parse out advanced style lookfors
         $searchTypes = ["Keyword" => "Keyword", "AllFields" => "All Fields", "Title" => "Title", "Author" => "Author",
                         "Contributor" => "Author/Artist/Contributor", "Subject" => "Subject", "ISN" => "ISBN/ISSN/UPC",
@@ -592,7 +597,6 @@ class SearchController extends AbstractSearch
             $regExStr .= (($regExStr == "") ? "/(" : "|") . str_replace("/", "\/", $thisType);
         }
         $regExStr .= "):/";
-        $query = $this->getRequest()->getQuery();
 /******\
 * test *
 \******

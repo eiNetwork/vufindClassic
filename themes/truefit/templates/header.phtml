@@ -9,6 +9,11 @@
     $holdsCount = $this->ils()->getDriver()->getNumberOfMyHolds($profile);
     $checkoutsCount = $this->ils()->getDriver()->getNumberOfMyTransactions($profile);
   }
+  $retainFilters = $this->ils()->getDriver()->getSessionVar("retainFilters");
+  if( $retainFilters === null ):
+    $this->ils()->getDriver()->setSessionVar("retainFilters", true);
+    $retainFilters = true;
+  endif;
 ?>
 <div class="navbar-header row">
   <div class="EIN-col-m-12">
@@ -82,6 +87,9 @@
     </div>
     <div class="dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="toggleRetainFilters(this)"><i class="fa fa-check greenCheck" style="display:<?=($retainFilters?"initial":"none")?>"></i>Retain Filters</button></a></li>
+        <li style="display:none"><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)"><i class="fa fa-check greenCheck" style="display:initial"></i>Limit to Available</button></a></li>
+        <hr class="stretchHR">
         <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Keyword"><i class="fa fa-check greenCheck searchTypeCheck stcKeyword" style="display:initial"></i>Keyword</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_AllFields"><i class="fa fa-check greenCheck searchTypeCheck stcAllFields" style="display:none"></i>All Fields</button></a></li>
@@ -102,6 +110,11 @@
         $(searchButton).parents("ul").find(".greenCheck").css({"display":"none"});
         $('.searchTypeInput').attr("value", $(searchButton).attr("id").substr(14));
         $(searchButton).find(".greenCheck").css({"display":"initial"});
+      }
+      function toggleRetainFilters(searchButton) {
+        $('.applied-filter').click();
+        $('.searchRetainFilters').attr("value", ($('.searchRetainFilters').attr("value") == "true") ? "false" : "true");
+        $(searchButton).find(".greenCheck").css({"display":($('.applied-filter').is(':checked') ? "initial" : "none")});
       }
     </script>
   </div>

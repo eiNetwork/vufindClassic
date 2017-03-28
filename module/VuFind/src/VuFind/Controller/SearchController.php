@@ -285,6 +285,9 @@ class SearchController extends AbstractSearch
      */
     public function homeAction()
     {
+        // reset to retaining filters
+        $this->getILS()->setSessionVar("retainFilters", true);
+
         $view = $this->createViewModel(
             [
                 'BookResults' => $this->getNewItemsByFormatAction(["Print Book", "Large Print"]),

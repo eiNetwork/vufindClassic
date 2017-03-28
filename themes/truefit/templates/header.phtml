@@ -114,7 +114,7 @@
       function toggleRetainFilters(searchButton) {
         $('.applied-filter').click();
         $('.searchRetainFilters').attr("value", ($('.searchRetainFilters').attr("value") == "true") ? "false" : "true");
-        $(searchButton).find(".greenCheck").css({"display":($('.applied-filter').is(':checked') ? "initial" : "none")});
+        $(searchButton).find(".greenCheck").css({"display":(($('.searchRetainFilters').attr("value") == "true") ? "initial" : "none")});
       }
     </script>
   </div>

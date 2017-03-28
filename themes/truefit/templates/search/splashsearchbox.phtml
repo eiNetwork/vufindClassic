@@ -25,7 +25,7 @@
       <tr>
         <td style="width:100%">
           <div style="padding:0 5px">
-            <input class="form-control splashSearchBox search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?><?=(($this->lookfor == "") ? " initialSearch" : "")?> searchBox" type="text" name="lookfor" value="<?=$this->escapeHtmlAttr(($this->lookfor == "") ? "Search For..." : $this->lookfor)?>" onfocus="SearchFocus(this);" onfocusout="SearchFocusOut(this);"/>
+            <input class="form-control splashSearchBox search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?> initialSearch searchBox" type="text" name="lookfor" value="Search For..." onfocus="SearchFocus(this);" onfocusout="SearchFocusOut(this);"/>
           </div>
         </td>
         <td>
@@ -54,7 +54,7 @@
           isset($this->checkboxFilters) && is_array($this->checkboxFilters) ? $this->checkboxFilters : array()
       );
     ?>
-    <input type="hidden" class="searchRetainFilters" name="retainFilters" value="<?=($this->ils()->getDriver()->getSessionVar("retainFilters") ? "true" : "false")?>" />
+    <input type="hidden" class="searchRetainFilters" name="retainFilters" value="true" />
     <? if ((isset($hasDefaultsApplied) && $hasDefaultsApplied) || !empty($filterDetails)): ?>
       <? $defaultFilterState = ($options->getRetainFilterSetting() && $this->ils()->getDriver()->getSessionVar("retainFilters")) ? ' checked="checked"' : ''; ?>
       <div class="hidden">

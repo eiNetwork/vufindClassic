@@ -115,10 +115,12 @@ function handleItemStatusResponse(response) {
         leftButton.prop('disabled', false);
         leftButton.attr('onClick', "Lightbox.get('Record','" + (result.hasVolumes ? "SelectItem" : "Hold") + "'," + result.holdArgs + ")");
         leftButton.empty().append('Hold');
-      } else if( result.learnMoreURL != '' ) {
+      } else if( result.learnMoreURL != null ) {
         leftButton.empty().append('Learn More');
         leftButton.prop('disabled', false);
         leftButton.attr('onClick', "window.open('" + result.learnMoreURL + "', '_blank');");
+      } else if( result.libraryOnly ) {
+        leftButton.empty().append('In Library Only');
       } else {
         leftButton.empty().append('Unable to Hold');
       }

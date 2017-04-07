@@ -93,48 +93,67 @@
           <? endforeach; ?>
         <? endif; ?>
 
-        <tr>
-          <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; ?>
-          <? foreach($this->holdings as $entry): ?>
-            <? foreach($entry["items"] as $item): ?>
-              <? if( isset($item["copiesOwned"])) : ?>
-                <? $totalCopies += ($item["copiesOwned"]); ?>
-              <? else: ?>
-                <? $totalCopies++; ?>
-              <? endif; ?>
-              <? if( isset($item["isOverDrive"]) && $item["isOverDrive"] ): ?>
-                <? $availableCopies += ($item["copiesAvailable"]); ?>
-              <? else: ?>
-                <? $availableCopies += $item["availability"]; ?>
-                <? $noncirculatingCopies += ($item["status"] == "o"); ?>
-                <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
-                  <? $itsHere = $item; ?>
-                <? endif; ?>
-                <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"]) && ($item["status"] != "o") && ($item["status"] != "order")): ?>
-                  <? $holdableCopyHere = $item; ?>
-                <? endif; ?>
-              <? endif; ?>
-            <? endforeach; ?>
+        <? if( isset($this->holdings["CHECKIN_RECORDS"]) ): ?>
+          <? foreach( $this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"] as $checkinLoc ): ?>
+            <? if( $this->currentLocation && in_array($this->currentLocation["code"], $checkinLoc["branchCode"]) ): ?>
+              <? $heldHere = $checkinLoc; ?>
+            <? endif; ?>
           <? endforeach; ?>
-          <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
-          <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
-          <td class="EIN-hide-m itemDetailCategory">Availability:</td>
-          <td style="padding-bottom:5px">
-            <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : ($isOneClick ? 'Access Online' : 'Available')))) : "Unavailable")?></span>
-            <? if( $alwaysAvailable ): ?>
-              <span class="availableCopyText">Always Available</span>
-            <? elseif( $isOneClick ): ?>
-              <span class="availableCopyText"></span>
-            <? elseif( $onOrder ): ?>
-              <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+          <tr>
+            <td class="EIN-hide-m itemDetailCategory">Availability:</td>
+            <td style="padding-bottom:5px">
+              <span class="availableTag"><i class="fa fa-check"></i>In Library Only</span>
+              <span class="availableCopyText"><?=count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"])?> location<?=((count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"]) != 1) ? "s" : "")?></span>
+              <? if( isset($heldHere) ): ?>
+                <div class="availableCopyText">Held here at <?=$heldHere['location']?></div>
+              <? endif; ?>
+            </td>
+          </tr>
+        <? endif; ?>
+        <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; ?>
+        <? foreach($this->holdings as $entry): ?>
+          <? foreach($entry["items"] as $item): ?>
+            <? if( isset($item["copiesOwned"])) : ?>
+              <? $totalCopies += ($item["copiesOwned"]); ?>
             <? else: ?>
-              <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+              <? $totalCopies++; ?>
             <? endif; ?>
-            <? if( isset($itsHere) ): ?>
-              <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
+            <? if( isset($item["isOverDrive"]) && $item["isOverDrive"] ): ?>
+              <? $availableCopies += ($item["copiesAvailable"]); ?>
+            <? else: ?>
+              <? $availableCopies += $item["availability"]; ?>
+              <? $noncirculatingCopies += ($item["status"] == "o"); ?>
+              <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
+                <? $itsHere = $item; ?>
+              <? endif; ?>
+              <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"]) && ($item["status"] != "o") && ($item["status"] != "order")): ?>
+                <? $holdableCopyHere = $item; ?>
+              <? endif; ?>
             <? endif; ?>
-          </td>
-        </tr>
+          <? endforeach; ?>
+        <? endforeach; ?>
+        <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
+        <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
+        <? if( !isset($this->holdings["CHECKIN_RECORDS"]) || ($totalCopies > 0) ): ?>
+          <tr>
+            <td class="EIN-hide-m itemDetailCategory"><?=(isset($this->holdings["CHECKIN_RECORDS"]) ? "" : "Availability:")?></td>
+            <td style="padding-bottom:5px">
+              <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : ($isOneClick ? 'Access Online' : 'Available')))) : "Unavailable")?></span>
+              <? if( $alwaysAvailable ): ?>
+                <span class="availableCopyText">Always Available</span>
+              <? elseif( $isOneClick ): ?>
+                <span class="availableCopyText"></span>
+              <? elseif( $onOrder ): ?>
+                <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+              <? else: ?>
+                <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+              <? endif; ?>
+              <? if( isset($itsHere) ): ?>
+                <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
+              <? endif; ?>
+            </td>
+          </tr>
+        <? endif; ?>
         <? if( !empty($urls) ): ?>
           <tr>
             <td class="EIN-hide-m itemDetailCategory">Links:</td>
@@ -163,7 +182,7 @@
           $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"");
         endif;
 
-        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : "Unable to Hold")))));
+        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : (($this->libraryOnly || isset($this->holdings["CHECKIN_RECORDS"])) ? "In Library Only" : "Unable to Hold"))))));
         if( $this->isTitleCheckedOut && $isOverDrive ):
           $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
         elseif( $isOverDrive && $holdLabel == "Learn More" ):
@@ -367,52 +386,65 @@
           </div>
           <div id="details1" class="panel-collapse collapse">
             <div class="panel-body" style="overflow-x:hidden">
-              <? if( $noncirculatingCopies > 0 ): ?>
-                <h6 class="accordionSubheading">Noncirculating (<?=$noncirculatingCopies?>)</h6>
-                <table class="EIN-col-m-12">
-                  <? /* tablet/desktop UI (three columns) */ ?>
-                  <tr class="availabilityHeaderRow EIN-hide-m">
-                    <td class="EIN-col-m-4">Location</td>
-                    <td class="EIN-col-m-4">Collection</td>
-                    <td class="EIN-col-m-4">Call #</td>
-                  </tr>
-                  <? foreach($this->holdings as $thisHolding): ?>
-                    <? foreach($thisHolding['items'] as $item): ?>
-                      <? if($item['availability'] && ($item['status'] == "o")): ?>
-                        <? /* tablet/desktop UI (three columns) */ ?>
-                        <tr class="availabilityRow EIN-hide-m">
-                          <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                          <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                          <td class="EIN-col-m-4 callNumberBreaker"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
-                        </tr>
-                        <? /* mobile UI (three rows) */ ?>
-                        <tr class="EIN-hide-t EIN-hide">
-                          <td class="availabilityRowFieldName">Location&nbsp;</td>
-                          <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                        </tr>
-                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                        <tr class="EIN-hide-t EIN-hide">
-                          <td class="availabilityRowFieldName">Collection&nbsp;</td>
-                          <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                        </tr>
-                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                        <tr class="EIN-hide-t EIN-hide">
-                          <td class="availabilityRowFieldName">Call Number&nbsp;</td>
-                          <td><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
-                        </tr>
-                        <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                        <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                      <? endif; ?>
+              <? if( isset($this->holdings["CHECKIN_RECORDS"]) ): ?>
+                <? foreach( $this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"] as $key => $thisRecord ): ?>
+                  <? if( !$thisRecord["location"] ): continue; endif; ?>
+                  <div class="EIN-col-m-12 checkinLoc">
+                    <span class="checkinLocName"><?=($thisRecord["location"] ? $thisRecord["location"] : json_encode($thisRecord))?></span>
+                    <? if( isset($thisRecord["identity"]) && $thisRecord["identity"] ): ?>
+                      <span class="EIN-col-m-12 checkinLocDetail"><span style="font-weight:700">Identity:</span> <?=$thisRecord["identity"]?></span>
+                    <? endif; ?>
+                    <? if( isset($thisRecord["libHas"]) && $thisRecord["libHas"] ): ?>
+                      <span class="EIN-col-m-12 checkinLocDetail"><span style="font-weight:700">Library Has:</span> <?=$thisRecord["libHas"]?></span>
+                    <? endif; ?>
+                    <? if( isset($thisRecord["latestReceived"]) && $thisRecord["latestReceived"] ): ?>
+                      <span class="EIN-col-m-12 checkinLocDetail"><span style="font-weight:700">Latest Received:</span> <?=$thisRecord["latestReceived"]?></span>
+                    <? endif; ?>
+                    <? $issues = []; ?>
+                    <? foreach($this->holdings as $thisHolding): ?>
+                      <? foreach($thisHolding['items'] as $item): ?>
+                        <? if( in_array($item['locationCode'], $thisRecord["code"]) ): ?>
+                          <? $issues[] = $item; ?>
+                        <? endif; ?>
+                      <? endforeach; ?>
                     <? endforeach; ?>
-                  <? endforeach; ?>
-                </table>
-                <? if( $noncirculatingCopies != $totalCopies ): ?>
-                  <span class="accordionGap">&nbsp;</span>
-                <? endif; ?>
-              <? endif; ?>
-              <? if( (($availableCopies - $noncirculatingCopies) > 0) || $isOneClick ): ?>
-                <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":($isOneClick?" on OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies)?>)</h6>
-                <? if( !$isOverDrive && !$isOneClick ): ?>
+                    <? if( count($issues) > 0 ): ?>
+                      <? $issueHash = md5($key); ?>
+                      <div class="EIN-col-m-12" id="accordionMore<?=$issueHash?>"><a class="checkinLocDetail" onClick="ToggleAccordion('<?=$issueHash?>',false);">Show Issues (<?=count($issues)?>)</a></div>
+                      <div class="EIN-col-m-12" id="accordionLess<?=$issueHash?>" style="display:none">
+                        <a class="checkinLocDetail" onClick="ToggleAccordion('<?=$issueHash?>',true);">Hide Issues</a>
+                        <table class="EIN-col-m-12">
+                          <tr class="availabilityHeaderRow EIN-hide-m">
+                            <td class="EIN-col-m-4">Volume</td>
+                            <td class="EIN-col-m-4">Status</td>
+                          </tr>
+                          <? foreach( $issues as $thisIssue ): ?>
+                            <? /* tablet/desktop UI (two columns) */ ?>
+                            <tr class="availabilityRow EIN-hide-m">
+                              <td class="EIN-col-m-8"><?=(isset($thisIssue['number']) ? $thisIssue['number'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=(isset($thisIssue['displayStatus']) ? $thisIssue['displayStatus'] : "UNKNOWN")?></td>
+                            </tr>
+                            <? /* mobile UI (two rows) */ ?>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Volume&nbsp;</td>
+                              <td><?=(isset($thisIssue['number']) ? $thisIssue['number'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Status&nbsp;</td>
+                              <td><?=(isset($thisIssue['displayStatus']) ? $thisIssue['displayStatus'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <? endforeach; ?>
+                        </table>
+                      </div>
+                    <? endif; ?>
+                  </div>
+                <? endforeach; ?>
+              <? else: ?>
+                <? if( $noncirculatingCopies > 0 ): ?>
+                  <h6 style="font-weight:700">Noncirculating (<?=$noncirculatingCopies?>)</h6>
                   <table class="EIN-col-m-12">
                     <? /* tablet/desktop UI (three columns) */ ?>
                     <tr class="availabilityHeaderRow EIN-hide-m">
@@ -422,7 +454,7 @@
                     </tr>
                     <? foreach($this->holdings as $thisHolding): ?>
                       <? foreach($thisHolding['items'] as $item): ?>
-                        <? if($item['availability'] && ($item['status'] != "o")): ?>
+                        <? if($item['availability'] && ($item['status'] == "o")): ?>
                           <? /* tablet/desktop UI (three columns) */ ?>
                           <tr class="availabilityRow EIN-hide-m">
                             <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
@@ -450,51 +482,96 @@
                       <? endforeach; ?>
                     <? endforeach; ?>
                   </table>
+                  <? if( $noncirculatingCopies != $totalCopies ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
+                <? endif; ?>
+                <? if( (($availableCopies - $noncirculatingCopies) > 0) || $isOneClick ): ?>
+                  <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":($isOneClick?" on OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies)?>)</h6>
+                  <? if( !$isOverDrive && !$isOneClick ): ?>
+                    <table class="EIN-col-m-12">
+                      <? /* tablet/desktop UI (three columns) */ ?>
+                      <tr class="availabilityHeaderRow EIN-hide-m">
+                        <td class="EIN-col-m-4">Location</td>
+                        <td class="EIN-col-m-4">Collection</td>
+                        <td class="EIN-col-m-4">Call #</td>
+                      </tr>
+                      <? foreach($this->holdings as $thisHolding): ?>
+                        <? foreach($thisHolding['items'] as $item): ?>
+                          <? if($item['availability'] && ($item['status'] != "o")): ?>
+                            <? /* tablet/desktop UI (three columns) */ ?>
+                            <tr class="availabilityRow EIN-hide-m">
+                              <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4 callNumberBreaker"><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                            </tr>
+                            <? /* mobile UI (three rows) */ ?>
+                            <tr class="EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Location&nbsp;</td>
+                              <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class="EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                              <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class="EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Call Number&nbsp;</td>
+                              <td><?=(isset($item['callnumber']) ? ($item['callnumber'] . (($item["number"] != null) ? (" " . $item["number"]) : "")) : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <tr class="EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <? endif; ?>
+                        <? endforeach; ?>
+                      <? endforeach; ?>
+                    </table>
+                  <? endif; ?>
+                  <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
                 <? endif; ?>
                 <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
-                  <span class="accordionGap">&nbsp;</span>
-                <? endif; ?>
-              <? endif; ?>
-              <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
-                <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
-                <? if( !$isOverDrive ): ?>
-                  <table class="EIN-col-m-12">
-                    <? /* tablet/desktop UI (three columns) */ ?>
-                    <tr class="availabilityHeaderRow EIN-hide-m">
-                      <td class="EIN-col-m-4">Location</td>
-                      <td class="EIN-col-m-4">Collection</td>
-                      <td class="EIN-col-m-4">Status</td>
-                    </tr>
-                    <? foreach($this->holdings as $thisHolding): ?>
-                      <? foreach($thisHolding['items'] as $item): ?>
-                        <? if(!$item['availability'] && ($item['status'] != "o")): ?>
-                          <? /* tablet/desktop UI (three columns) */ ?>
-                          <tr class="availabilityRow EIN-hide-m">
-                            <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                            <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                          </tr>
-                          <? /* mobile UI (three rows) */ ?>
-                          <tr class=" EIN-hide-t EIN-hide">
-                            <td class="availabilityRowFieldName">Location&nbsp;</td>
-                            <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                          </tr>
-                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                          <tr class=" EIN-hide-t EIN-hide">
-                            <td class="availabilityRowFieldName">Collection&nbsp;</td>
-                            <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                          </tr>
-                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                          <tr class=" EIN-hide-t EIN-hide">
-                            <td class="availabilityRowFieldName">Status&nbsp;</td>
-                            <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                          </tr>
-                          <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                          <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                        <? endif; ?>
+                  <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
+                  <? if( !$isOverDrive ): ?>
+                    <table class="EIN-col-m-12">
+                      <? /* tablet/desktop UI (three columns) */ ?>
+                      <tr class="availabilityHeaderRow EIN-hide-m">
+                        <td class="EIN-col-m-4">Location</td>
+                        <td class="EIN-col-m-4">Collection</td>
+                        <td class="EIN-col-m-4">Status</td>
+                      </tr>
+                      <? foreach($this->holdings as $thisHolding): ?>
+                        <? foreach($thisHolding['items'] as $item): ?>
+                          <? if(!$item['availability'] && ($item['status'] != "o")): ?>
+                            <? /* tablet/desktop UI (three columns) */ ?>
+                            <tr class="availabilityRow EIN-hide-m">
+                              <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                            </tr>
+                            <? /* mobile UI (three rows) */ ?>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Location&nbsp;</td>
+                              <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                              <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Status&nbsp;</td>
+                              <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                            </tr>
+                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <? endif; ?>
+                        <? endforeach; ?>
                       <? endforeach; ?>
-                    <? endforeach; ?>
-                  </table>
+                    </table>
+                  <? endif; ?>
                 <? endif; ?>
               <? endif; ?>
             </div>

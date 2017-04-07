@@ -226,6 +226,17 @@
   $('#saveSearchButton').parent().attr('href', '<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($this->results->getSearchId())?>');
   $('.searchTypeCheck').css({"display":"none"});
   $('.searchTypeCheck.stc<?=$this->searchType?>').css({"display":"initial"});
+  
+  $(document).ready( function() {
+    $(".highlightContainer").each( function() {
+      if( $(this).children("table").outerWidth() > $(this).outerWidth() ) {
+        var margin = 5 + $(this).next().outerHeight() - $(this).children("table").position().top;
+        if( margin > 0 ) {
+          $(this).children("table").css({"margin-top":(margin + "px")});
+        }
+      }
+    } );
+  } );
 </script>
 <div class="dropdown" id="saveButtonDropdown">
   <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">

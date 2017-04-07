@@ -382,6 +382,59 @@ class EINetwork extends Sierra2 implements
                 for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
                 array_splice($results2, $j, 0, [$results[$i]]);
             }
+
+            // if this is a magazine, we need to add the checkin records info
+            if( $this->isSerial($id) ) {
+                // get all of the locations we need to speak for
+                $neededLocations = [];
+                foreach( $results2 as $thisItem ) {
+                    if( !isset($neededLocations[$thisItem["locationCode"]]) ) {
+                        $neededLocations[$thisItem["locationCode"]] = $thisItem["locationCode"];
+                    }
+                }
+
+                // grab the checkin records and store the location info
+                $results3 = [];
+                $checkinRecords = $this->getCheckinRecords($id);
+                foreach( array_keys($checkinRecords) as $key ) {
+                    // find this location in the database
+                    if( !$this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) ) {
+                        $this->memcached->set("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"]), $this->getDBTable('shelvinglocation')->getBySierraName($checkinRecords[$key]["location"])->toArray());
+                    }
+                    $checkinRecords[$key]["code"] = [];
+                    $checkinRecords[$key]["branchCode"] = [];
+                    foreach( $this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) as $row ) {
+                        $checkinRecords[$key]["code"][] = $row["code"];
+                        $checkinRecords[$key]["branchCode"][] = $row["branchCode"];
+                        unset($neededLocations[$row["code"]]);
+                    }
+                    $results3[] = $checkinRecords[$key];
+                }
+
+                // add details for locations with no checkin records but held items
+                foreach( $neededLocations as $code ) {
+                    if( !$this->memcached->get("shelvingLocationByCode" . $code) ) {
+                        $this->memcached->set("shelvingLocationByCode" . $code, $this->getDBTable('shelvinglocation')->getByCode($code));
+                    }
+                    $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $code );
+                    if( $shelfLoc == null ) {
+                        if( !$this->memcached->get("locationByCode" . $code) ) {
+                            $this->memcached->set("locationByCode" . $code, $this->getDBTable('location')->getByCode($code));
+                        }
+                        $shelfLoc = $this->memcached->get("locationByCode" . $code );
+                    }
+                    $thisCode = [];
+                    $thisCode["location"] = isset($shelfLoc->sierraName) ? $shelfLoc->sierraName : $shelfLoc->displayName;
+                    $thisCode["code"][] = $code;
+                    $thisCode["branchCode"][] = isset($shelfLoc->branchCode) ? $shelfLoc->branchCode : $code;
+                    for( $j=0; $j<count($results3) && ($results3[$j]['location'] < $thisCode["location"]); $j++) {}
+                    array_splice($results3, $j, 0, [$thisCode]);
+                    unset($neededLocations[$code]);
+                }
+
+                array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
+            }
+
             $this->memcached->set("holdingID" . $id, $results2, 120);
         }
         return $this->memcached->get("holdingID" . $id);
@@ -1477,5 +1530,72 @@ class EINetwork extends Sierra2 implements
             $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your hold';
         }
         return $hold_result;
+    }
+
+    private function getCheckinRecords($id) {
+        $cookieJar = tempnam("/tmp", "CURLCOOKIE");
+
+        $bib = substr($id, 2, -1);
+        $curl_url = $this->config['Catalog']['classic_url'] . "/search~S1/.b" . $bib ."/.b" . $bib . "/1,1,1,B/frameset~" . $bib;
+        $this->curl_connection = curl_init($curl_url);
+
+        curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+        curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+        curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
+
+        $checkinText = curl_exec($this->curl_connection);
+        curl_close($this->curl_connection);
+
+        if (preg_match('/class\\s*=\\s*\\"bibHoldings\\"/s', $checkinText)){
+            //There are issue summaries available
+            //Extract the table with the holdings
+            $issueSummaries = array();
+            $matches = array();
+            if (preg_match('/<table\\s.*?class=\\"bibHoldings\\">(.*?)<\/table>/s', $checkinText, $matches)) {
+                $issueSummaryTable = trim($matches[1]);
+                //Each holdingSummary begins with a holdingsDivider statement
+                $summaryMatches = explode('<tr><td colspan="2"><hr  class="holdingsDivider" /></td></tr>', $issueSummaryTable);
+                if (count($summaryMatches) > 1){
+                    //Process each match independently
+                    foreach ($summaryMatches as $summaryData){
+                        $summaryData = trim($summaryData);
+                        if (strlen($summaryData) > 0){
+                            //Get each line within the summary
+                            $issueSummary = array();
+                            $issueSummary['type'] = 'issueSummary';
+                            $summaryLines = array();
+                            preg_match_all('/<tr\\s*>(.*?)<\/tr>/s', $summaryData, $summaryLines, PREG_SET_ORDER);
+                            for ($matchi = 0; $matchi < count($summaryLines); $matchi++) {
+                                $summaryLine = trim(str_replace('&nbsp;', ' ', $summaryLines[$matchi][1]));
+                                $summaryCols = array();
+                                if (preg_match('/<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>/s', $summaryLine, $summaryCols)) {
+                                    $label = trim($summaryCols[1]);
+                                    $value = trim(strip_tags($summaryCols[2]));
+                                    //Convert to camel case
+                                    $label = (preg_replace('/[^\\w]/', '', strip_tags($label)));
+                                    $label = strtolower(substr($label, 0, 1)) . substr($label, 1);
+                                    if ($label == 'location'){
+                                        //Try to trim the courier code if any
+                                        if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $value, $locationParts)){
+                                            $value = $locationParts[1];
+                                        }
+                                    }
+                                    $issueSummary[$label] = $value;
+                                }
+                            }
+                            $issueSummaries[$issueSummary['location'] . count($issueSummaries)] = $issueSummary;
+                        }
+                    }
+                }
+            }
+            return $issueSummaries;
+        } else {
+            return null;
+        }
     }
 }

@@ -58,9 +58,34 @@ class ShelvingLocation extends Gateway
     public function getByCode($code)
     {
         $callback = function ($select) use($code) {
-            $select->where('code = "' . $code . '"');
+            $select->join(
+                ['l' => 'location'],
+                'shelving_location.locationId = l.locationId',
+                ['branchCode' => 'code']
+            );
+            $select->where('shelving_location.code = "' . $code . '"');
         };
         $row = $this->select($callback);
         return $row->current();
+    }
+
+    /**
+     * Retrieve a shelving location object from the database based on sierra name
+     *
+     * @param string $sierraName Name to use for retrieval.
+     *
+     * @return \Zend\Db\ResultSet\AbstractResultSet
+     */
+    public function getBySierraName($sierraName)
+    {
+        $callback = function ($select) use($sierraName) {
+            $select->join(
+                ['l' => 'location'],
+                'shelving_location.locationId = l.locationId',
+                ['branchCode' => 'code']
+            );
+            $select->where('sierraName = "' . $sierraName . '"');
+        };
+        return $this->select($callback);
     }
 }

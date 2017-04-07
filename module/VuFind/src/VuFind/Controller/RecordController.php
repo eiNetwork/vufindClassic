@@ -92,6 +92,10 @@ class RecordController extends AbstractRecord
         $view->holdings = $holdings;
         $catalog = $this->getILS();
 
+        // see whether there is anything in the checkin record
+        $checkinRecord = [];
+        
+
         // see whether the driver can hold
         $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
         $canHold = (!empty($holdingTitleHold));
@@ -125,7 +129,7 @@ class RecordController extends AbstractRecord
             foreach($holdings as $holding) {
                 foreach($holding['items'] as $item) {
                     // look for a hold link
-                    $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!','i','order']);
+                    $marcHoldOK = isset($item['status']) && in_array(trim($item['status']), ['-','t','!','i','order']);
                     $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
                     if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                         foreach(explode('&',$item['link']['query']) as $piece) {
@@ -143,13 +147,18 @@ class RecordController extends AbstractRecord
         }
 
         // see if they can check this out
+        $libraryOnly = false;
         if( !$canHold ) {
             foreach($holdings as $holding) {
                 foreach($holding['items'] as $item) {
                     $canCheckOut |= isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] > 0);
+                    if( isset($item['status']) && trim($item['status']) == "o" ) {
+                        $libraryOnly = true;
+                    }
                 }
             }
         }
+        $view->libraryOnly = $libraryOnly;
 
         // make sure they don't already have it checked out
         if( $user && ($canCheckOut || $canHold) ) {
@@ -377,9 +386,11 @@ class RecordController extends AbstractRecord
         foreach($holdings as $thisBib) {
             foreach($thisBib["items"] as $item) {
                 if( $canHold && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
-                    $availableHoldings[] = $item;
-                } else {
-                    $unavailableHoldings[] = $item;
+                    for($j=0; $j<count($availableHoldings) && (($availableHoldings[$j]["location"] < $item["location"]) || (($availableHoldings[$j]["location"] == $item["location"]) && ($availableHoldings[$j]["number"] < $item["number"]))); $j++ ) {}
+                    array_splice($availableHoldings, $j, 0, [$item]);
+                } else if($item["location"] != "CHECKIN_RECORDS") {
+                    for($j=0; $j<count($unavailableHoldings) && (($unavailableHoldings[$j]["location"] < $item["location"]) || (($unavailableHoldings[$j]["location"] == $item["location"]) && ($unavailableHoldings[$j]["number"] < $item["number"]))); $j++ ) {}
+                    array_splice($unavailableHoldings, $j, 0, [$item]);
                 }
             }
         }

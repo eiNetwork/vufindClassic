@@ -218,6 +218,7 @@ class AjaxController extends AbstractBase
 
         // Load messages for response:
         $messages = [
+            'inlibrary' => $renderer->render('ajax/status-inlibrary.phtml'),
             'itshere' => $renderer->render('ajax/status-itshere.phtml'),
             'available' => $renderer->render('ajax/status-available.phtml'),
             'oneclick' => $renderer->render('ajax/status-oneclick.phtml'),
@@ -269,7 +270,7 @@ class AjaxController extends AbstractBase
         // If any IDs were missing, send back appropriate dummy data
         foreach ($missingIds as $missingId => $recordNumber) {
             // see if we have any urls we should show
-            $driver = $this->getRecordLoader()->load( $thisID );
+            $driver = $this->getRecordLoader()->load( $missingId );
             $urls = $driver->getURLs();
             foreach($urls as $key => $thisUrl) {
                 if( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
@@ -293,9 +294,11 @@ class AjaxController extends AbstractBase
                 'missing_data'         => true,
                 'record_number'        => $recordNumber,
                 'isHolding'            => false,
+                'checkinRecords'       => false,
                 'itsHere'              => false,
                 'holdableCopyHere'     => false,
                 'holdArgs'             => '',
+                'libraryOnly'          => false,
                 'heldVolumes'          => '[]',
                 'urls'                 => json_encode($urls)
             ];
@@ -377,7 +380,7 @@ class AjaxController extends AbstractBase
         // If any IDs were missing, send back appropriate dummy data
         foreach ($missingIds as $missingId => $recordNumber) {
             // see if we have any urls we should show
-            $driver = $this->getRecordLoader()->load( $thisID );
+            $driver = $this->getRecordLoader()->load( $missingID );
             $urls = $driver->getURLs();
             foreach($urls as $key => $thisUrl) {
                 if( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
@@ -577,7 +580,7 @@ class AjaxController extends AbstractBase
             $args=array();
             foreach($record as $item) {
                 // look for a hold link
-                $marcHoldOK = isset($item['status']) && in_array($item['status'], ['-','t','!','i','order']);
+                $marcHoldOK = isset($item['status']) && in_array(trim($item['status']), ['-','t','!','i','order']);
                 $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
                 if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                     foreach(explode('&',$item['link']['query']) as $piece) {
@@ -645,13 +648,14 @@ class AjaxController extends AbstractBase
         $use_unknown_status = $available = false;
         $totalItems = 0;
         $availableItems = 0;
+        $libraryOnly = false;
         foreach ($record as $info) {
              // Find an available copy
             if ($info['availability']) {
                 $available = true;
                 $availableItems += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
             }
-            if ($info['status'] == 'order') {
+            if (trim($info['status']) == 'order') {
                 $onOrder = true;
             }
             //$totalItems += ((isset($item["isOverDrive"]) && $item["isOverDrive"]) | ($onOrder)) ? $item["copiesOwned"] : 1;
@@ -664,11 +668,14 @@ class AjaxController extends AbstractBase
             $callNumbers[] = isset($info['callnumber']) ? $info['callnumber'] : null;
             $volumeNumbers[] = isset($info['number']) ? $info['number'] : null;
             $locations[] = isset($info['location']) ? $info['location'] : null;
-            if( (!isset($itsHere) || ($itsHere['status'] == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
+            if( (!isset($itsHere) || (trim($itsHere['status']) == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
-            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation->code == $info['branchCode']) && ($info['status'] != 'o') && ($info['status'] != 'order')) {
+            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation->code == $info['branchCode']) && (trim($info['status']) != 'o') && (trim($info['status']) != 'order')) {
                 $holdableCopyHere = $info;
+            }
+            if( !$canHold && $item["status"] == "o" ) {
+                $libraryOnly = true;
             }
         }
 
@@ -687,16 +694,29 @@ class AjaxController extends AbstractBase
             $locations, $locationSetting, 'Multiple Locations', 'location_'
         );
 
+        $checkinRecords = ($record[0]['location'] == "CHECKIN_RECORDS");
         $availability_message = $use_unknown_status
             ? $messages['unknown']
             : $messages[isset($itsHere) ? 'itshere' : 
-                        ($available ? 'available' : 
-                         ($onOrder ? 'order' : 
-                          ($isOneClick ? 'oneclick' : 'unavailable')))];
-        if (isset($onOrder) && $onOrder) {
+                        ($libraryonly ? 'inlibrary' : 
+                         ($available ? 'available' : 
+                          ($onOrder ? 'order' : 
+                           ($isOneClick ? 'oneclick' : 'unavailable'))))];
+        if ($checkinRecords) {
+            $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
+            foreach( $record[0]["checkinRecords"] as $thisRecord ) {
+                if( $currentLocation && in_array($currentLocation["code"], $thisRecord["branchCode"]) ) {
+                    $inLibMessage .= "<div class=\"availableCopyText\">Held here at " . $thisRecord["location"] . "</div>";
+                    break;
+                }
+            }
+            if( $totalItems > 0 ) {
+                $inLibMessage .= "</span><span style=\"padding-top:5px\" class=\"status\">" . str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
+            }
+            $availability_message = $inLibMessage;
+        } else if (isset($onOrder) && $onOrder) {
             $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
-        }
-        if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
+        } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
             $availability_message = str_replace("<countText>", "Always Available", $availability_message);
         } else {
             $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
@@ -733,9 +753,11 @@ class AjaxController extends AbstractBase
             'hasVolumes' => $hasVolumes,
             'volume_number' => htmlentities($volumeNumber, ENT_COMPAT, 'UTF-8'),
             'isHolding' => $isHolding,
+            'checkinRecords' => $checkinRecords,
             'itsHere' => isset($itsHere),
             'holdableCopyHere' => isset($holdableCopyHere),
             'holdArgs' => $holdArgs,
+            'libraryOnly' => ($libraryOnly || $checkinRecords),
             'heldVolumes' => json_encode($heldVolumes),
             'urls' => json_encode($urls)
         ];

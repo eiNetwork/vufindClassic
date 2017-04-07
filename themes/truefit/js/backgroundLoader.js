@@ -31,6 +31,16 @@ function handleListContentResponse(response) {
     $('.ajaxListID' + response.data.id).each( function() {
       $(this).find(".ajaxListContents").append(response.data.html);
 
+      // clean up the overlap for long format names
+      $(".highlightContainer").each( function() {
+        if( $(this).children("table").outerWidth() > $(this).outerWidth() ) {
+          var margin = 5 + $(this).next().outerHeight() - $(this).children("table").position().top;
+          if( margin > 0 ) {
+            $(this).children("table").css({"margin-top":(margin + "px")});
+          }
+        }
+      } );
+
       // if we need to continue going, grab the next page
       if( response.data.continue ) {
         $(this).find(".ajaxListPage").attr("value", parseInt($(this).find(".ajaxListPage").attr("value")) + 1);

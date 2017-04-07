@@ -719,7 +719,7 @@ class Sierra2 extends Sierra implements
                     //log(print_r(array(json_encode($holdings))));
                 } else {
                     foreach($apiHoldings->entries as $thisItem) {
-                    $number = null;
+                        $number = null;
                         if( isset($thisItem->varFields) ) {
                             foreach($thisItem->varFields as $thisVarField) {
                                 if( $thisVarField->fieldTag == "v" ) {
@@ -730,8 +730,8 @@ class Sierra2 extends Sierra implements
                         $itemInfo = [
                             "id" => $id,
                             "itemId" => $thisItem->id,
-                            "availability" => (($thisItem->status->code == "-") || ($thisItem->status->code == "o")) && !isset($thisItem->status->duedate),
-                            "status" => $thisItem->status->code,
+                            "availability" => ((trim($thisItem->status->code) == "-") || (trim($thisItem->status->code) == "o")) && !isset($thisItem->status->duedate),
+                            "status" => trim($thisItem->status->code),
                             "location" => $thisItem->location->name,
                             "reserve" => "N",
                             "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
@@ -770,5 +770,27 @@ class Sierra2 extends Sierra implements
     public function getStatus($id)
     {
         return $this->getHolding($id);
+    }
+
+    /**
+     * Test Serial
+     *
+     * This checks the API to see if this bib has a serial type.
+     *
+     * @param string $id The record id to test the bibLevel
+     *
+     * @return bool  Whether or not this bib is a serial type (used to determine if we need to look for checkin records)
+     */
+    public function isSerial($id)
+    {
+        $bibs = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/?fields=id,bibLevel&suppressed=false&id=" . substr($id,2,-1)));
+        if( isset($bibs->entries) ) {
+            foreach($bibs->entries as $thisEntry) {
+                if( $thisEntry->bibLevel->code == "s" ) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

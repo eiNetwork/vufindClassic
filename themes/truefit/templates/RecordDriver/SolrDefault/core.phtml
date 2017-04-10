@@ -544,29 +544,31 @@
                       <? foreach($this->holdings as $thisHolding): ?>
                         <? foreach($thisHolding['items'] as $item): ?>
                           <? if(!$item['availability'] && ($item['status'] != "o")): ?>
-                            <? /* tablet/desktop UI (three columns) */ ?>
-                            <tr class="availabilityRow EIN-hide-m">
-                              <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                              <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                              <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                            </tr>
-                            <? /* mobile UI (three rows) */ ?>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Location&nbsp;</td>
-                              <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                            </tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Collection&nbsp;</td>
-                              <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            </tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Status&nbsp;</td>
-                              <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                            </tr>
-                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <? for( $j=0; $j<(($item['status'] == "order") ? $item['copiesOwned'] : 1); $j++ ): ?>
+                              <? /* tablet/desktop UI (three columns) */ ?>
+                              <tr class="availabilityRow EIN-hide-m">
+                                <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                                <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                                <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                              </tr>
+                              <? /* mobile UI (three rows) */ ?>
+                              <tr class=" EIN-hide-t EIN-hide">
+                                <td class="availabilityRowFieldName">Location&nbsp;</td>
+                                <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                              </tr>
+                              <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                              <tr class=" EIN-hide-t EIN-hide">
+                                <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                                <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                              </tr>
+                              <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                              <tr class=" EIN-hide-t EIN-hide">
+                                <td class="availabilityRowFieldName">Status&nbsp;</td>
+                                <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                              </tr>
+                              <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                              <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <? endfor; ?>
                           <? endif; ?>
                         <? endforeach; ?>
                       <? endforeach; ?>

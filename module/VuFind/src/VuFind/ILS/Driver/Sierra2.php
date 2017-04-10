@@ -689,9 +689,13 @@ class Sierra2 extends Sierra implements
                 $processed = 0;
                 $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                 if( !isset($apiHoldings->entries) ) {
+                    break;
+/***** BJP => This is commented out for now, due to the API not giving us this info anymore.
+              It is supposed to return sometime soon, so we can just uncomment it and remove 
+              the orders functionality added to the EINetwork driver.  At that point, we also
+              need to remove the break above.
                     //If there are no attached items, check to see if it is on order
                     $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
-                    //log(print_r($apiOrders));
                     if( !isset($apiOrders->entries) ) {
                         break;
                     }
@@ -716,7 +720,7 @@ class Sierra2 extends Sierra implements
                             $holdings[] = $itemInfo;
                         }
                     }
-                    //log(print_r(array(json_encode($holdings))));
+*****/
                 } else {
                     foreach($apiHoldings->entries as $thisItem) {
                         $number = null;

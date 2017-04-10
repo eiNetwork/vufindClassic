@@ -81,6 +81,22 @@ class Location extends Gateway
     }
 
     /**
+     * Retrieve a location object from the database based on name
+     *
+     * @param string $name Name to use for retrieval.
+     *
+     * @return LocationRow
+     */
+    public function getByName($name)
+    {
+        $callback = function ($select) use($name) {
+            $select->where('displayName = "' . $name . '"');
+        };
+        $row = $this->select($callback);
+        return $row->current();
+    }
+
+    /**
      * Get location rows that can be used as pickups
      *
      * @return mixed

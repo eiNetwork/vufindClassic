@@ -307,6 +307,12 @@ class EINetwork extends Sierra2 implements
             }
             $results = parent::getHolding($id, $patron);
 
+/***** BJP => This section is a temporary workaround for the orders info *****/
+            if( count($results) == 0 ) {
+                $results = $this->getOrderRecords($id);
+            }
+/***** BJP => This section is a temporary workaround for the orders info *****/
+
             // add in the extra details we need
             $results2 = [];
             for($i=0; $i<count($results); $i++) {
@@ -375,7 +381,7 @@ class EINetwork extends Sierra2 implements
                     $this->memcached->set("locationByID" . $shelfLoc->locationId, $this->getDBTable('location')->getByLocationId($shelfLoc->locationId));
                 }
                 $location = (isset($shelfLoc) && $shelfLoc) ? $this->memcached->get("locationByID" . $shelfLoc->locationId ) : null;
-                $results[$i]['branchName'] = $location ? $location->displayName : null;
+                $results[$i]['branchName'] = $location ? $location->displayName : (($results[$i]['status'] == 'order') ? $results[$i]['location'] : null);
                 $results[$i]['branchCode'] = $location ? $location->code : null;
                 $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
 
@@ -1597,5 +1603,76 @@ class EINetwork extends Sierra2 implements
         } else {
             return null;
         }
+    }
+
+    private function getOrderRecords($id) {
+        $cookieJar = tempnam("/tmp", "CURLCOOKIE");
+
+        $bib = substr($id, 2, -1);
+        $curl_url = $this->config['Catalog']['classic_url'] . "/search~S1/.b" . $bib ."/.b" . $bib . "/1,1,1,B/frameset~" . $bib;
+        $this->curl_connection = curl_init($curl_url);
+
+        curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+        curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+        curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
+
+        $ordersText = curl_exec($this->curl_connection);
+        curl_close($this->curl_connection);
+
+        $orders = array();
+        $orderMatches = array();
+        if (preg_match_all('/<tr\\s+class="bibOrderEntry">.*?<td\\s*>(.*?)<\/td>/s', $ordersText, $orderMatches)){
+            for ($i = 0; $i < count($orderMatches[1]); $i++) {
+                $location = trim($orderMatches[1][$i]);
+                $location = preg_replace('/\\sC\\d{3}[\\s\\.]/', '', $location);
+
+                // pull out the relevant data
+                $count = substr($location, 0, strpos($location, " "));
+                $date = substr($location, -11, -1);
+                $name = trim(substr($location, strpos($location, "ordered for ") + 12, -15));
+
+                // find this location in the database
+                if( !$this->memcached->get("shelvingLocationBySierraName" . md5($name)) ) {
+                    $this->memcached->set("shelvingLocationBySierraName" . md5($name), $this->getDBTable('shelvinglocation')->getBySierraName($name)->toArray());
+                }
+                $row = $this->memcached->get("shelvingLocationBySierraName" . md5($name));
+
+                // test to see if it's a branch name instead of shelving location
+                if( count($row) == 0 ) {
+                    // find this location in the database
+                    if( !$this->memcached->get("locationByName" . md5($name)) ) {
+                        $row = $this->getDBTable('location')->getByName($name);
+                        $this->memcached->set("locationByName" . md5($name), [$row->toArray()]);
+                    }
+                    $row = $this->memcached->get("locationByName" . md5($name));
+                }
+
+                // if we got results, send them back
+                if( count($row) > 0 ) {
+                    $itemInfo = [
+                        "id" => $id,
+                        "itemId" => null,
+                        "availability" => false,
+                        "status" => "order",
+                        "location" => $name,
+                        "reserve" => "N",
+                        "callnumber" => null,
+                        "duedate" => null,
+                        "returnDate" => false,
+                        "number" => null,
+                        "barcode" => null,
+                        "locationCode" => $row[0]["code"],
+                        "copiesOwned" => $count
+                    ];
+                    $orders[] = $itemInfo;
+                }
+            }
+        }
+        return $orders;
     }
 }

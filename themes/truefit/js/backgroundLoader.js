@@ -2,13 +2,13 @@
 
 function checkPatronHolds() {
   $('#backgroundLoaderHolds').each( function() {
-    $(this).attr("src", "/MyResearch/BackgroundLoader?content=holds");
+    $(this).attr("src", "/MyResearch/BackgroundLoader?content=holds&backgroundLoad=true");
   });
 }
 
 function checkPatronCheckouts() {
   $('#backgroundLoaderCheckouts').each( function() {
-    $(this).attr("src", "/MyResearch/BackgroundLoader?content=checkouts");
+    $(this).attr("src", "/MyResearch/BackgroundLoader?content=checkouts&backgroundLoad=true");
   });
 }
 

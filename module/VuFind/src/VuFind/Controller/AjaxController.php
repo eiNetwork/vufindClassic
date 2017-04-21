@@ -706,12 +706,12 @@ class AjaxController extends AbstractBase
             $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
             foreach( $record[0]["checkinRecords"] as $thisRecord ) {
                 if( $currentLocation && in_array($currentLocation["code"], $thisRecord["branchCode"]) ) {
-                    $inLibMessage .= "<div class=\"availableCopyText\">Held here at " . $thisRecord["location"] . "</div>";
+                    $inLibMessage .= "<div class=\"availableCopyText\">It's here at " . $thisRecord["location"] . "</div>";
                     break;
                 }
             }
             if( $totalItems > 0 ) {
-                $inLibMessage .= "</span><span style=\"padding-top:5px\" class=\"status\">" . str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
+                $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message)];
             }
             $availability_message = $inLibMessage;
         } else if (isset($onOrder) && $onOrder) {
@@ -735,6 +735,11 @@ class AjaxController extends AbstractBase
           elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
             $isOneClick = true;
           endif;
+        }
+
+        // limit to 3 links
+        if( count($urls) > 3 ) {
+          array_splice($urls, 3);
         }
 
         // Collect the details:

@@ -10,7 +10,7 @@
     <? foreach ($this->pickup as $lib): ?>
       <? if($showPreferredLibrary && $this->preferredLibrary == $lib['locationID'] ): ?>
         <tr>
-          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"></i></td>
+          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
         </tr>
         <? break; ?>
@@ -19,7 +19,7 @@
     <? foreach ($this->pickup as $lib): ?>
       <? if($showAlternateLibrary && $this->alternateLibrary == $lib['locationID'] ): ?>
         <tr>
-          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
         </tr>
         <? break; ?>
@@ -28,7 +28,7 @@
     <? foreach ($this->pickup as $lib): ?>
       <? if($showHomeLibrary && $this->homeLibrary == $lib['locationID'] ): ?>
         <tr>
-          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?> (Home)</button></td>
         </tr>
         <? break; ?>
@@ -43,7 +43,7 @@
             (!isset($this->alternateLibrary) || ($this->alternateLibrary != $lib['locationID'])) && 
             (!isset($this->homeLibrary)      || ($this->homeLibrary != $lib['locationID']))): ?>
         <tr class="otherLibraryRow" style="display:none">
-          <td><i class="fa fa-check bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"></i></td>
+          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocation" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
         </tr>
       <? endif; ?>
@@ -94,9 +94,9 @@
 
     function SelectPickupLocation(chosenID) {
       var currentID = $('input[name="gatheredDetails[pickUpLocation]"]').val();
-      $('i[name="check-' + currentID + '"]').css("color","#fff");
+      $('span[name="check-' + currentID + '"]').css("color","#fff");
       $('input[name="gatheredDetails[pickUpLocation]"]').val(chosenID);
-      $('i[name="check-' + chosenID + '"]').css("color","");
+      $('span[name="check-' + chosenID + '"]').css("color","");
     }
 
     function ProcessHoldForm() {

@@ -96,7 +96,6 @@ class Record extends \VuFind\View\Helper\Root\Record
         );
     }
 
-
     /**
      * Generate a thumbnail URL (return false if unsupported).
      *
@@ -136,5 +135,21 @@ class Record extends \VuFind\View\Helper\Root\Record
 
         // Default case -- return fixed string:
         return $thumb;
+    }
+
+    /**
+     * Generate a the record title (return false if unsupported).
+     *
+     * @return string|bool
+     */
+    public function getTitle()
+    {
+        // no driver? return false
+        if( !isset($this->driver) ) {
+            return false;
+        }
+
+        // return the title
+        return trim($this->driver->getTitle(),"\0\t\n\x0B\r /");
     }
 }

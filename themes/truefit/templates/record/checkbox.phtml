@@ -1,24 +1,32 @@
 <? $id = isset($this->overruleId) ? $this->overruleId : $this->id; ?>
-<input class="checkbox-select-item" style="display:none" type="checkbox" name="ids[]" value="<?=$this->escapeHtmlAttr($id) ?>" />
+<span class="sr-only">
+  <input class="checkbox-select-item" type="checkbox" name="ids[]" value="<?=$this->escapeHtmlAttr($id) ?>" onClick="$(this).parent().siblings('.checkToggleOn').click()" />
+</span>
 <input type="hidden" name="idsAll[]" value="<?=$this->escapeHtmlAttr($id) ?>"/>
-<i class="fa fa-check-square checkToggleOff" onClick="ToggleRecordCheck($(this).next()); ToggleRecordCheck($(this));"></i>
-<i class="fa fa-square-o checkToggleOn" onClick="ToggleRecordCheck($(this).prev()); ToggleRecordCheck($(this));"></i>
+<span class="checkToggleOff" aria-hidden="true" onClick="ToggleRecordCheck($(this).next()); ToggleRecordCheck($(this));"><i class="fa fa-check-square"></i></span>
+<span class="checkToggleOn" aria-hidden="true" onClick="ToggleRecordCheck($(this).prev()); ToggleRecordCheck($(this));"><i class="fa fa-square-o"></i></span>
 <script type="text/javascript">
   function ToggleRecordCheck(item) {
     if(item.hasClass('checkToggleOn')) {
+      // update the visual buttons
       item.removeClass('checkToggleOn');
       item.addClass('checkToggleOff');
     } else {
+      // update the visual buttons
       item.removeClass('checkToggleOff');
       item.addClass('checkToggleOn');
 
-      var target = item.prevAll('.checkbox-select-item').get(0);
+      // set the form's checkbox
+      var target = item.prevAll('.sr-only').children('.checkbox-select-item');
+      target.prop("checked", (item.children('.fa-check-square').length > 0));
       var parentForm = ($(target).parents('.ajaxListContents').length > 0) ? $(target).parents('.ajaxListContents').siblings('form') : $(target).parents('.ajaxItem').siblings('form');
-      parentForm.find('.checkbox-select-item[value=\'' + $(target).attr('value') + '\']').prop('checked',item.hasClass('fa-check-square'));
+      parentForm.find('.checkbox-select-item[value=\'' + $(target).attr('value') + '\']').prop('checked',item.children('.fa').hasClass('fa-check-square'));
       parentForm.find('.checkbox-select-all').prop('checked', true);
       parentForm.find('.checkbox-select-item').each( function() {
         parentForm.find('.checkbox-select-all').prop('checked', parentForm.find('.checkbox-select-all').prop('checked') && this.checked);
       } );
+
+      // correct the bulk button
       setTimeout( function() {
         ScanBulkButton(parentForm);
       } );

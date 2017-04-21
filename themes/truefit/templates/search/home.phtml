@@ -121,19 +121,19 @@
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Left</span><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($BookResults as $entry): ?>
             <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Right</span><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
@@ -144,19 +144,19 @@
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Left</span><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($DVDResults as $entry): ?>
             <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Right</span><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
@@ -167,19 +167,19 @@
     <table style="width:100%">
       <tr>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-left"></i></button>
+          <button class="sliderButton neSliderButton" disabled onmouseenter="scrollSpeed = 1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Left</span><i class="fa fa-chevron-left"></i></button>
         </td>
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($ebookResults as $entry): ?>
             <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>
         </td>
         <td style="width:12%">
-          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><i class="fa fa-chevron-right"></i></button>
+          <button class="sliderButton neSliderButton" onmouseenter="scrollSpeed = -1; MoveSlider2(this.parentElement.parentElement);" onmouseout="HaltSlider(this)"><span class="sr-only">Scroll Right</span><i class="fa fa-chevron-right"></i></button>
         </td>
       </tr>
     </table>
@@ -190,22 +190,22 @@
     <tr>
       <td class="additionalResourceHolder EIN-col-m-6 EIN-col-t-3"><a href="http://bookdb.nextgoodbook.com/signup/pl/f485432415b23a8962922e0b2d198227" target="_blank">
         <div class="additionalResource"><table style="width:100%;height:100%"><tbody><tr><td>
-          <img style="width:100%" src="/themes/truefit/images/icons/selectreads-block.png">
+          <img style="width:100%" src="/themes/truefit/images/icons/selectreads-block.png" alt="Select Reads">
         </td></tr></tbody></table></div>
       </a></td>
       <td class="additionalResourceHolder EIN-col-m-6 EIN-col-t-3"><a href="http://nextgoodbook.com/newsletter/landing/l/f485432415b23a8962922e0b2d198227/c/1000" target="_blank">
         <div class="additionalResource"><table style="width:100%;height:100%"><tbody><tr><td>
-          <img style="width:100%" src="/themes/truefit/images/icons/New-Book-Alerts.jpg">
+          <img style="width:100%" src="/themes/truefit/images/icons/New-Book-Alerts.jpg" alt="New Book Alerts">
         </td></tr></tbody></table></div>
       </a></td>
       <td class="additionalResourceHolder EIN-hide-m EIN-col-t-3"><a href="http://authordb.nextgoodbook.com/landing/l/f485432415b23a8962922e0b2d198227" target="_blank">
         <div class="additionalResource"><table style="width:100%;height:100%"><tbody><tr><td>
-          <img style="width:100%" src="/themes/truefit/images/icons/authorchecklogo.png">
+          <img style="width:100%" src="/themes/truefit/images/icons/authorchecklogo.png" alt="Author Check">
         </td></tr></tbody></table></div>
       </a></td>
       <td class="additionalResourceHolder EIN-hide-m EIN-col-t-3"><a href="http://search.ebscohost.com/login.aspx?authtype=cpid&amp;custid=s4663075&amp;profile=novelist" target="_blank">
         <div class="additionalResource"><table style="width:100%;height:100%"><tbody><tr><td>
-          <img style="width:100%" src="/themes/truefit/images/icons/novelist_button.gif">
+          <img style="width:100%" src="/themes/truefit/images/icons/novelist_button.gif" alt="NoveList">
         </td></tr></tbody></table></div>
       </a></td>
     </tr>

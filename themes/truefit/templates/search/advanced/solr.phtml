@@ -15,10 +15,10 @@
                 <div class="panel-heading">
                   <h4 class="panel-title">
                     <a data-toggle="collapse" class="facetAccordionTitle collapsed" href="#facet<?=$this->escapeHtmlAttr(str_replace(' ', '', $field))?>">
-                      <i class="fa fa-check greenCheck" style="float:none;display:none"></i>
+                      <span class="greenCheck" style="float:none;display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>
                       <?=$this->transEsc($list['label'])?>
                       <i class="fa fa-caret-down"></i>
-                      <i class1="fa fa-caret-up"></i>
+                      <i class="fa fa-caret-up"></i>
                     </a>
                   </h4>
                 </div>
@@ -40,10 +40,14 @@
                         ?>
                         <? foreach ($sorted as $i => $display): ?>
                           <? $value = $list['list'][$i]; ?>
-                          <li value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>">
-                            <i class="fa fa-check-square facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"></i>
-                            <i class="fa fa-square-o facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
-                            <?=$this->escapeHtml($display)?>
+                          <li class="facetOffset0" value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>">
+                            <span class="sr-only">
+                              <?=$this->escapeHtml($display)?>
+                              <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                            </span>
+                            <span aria-hidden="true" class="facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><span class="sr-only">Checked</span><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                            <span aria-hidden="true" class="facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                            <span aria-hidden="true"><?=$this->escapeHtml($display)?></span>
                           </li>
                         <? endforeach; ?>
                       <? else: ?>
@@ -66,42 +70,62 @@
                         <? $bookTypes = ["Print Book", "eBook", "Audio Book"]; $showBooks = false; foreach($bookTypes as $type): $showBooks |= (count($outputVals[$type]["children"]) > 0); endforeach; ?>
                         <? if( $showBooks ): ?>
                           <li class="facetOffset0">
-                            <i class="fa fa-check-square facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                            <i class="fa fa-minus-square-o facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                            <i class="fa fa-square-o facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                            <?=$this->escapeHtml("Books")?>
+                            <span class="sr-only">
+                              <?=$this->escapeHtml("Books")?>
+                              <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                            </span>
+                            <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                            <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-minus-square-o"></i></span>
+                            <span aria-hidden="true" class="facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                            <span aria-hidden="true"><?=$this->escapeHtml("Books")?></span>
                           </li>
                         <? endif; ?>
                         <? foreach( $outputVals as $type => $thisArray ): ?>
                           <? if( count($thisArray["children"]) > 0 ): ?>
                             <li class="facetOffset<?=(in_array($type, $bookTypes) ? "1" : "0")?>">
-                              <i class="fa fa-check-square facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                              <i class="fa fa-minus-square-o facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                              <i class="fa fa-square-o facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"></i>
-                              <?=$this->escapeHtml($type)?>
+                              <span class="sr-only">
+                                <?=$this->escapeHtml($type)?>
+                                <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                              </span>
+                              <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                              <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-minus-square-o"></i></span>
+                              <span aria-hidden="true" class="facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                              <span aria-hidden="true"><?=$this->escapeHtml($type)?></span>
                             </li>
                             <? foreach( $thisArray["children"] as $thisFacet ): ?>
                               <li class="facetOffset<?=(in_array($type, $bookTypes) ? "2" : "1")?>" value="<?=$this->escapeHtmlAttr(($thisFacet['operator'] == 'OR' ? '~' : '') . $field . ':"' . $thisFacet['value'] . '"')?>">
-                                <i class="fa fa-check-square facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"></i>
-                                <i class="fa fa-square-o facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
-                                <?=$this->escapeHtml($thisFacet['displayText'])?>
+                                <span class="sr-only">
+                                  <?=$this->escapeHtml($thisFacet['displayText'])?>
+                                  <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                                </span>
+                                <span aria-hidden="true" class="facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                                <span aria-hidden="true" class="facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                                <span aria-hidden="true"><?=$this->escapeHtml($thisFacet['displayText'])?></span>
                               </li>
                             <? endforeach; ?>
                           <? endif; ?>
                         <? endforeach; ?>
                         <? if( count($inputVals) > 0 ): ?>
                           <li class="facetOffset0">
-                            <i class="fa fa-check-square facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"></i>
-                            <i class="fa fa-minus-square-o facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"></i>
-                            <i class="fa fa-square-o facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"></i>
-                            <?=$this->escapeHtml("Other")?>
+                            <span class="sr-only">
+                              <?=$this->escapeHtml("Other")?>
+                             <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                            </span>
+                            <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                            <span aria-hidden="true" class="facetToggleOff categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"><i class="fa fa-minus-square-o"></i></span>
+                            <span aria-hidden="true" class="facetToggleOn categoryCheck" onClick="ToggleCategory($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
+                            <span aria-hidden="true"><?=$this->escapeHtml("Other")?></span>
                           </li>
                           <? usort($inputVals, function ($format1,$format2) { return strcmp($format1["displayText"], $format2["displayText"]); }); ?>
                           <? foreach( $inputVals as $thisFacet ): ?>
                             <li class="facetOffset1" value="<?=$this->escapeHtmlAttr(($thisFacet['operator'] == 'OR' ? '~' : '') . $field . ':"' . $thisFacet['value'] . '"')?>">
-                              <i class="fa fa-check-square facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"></i>
-                              <i class="fa fa-square-o facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"></i>
-                              <?=$this->escapeHtml($thisFacet['displayText'])?>
+                              <span class="sr-only">
+                                <?=$this->escapeHtml($thisFacet['displayText'])?>
+                                <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                              </span>
+                              <span aria-hidden="true" class="facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                              <span aria-hidden="true" class="facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                              <span aria-hidden="true"><?=$this->escapeHtml($thisFacet['displayText'])?></span>
                             </li>
                           <? endforeach; ?>
                         <? endif; ?>
@@ -132,7 +156,7 @@
               <div class="panel-heading">
                 <h4 class="panel-title">
                   <a data-toggle="collapse" class="facetAccordionTitle collapsed" href="#facetIllustrated">
-                    <i class="fa fa-check greenCheck" style="float:none;display:none"></i>
+                    <span class="greenCheck" style="float:none;display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>
                     <?=$this->transEsc("Illustrated")?>
                     <i class="fa fa-caret-down"></i>
                     <i class="fa fa-caret-up"></i>
@@ -143,11 +167,14 @@
                 <div class="panel-body">
                   <ul class="facetAccordionList">
                     <? foreach ($this->illustratedLimit as $current): ?>
-                      <li value="<?=$this->escapeHtmlAttr($current['value'])?>">
-                        <i class="fa fa-check-circle facetToggle<?=($current['selected']?"On":"Off") . (($current['value']==-1)?"":" showCheck")?>" onClick="ChangeRadio($(this));CleanChecks();"></i>
-                        <i class="fa fa-circle-o facetToggle<?=$current['selected']?"Off":"On"?>" onClick="ChangeRadio($(this));CleanChecks();"></i>
-                        <?=$this->transEsc($current['text'])?>
-                        <input id="illustrated_<?=$this->escapeHtmlAttr($current['value'])?>" type="radio" name="illustration" value="<?=$this->escapeHtmlAttr($current['value'])?>"<?=$current['selected']?' checked="checked"':''?> style="display:none"/>
+                      <li class="facetOffset0" value="<?=$this->escapeHtmlAttr($current['value'])?>">
+                        <span class="sr-only">
+                          <?=$this->transEsc($current['text'])?>
+                          <input id="illustrated_<?=$this->escapeHtmlAttr($current['value'])?>" type="radio" name="illustration" value="<?=$this->escapeHtmlAttr($current['value'])?>"<?=$current['selected']?' checked="checked"':''?> onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                        </span>
+                        <span aria-hidden="true" class="facetToggle<?=($current['selected']?"On":"Off") . (($current['value']==-1)?"":" showCheck")?>" onClick="ChangeRadio($(this));CleanChecks();"><i class="fa fa-check-circle"></i></span>
+                        <span aria-hidden="true" class="facetToggle<?=$current['selected']?"Off":"On"?>" onClick="ChangeRadio($(this));CleanChecks();"><i class="fa fa-circle-o"></i></span>
+                        <span aria-hidden="true" ><?=$this->transEsc($current['text'])?></span>
                       </li>
                     <? endforeach; ?>
                   </ul>
@@ -166,10 +193,10 @@
 </div>
 <script type="text/javascript">
   function ChangeRadio(item) {
-    $(item).parents('.panel').find('.fa-check-circle').removeClass('facetToggleOn').addClass('facetToggleOff');
-    $(item).parents('.panel').find('.fa-circle-o').removeClass('facetToggleOff').addClass('facetToggleOn');
-    $(item).parents('li').find('.fa-check-circle').removeClass('facetToggleOff').addClass('facetToggleOn');
-    $(item).parents('li').find('.fa-circle-o').removeClass('facetToggleOn').addClass('facetToggleOff');
+    $(item).parents('.panel').find('.fa-check-circle').parent().removeClass('facetToggleOn').addClass('facetToggleOff');
+    $(item).parents('.panel').find('.fa-circle-o').parent().removeClass('facetToggleOff').addClass('facetToggleOn');
+    $(item).parents('li').find('.fa-check-circle').parent().removeClass('facetToggleOff').addClass('facetToggleOn');
+    $(item).parents('li').find('.fa-circle-o').parent().removeClass('facetToggleOn').addClass('facetToggleOff');
     $(item).parents('.panel').find('input[value="' + $(item).parent().attr('value').replace(/\"/g, "\\\"")+ '"]').prop('checked', true);
   }
 
@@ -177,10 +204,12 @@
     if(item.hasClass('facetToggleOn')) {
       item.removeClass('facetToggleOn');
       item.addClass('facetToggleOff');
-      $(item).parents('.panel').find('option[value="' + $(item).parent().attr('value').replace(/\"/g, "\\\"")+ '"]').prop('selected', item.hasClass('fa-square-o'));
     } else {
       item.removeClass('facetToggleOff');
       item.addClass('facetToggleOn');
+
+      $(item).parents('.panel').find('option[value="' + $(item).parent().attr('value').replace(/\"/g, "\\\"")+ '"]').prop('selected', $(item).children('.fa-check-square').length > 0);
+      $(item).siblings('.sr-only').find('input').prop('checked', $(item).children('.fa-check-square').length > 0);
     }
   }
 
@@ -188,11 +217,12 @@
     // flip all of the descendents to off if the clicked category is on, otherwise flip them all to on
     var p = $(item).parent().get()[0];
     var stopSign = "." + p.className + ((p.className == "facetOffset1") ? ",.facetOffset0" : "");
-    var targetClass = item.hasClass("fa-check-square") ? "fa-square-o" : "fa-check-square";
-    $(p).nextUntil(stopSign).children('.' + targetClass).removeClass('facetToggleOff').addClass('facetToggleOn');
-    $(p).nextUntil(stopSign).children('.fa').not('.' + targetClass).removeClass('facetToggleOn').addClass('facetToggleOff');
-    $(p).nextUntil(stopSign).children('.fa.facetToggleOn').not('.categoryCheck').each( function() {
-      $(this).parents('.panel').find('option[value="' + $(this).parent().attr('value').replace(/\"/g, "\\\"")+ '"]').prop('selected', !($(this).hasClass('fa-square-o')));
+    var targetClass = $(item).children(".fa-check-square").length ? "fa-square-o" : "fa-check-square";
+    $(p).nextUntil(stopSign).find('.' + targetClass).parent().removeClass('facetToggleOff').addClass('facetToggleOn');
+    $(p).nextUntil(stopSign).find('.fa').not('.' + targetClass).parent().removeClass('facetToggleOn').addClass('facetToggleOff');
+    $(p).nextUntil(stopSign).find('.facetToggleOn').not('.categoryCheck').each( function() {
+      $(this).parents('.panel').find('option[value="' + $(this).parent().attr('value').replace(/\"/g, "\\\"")+ '"]').prop('selected', (targetClass == "fa-check-square"));
+      $(this).siblings('.sr-only').find('input').prop('checked', (targetClass == "fa-check-square"));
     } );
   }
 
@@ -200,38 +230,40 @@
     // fix all of the category states in the format section
     $.each($('#facetformat').find('.facetOffset1'), function(index, item) {
       // ignore the ones that aren't categories
-      if( $(item).children('i.categoryCheck').length > 0 ) {
-        $(item).children('.fa').removeClass('facetToggleOn');
-        $(item).children('.fa').addClass('facetToggleOff');
-        if( $(item).nextUntil('.facetOffset1,.facetOffset0').length == $(item).nextUntil('.facetOffset1,.facetOffset0').find('.fa-check-square.facetToggleOn').length ) {
-          $(item).children('.fa-check-square').removeClass('facetToggleOff');
-          $(item).children('.fa-check-square').addClass('facetToggleOn');
-        } else if( $(item).nextUntil('.facetOffset1,.facetOffset0').find('.fa-check-square.facetToggleOn').length > 0 ) {
-          $(item).children('.fa-minus-square-o').removeClass('facetToggleOff');
-          $(item).children('.fa-minus-square-o').addClass('facetToggleOn');
+      if( $(item).children('.categoryCheck').length > 0 ) {
+        $(item).find('.fa').parent().removeClass('facetToggleOn');
+        $(item).find('.fa').parent().addClass('facetToggleOff');
+        $(item).find('.sr-only').children('input').prop("checked", false);
+        if( $(item).nextUntil('.facetOffset1,.facetOffset0').length == $(item).nextUntil('.facetOffset1,.facetOffset0').find('.facetToggleOn .fa-check-square').length ) {
+          $(item).find('.fa-check-square').parent().removeClass('facetToggleOff');
+          $(item).find('.fa-check-square').parent().addClass('facetToggleOn');
+          $(item).find('.sr-only').children('input').prop("checked", true);
+        } else if( $(item).nextUntil('.facetOffset1,.facetOffset0').find('.facetToggleOn .fa-check-square').length > 0 ) {
+          $(item).find('.fa-minus-square-o').parent().removeClass('facetToggleOff');
+          $(item).find('.fa-minus-square-o').parent().addClass('facetToggleOn');
         } else {
-          $(item).children('.fa-square-o').removeClass('facetToggleOff');
-          $(item).children('.fa-square-o').addClass('facetToggleOn');
+          $(item).find('.fa-square-o').parent().removeClass('facetToggleOff');
+          $(item).find('.fa-square-o').parent().addClass('facetToggleOn');
         }
       }
     } );
     $.each($('#facetformat').find('.facetOffset0'), function(index, item) {
-      $(item).children('.fa').removeClass('facetToggleOn');
-      $(item).children('.fa').addClass('facetToggleOff');
-      if( $(item).nextUntil('.facetOffset0').length == $(item).nextUntil('.facetOffset0').find('.fa-check-square.facetToggleOn').length ) {
-        $(item).children('.fa-check-square').removeClass('facetToggleOff');
-        $(item).children('.fa-check-square').addClass('facetToggleOn');
-      } else if( $(item).nextUntil('.facetOffset0').find('.fa-check-square.facetToggleOn').length > 0 ) {
-        $(item).children('.fa-minus-square-o').removeClass('facetToggleOff');
-        $(item).children('.fa-minus-square-o').addClass('facetToggleOn');
+      $(item).find('.fa').parent().removeClass('facetToggleOn');
+      $(item).find('.fa').parent().addClass('facetToggleOff');
+      if( $(item).nextUntil('.facetOffset0').length == $(item).nextUntil('.facetOffset0').find('.facetToggleOn .fa-check-square').length ) {
+        $(item).find('.fa-check-square').parent().removeClass('facetToggleOff');
+        $(item).find('.fa-check-square').parent().addClass('facetToggleOn');
+      } else if( $(item).nextUntil('.facetOffset0').find('.facetToggleOn .fa-check-square').length > 0 ) {
+        $(item).find('.fa-minus-square-o').parent().removeClass('facetToggleOff');
+        $(item).find('.fa-minus-square-o').parent().addClass('facetToggleOn');
       } else {
-        $(item).children('.fa-square-o').removeClass('facetToggleOff');
-        $(item).children('.fa-square-o').addClass('facetToggleOn');
+        $(item).find('.fa-square-o').parent().removeClass('facetToggleOff');
+        $(item).find('.fa-square-o').parent().addClass('facetToggleOn');
       }
     } );
     // turn on all of the needed checkmarks
     $.each($('.panel-advSearchAccordion'), function(index, item) {
-      if( $(item).find('.facetToggleOn.fa-check-square,.facetToggleOn.fa-check-circle.showCheck').length > 0 ) {
+      if( $(item).find('.facetToggleOn .fa-check-square,.facetToggleOn.showCheck .fa-check-circle').length > 0 ) {
         $(item).find('.greenCheck').css('display', 'inline-block');
       } else {
         $(item).find('.greenCheck').css('display', 'none');

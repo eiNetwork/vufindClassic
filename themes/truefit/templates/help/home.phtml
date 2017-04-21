@@ -246,7 +246,7 @@
         results or the item detail page, then select <span class="helpEmphasis">Book Cart</span> from the menu. If you have not already
         logged in to your account, you will be prompted to enter your library card number and PIN. Once you log in, the item will be added to your cart.<br><br>
         To view items in your cart, click the <span class="helpEmphasis">Book Cart</span> button found in the dropdown menu under the main navigation button (either <span class="helpEmphasis">Account</span> or the 
-        <span class="helpEmphasis"><i class="fa fa-bars"></i></span> icon, depending which interface you are using) in the upper corner of the page. From your cart, you can remove or request items you have added. To 
+        <span class="helpEmphasis"><span class="sr-only">Navigation Menu</span><i class="fa fa-bars"></i></span> icon, depending which interface you are using) in the upper corner of the page. From your cart, you can remove or request items you have added. To 
         remove a single item, click the <span class="helpEmphasis">Manage Lists</span> button, then click the list name to remove the item from that list.  To request a single item, click the 
         <span class="helpEmphasis">Hold</span> button.  It is also possible to remove or request multiple items in your book cart at one time by using the checkboxes to the left and the 
         <span class="helpEmphasis">Manage Selected</span> button at the top of the page.  Book Carts are limited to 300 items, and Lists are limited to 300 items for each list.
@@ -557,5 +557,5 @@
   } );
 </script>
 <div class="modal-footer">
-  <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()"><?=$this->transEsc('Close')?></button>
+  <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()"><?=$this->transEsc('Close')?></button>
 </div>

@@ -72,7 +72,7 @@
     ?>
     <?=$this->headScript()?>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
-    <link href="/themes/truefit/css/einetwork.css?cacheBuster=7" media="all" rel="stylesheet" type="text/css">
+    <link href="/themes/truefit/css/einetwork.css?cacheBuster=9" media="all" rel="stylesheet" type="text/css">
     <script src="/themes/truefit/js/hmac-sha256.js"></script>
     <script src="/themes/truefit/js/enc-base64-min.js"></script>
     <script src="/themes/truefit/js/backgroundLoader.js"></script>
@@ -138,8 +138,8 @@
           $(window).scroll(moveButtons);
           $(window).resize(moveButtons);
 
-<?    /* log them out if they're at a library location AND */ 
-  if( $this->ils()->getDriver()->getCurrentLocation() && 
+<?    /* log them out if they're at a library location AND this isn't a background loader page AND */ 
+  if( $this->ils()->getDriver()->getCurrentLocation() && !isset($_REQUEST["backgroundLoad"]) && 
       /* they're logged in OR not on the home page */
       ($account->isLoggedIn() || ($_SERVER["REQUEST_URI"] != "/")) ): 
 ?>
@@ -196,7 +196,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal" aria-hidden="true"><i class="fa fa-close"></i></button>
+            <button type="button" class="btn-noBorderAlternate close" id="modalClose" data-dismiss="modal"><span class="sr-only">Close</span><i class="fa fa-close"></i></button>
             <h4 id="modalTitle" class="modal-title"></h4>
           </div>
           <div style="position:relative">

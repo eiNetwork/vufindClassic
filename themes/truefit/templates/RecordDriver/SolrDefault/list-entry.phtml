@@ -75,9 +75,15 @@
           <? if( !empty($urls) ): ?>
             <tr>
               <td class="EIN-hide-m itemDetailCategory hidden">Links:</td>
-              <td>
+              <td><span class="accordionParagraph">
                 <? foreach($urls as $thisURL): ?>
-                  <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : $thisURL["desc"])?></a></div>
+                  <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : $thisURL["desc"])?></a>
+                    <? if( $count == 2 && count($urls) > 3 ): ?>
+                      <br><a href="<?=$this->recordLink()->getUrl($this->driver)?>">Plus <?=(count($urls) - 3)?> more ...</a>
+                      </div>
+                      <? break; ?>
+                    <? endif; ?>
+                  </div>
                 <? endforeach; ?>
               </td>
             </tr>

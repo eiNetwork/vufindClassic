@@ -37,7 +37,7 @@
 </form>
 <div class="modal-footer">
   <div id="editListFooter">
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitEditList()"><?=(empty($this->list->id) ? 'Create' : 'Rename')?></button>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
@@ -54,6 +54,7 @@
     if( title.value == "" || title.value == "New List Name" ) {
       document.getElementById("list_titleError").style.display = "block";
       document.getElementById("list_titleError").innerHTML = "Please name your list above.";
+      $("#list_titleError").attr("tabIndex", -1).focusout( function() { $("#list_title").focus(); } ).focus();
       if( "classList" in title ) {
         title.classList.add("textBoxError");
       } else {

@@ -227,6 +227,7 @@ var Lightbox = {
     // If the lightbox isn't visible, fix that
     if(this.shown == false) {
       $('#modal').modal('show');
+      $('#modal').focus();
       this.shown = true;
     }
     // Create our AJAX request, store it in case we need to cancel later

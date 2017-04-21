@@ -31,7 +31,7 @@
 </form>
 <div class="modal-footer">
   <div id="confirmFooter">
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()"><?=$this->transEsc('confirm_dialog_cancel')?></button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()"><?=$this->transEsc('confirm_dialog_cancel')?></button>
     <button class="btn-default btn-wide" onclick="SubmitConfirmation();"><?=$this->transEsc('confirm_dialog_save') ?></button>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
@@ -59,6 +59,7 @@
     $(field).next().css("display","block");
     $(field).next().next().css("display","block");
     $(field).next().next().html(message);
+    $(field).next().next().attr("tabIndex", -1).focusout( function() { $(field).focus(); } ).focus();
   }
 
   function SubmitConfirmation() {

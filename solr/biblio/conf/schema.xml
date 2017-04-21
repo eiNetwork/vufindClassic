@@ -118,6 +118,7 @@
    <field name="fulltext" type="text" indexed="true" stored="false"/>
    <field name="fulltext_unstemmed" type="textProper" indexed="true" stored="false"/>
    <field name="keywords" type="text" indexed="true" stored="false"/>
+   <field name="keywords_unstemmed" type="textProper" indexed="true" stored="false"/>
    <field name="spelling" type="textSpell" indexed="true" stored="true" multiValued="true"/>
    <field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
    <!-- Institutional Fields -->
@@ -137,6 +138,7 @@
    <field name="authorStr" type="textFacet" indexed="true" stored="false"/>
    <field name="auth_author" type="textProper" indexed="true" stored="true"/>
    <field name="title" type="text" indexed="true" stored="true"/>
+   <field name="title_unstemmed" type="textProper" indexed="true" stored="true"/>
    <field name="title_sort" type="string" indexed="true" stored="true"/>
    <field name="title_sub" type="text" indexed="true" stored="true"/>
    <field name="title_short" type="text" indexed="true" stored="true"/>
@@ -290,6 +292,9 @@
  <!-- CopyFields for All Fields -->
  <copyField source="format"    dest="allfields"/>
  <copyField source="format"    dest="allfields_unstemmed"/>
+ <!-- CopyFields for All Keywords -->
+ <copyField source="keywords"    dest="keywords_unstemmed"/>
+ <copyField source="title"       dest="title_unstemmed"/>
  <!-- CopyFields for call numbers -->
  <copyField source="dewey-raw" dest="dewey-search"/>
  <copyField source="callnumber-raw" dest="callnumber-search"/>

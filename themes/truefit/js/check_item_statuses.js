@@ -54,7 +54,19 @@ function handleItemStatusResponse(response) {
   if(response.status == 'OK') {
     $.each(response.data, function(i, result) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
-      item.find('.status').empty().append(result.availability_message);
+      if(result.availability_message.constructor === Array) {
+        item.find('.status').empty().append(result.availability_message[0]);
+        var lastRow = item.find('.status').parents('tr');
+        for( var i=1; i<result.availability_message.length; ++i ) {
+          var newRow = lastRow.clone();
+          newRow.children('.itemDetailCategory').empty().append('&nbsp;');
+          newRow.find('.status').empty().append(result.availability_message[i]);
+          lastRow.after(newRow);
+          lastRow = newRow;
+        }
+      } else {
+        item.find('.status').empty().append(result.availability_message);
+      }
       item.each( function() {
         var heldItemID = $(this).find('.volumeInfo.hidden').html();
         var heldVolumes = jQuery.parseJSON(result.heldVolumes);
@@ -183,6 +195,8 @@ function handleItemStatusResponse(response) {
     });
   // display the error message on each of the ajax status place holder
   } else {
+//alert("ERROR");
+//alert(JSON.stringify(response));
     $.each(JSON.parse(response.data.id), function(i, bib) {
       var item = $('.hiddenId[value="' + bib + '"]').parents('.ajaxItem');
       item.find(".ajax-availability").empty().append(response.data.msg);

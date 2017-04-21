@@ -75,6 +75,7 @@ return array(
     'confirm/confirm'                            => '/usr/local/vufind2/themes/truefit/templates/confirm/confirm.phtml',
     'confirm/editproperty'                       => '/usr/local/vufind2/themes/truefit/templates/confirm/editproperty.phtml',
     'help/home'                                  => '/usr/local/vufind2/themes/truefit/templates/help/home.phtml',
+    'help/privacypolicy'                         => '/usr/local/vufind2/themes/truefit/templates/help/privacypolicy.phtml',
     'record/view'                                => '/usr/local/vufind2/themes/truefit/templates/record/view.phtml',
     'record/overdriveDownload'                   => '/usr/local/vufind2/themes/truefit/templates/record/overdriveDownload.phtml',
     'record/checkbox'                            => '/usr/local/vufind2/themes/truefit/templates/record/checkbox.phtml',

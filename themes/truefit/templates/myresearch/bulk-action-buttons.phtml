@@ -22,10 +22,10 @@
   function ToggleAll(target) {
     target.prop('checked', !(target.prop('checked')));
     target.parents('.panel-body').find('.checkbox-select-item').prop('checked', target.prop('checked'));
-    target.parents('.panel-body').find('.fa-square-o').addClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
-    target.parents('.panel-body').find('.fa-square-o').removeClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
-    target.parents('.panel-body').find('.fa-check-square').addClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
-    target.parents('.panel-body').find('.fa-check-square').removeClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
+    target.parents('.panel-body').find('.fa-square-o').parent().addClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
+    target.parents('.panel-body').find('.fa-square-o').parent().removeClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
+    target.parents('.panel-body').find('.fa-check-square').parent().addClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
+    target.parents('.panel-body').find('.fa-check-square').parent().removeClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
   }
 
   function ScanBulkButton(form) {

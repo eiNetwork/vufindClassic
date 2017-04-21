@@ -294,10 +294,15 @@ class Sierra2 extends Sierra implements
             $arr = explode("/", $jsonVals->entries[$i]->item);
             $itemId = $arr[count($arr)-1];
             $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-            $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId));
+            $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId . "?fields=bibIds,location,varFields"));
             $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
             $thisItem['institution_name'] = $itemInfo->location->name;
             $thisItem['borrowingLocation'] = $itemInfo->location->name;
+            foreach( $itemInfo->varFields as $thisVarField ) {
+                if( $thisVarField->fieldTag == "v" ) {
+                    $thisItem['volumeInfo'] = $thisVarField->content;
+                }
+            }
 
             // get the bib info
             $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
@@ -402,9 +407,14 @@ class Sierra2 extends Sierra implements
             // it's an item-level hold
             if( $arr[count($arr)-2] == "items" ) {
                 $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $id));
+                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $id . "?fields=bibIds,varFields"));
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                 $bibId = $itemInfo->bibIds[0];
+                foreach( $itemInfo->varFields as $thisVarField ) {
+                    if( $thisVarField->fieldTag == "v" ) {
+                        $thisItem['volumeInfo'] = $thisVarField->content;
+                    }
+                }
             // it's bib level
             } else {
                 $thisItem['id'] = ".b" . $id . $this->getCheckDigit($id);

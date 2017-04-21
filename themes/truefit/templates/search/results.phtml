@@ -103,14 +103,14 @@
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->addFacet('format', $firstType, 'OR', $urlParams)?>">
               <? endif; ?>
               <div class="EIN-m-12" style="height:3px"></div>
-              <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (((!$anyApplied && ($thisCategory["count"] > 0)) || $thisCategory["isApplied"]) ? "" : ($thisCategory["someApplied"] ? "Partial" : "Disabled"))?>.png"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
+              <img class="formatIcon" src="../themes/truefit/images/icons/<?=$imageName . (((!$anyApplied && ($thisCategory["count"] > 0)) || $thisCategory["isApplied"]) ? "" : ($thisCategory["someApplied"] ? "Partial" : "Disabled"))?>.png" alt="<?=$categoryName?>"/><div class="formatIconCount"><span class="badge"><?=number_format($resultCount)?></span></div>
               <? if( $thisCategory["isApplied"] || ($firstType != null) ): ?>
                 </a>
               <? endif; ?>
               </div></td>
           <? endforeach; ?>
         </tr>
-        <tr>
+        <tr aria-hidden="true">
           <? foreach($this->formatCategories->types as $category): ?>
             <? $formatTypes = explode(",", $category);  $categoryName = array_splice($formatTypes, 0, 1)[0]; ?>
             <td class="formatName"<?=(in_array($categoryName, $usableCategories)?"":" style=\"color:#cdcdcd\"") . ">" . $categoryName?></td>
@@ -133,7 +133,7 @@
           jQuery(document).ready(function() {
             // change the search type label to be the display text, not the search type
             <? if( $this->searchType != "Advanced" ): ?>
-              $('#searchTypeLabel').html($('#searchTypeBtn_' + $('#searchTypeLabel').html()).text());
+              $('#searchTypeLabel').html(document.getElementById('searchTypeBtn_' + $('#searchTypeLabel').html()).childNodes[1].nodeValue);
               $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
             <? else: ?>
               $('#searchTypeLabel').html("Advanced");
@@ -152,10 +152,10 @@
           <div style="width:95%;margin:auto; text-align:center">
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
-              <? $bits = explode("\"",$value); ?>
+              <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
               <div class="filterTagDiv"><span class="filterTag"><?=$bits[1]?>
-                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], 1, -1), $bits[1], true, 'OR', $params)?>">
-                  <i class="fa fa-close"></i>
+                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
+                  <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>
               </span></div>
             <? endforeach; ?>
@@ -179,7 +179,7 @@
           jQuery(document).ready(function() {
             // change the search type label to be the display text, not the search type
             <? if( $this->searchType != "Advanced" ): ?>
-              $('#searchTypeLabel').html($('#searchTypeBtn_' + $('#searchTypeLabel').html()).text());
+              $('#searchTypeLabel').html(document.getElementById('searchTypeBtn_' + $('#searchTypeLabel').html()).childNodes[1].nodeValue);
               $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
             <? else: ?>
               $('#searchTypeLabel').html("Advanced");
@@ -203,10 +203,10 @@
           <div style="width:95%;margin:auto; text-align:center">
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
-              <? $bits = explode("\"",$value); ?>
+              <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
               <div class="filterTagDiv"><span class="filterTag"><?=$bits[1]?>
-                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], 1, -1), $bits[1], true, 'OR', $params)?>">
-                  <i class="fa fa-close"></i>
+                <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
+                  <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>
               </span></div>
             <? endforeach; ?>
@@ -247,7 +247,7 @@
           <input type="hidden" name="delete" value="">
           <input type="hidden" name="source" value="">
           <input type="hidden" name="list" value="<?=$list->id?>">
-          <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
+          <button class="btn-dropdown btn-standardDropdown" onClick="$(this).parents('.dropdown').siblings('.rightButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')"><span class="sr-only">Checked</span><i class="fa fa-check greenCheck"></i><?=$list->title?></button>
         </form>
         <form class="addToList" method="post" action="">
           <input type="hidden" name="submit" value="1">

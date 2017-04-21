@@ -28,9 +28,9 @@
       <td class="EIN-hide-m EIN-col-t-2"><?=$this->escapeHtml($this->localizedNumber($info->getResultTotal()))?></td>
       <td class="EIN-col-m-1 center">
         <? if ($this->showSaved): ?>
-          <a href="<?=$this->url('myresearch-savesearch')?>?delete=<?=urlencode($info->getSearchId())?>&amp;mode=history"><button class="btn-noBorderAlternate close"><i class="fa fa-close"></i></button></a>
+          <a href="<?=$this->url('myresearch-savesearch')?>?delete=<?=urlencode($info->getSearchId())?>&amp;mode=history"><button class="btn-noBorderAlternate close"><span class="sr-only">Delete</span><i class="fa fa-close"></i></button></a>
         <? else: ?>
-          <a href="<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($info->getSearchId())?>&amp;mode=history"><button class="btn-noBorderAlternate floatR"><i class="fa fa-check greenCheck"></i></button></a>
+          <a href="<?=$this->url('myresearch-savesearch')?>?save=<?=urlencode($info->getSearchId())?>&amp;mode=history"><button class="btn-noBorderAlternate floatR"><span class="sr-only">Checked</span><i class="fa fa-check greenCheck"></i></button></a>
         <? endif; ?>
       </td>
     </tr>

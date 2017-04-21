@@ -71,10 +71,10 @@
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue"><?=$this->profile["address1"]?></div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Email</div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Email','propertyName':'email','currentValue':'<?=$this->profile["email"]?>'}})"><?=$this->profile["email"]?><i class="fa fa-pencil floatR"></i></div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Email','propertyName':'email','currentValue':'<?=$this->profile["email"]?>'}})"><?=$this->profile["email"]?><span class="sr-only">Edit</span><i class="fa fa-pencil floatR"></i></div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Phone Number</div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Phone Number','propertyName':'phone','currentValue':'<?=$this->profile["phone"]?>'}})"><?=$this->profile["phone"]?><i class="fa fa-pencil floatR"></i></div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue clickable" onclick="Lightbox.get('Confirm', 'EditProperty', {'data':{'path':'myresearch-profile','referringSection':'aboutMe','property':'Phone Number','propertyName':'phone','currentValue':'<?=$this->profile["phone"]?>'}})"><?=$this->profile["phone"]?><span class="sr-only">Edit</span><i class="fa fa-pencil floatR"></i></div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Notification Preference</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue">
@@ -308,6 +308,7 @@
         $(field).next().css("display","block");
         $(field).next().next().css("display","block");
         $(field).next().next().html(message);
+        $(field).next().next().attr("tabIndex", -1).focusout( function() { $(field).focus(); } ).focus();
       }
 
       function SubmitPINConfirmation() {

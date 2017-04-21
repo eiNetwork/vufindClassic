@@ -32,7 +32,7 @@
         <? endforeach; ?>
       <? endif;?>
     </form>
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()"><?=$this->transEsc('confirm_dialog_no')?></button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()"><?=$this->transEsc('confirm_dialog_no')?></button>
     <button class="btn-default btn-wide" onclick="SubmitDeletion();"><?=$this->transEsc('confirm_dialog_yes') ?></button>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">

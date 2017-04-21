@@ -27,7 +27,7 @@
             <div class="EIN-col-m-1">&nbsp;</div>
           </div>
           <? if ($current['type'] == 'date'): ?>
-            <div class="slider-container">
+            <div aria-hidden="true" class="slider-container">
               <input type="text" id="<?=$escField?><?=$this->escapeHtmlAttr($current['type'])?>Slider">
             </div>
             <?

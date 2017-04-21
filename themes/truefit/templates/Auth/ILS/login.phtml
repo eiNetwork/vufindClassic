@@ -5,11 +5,13 @@
     <? $account = $this->auth()->getManager(); ?>
     <div style="margin:auto">
     <div class="textBoxContainer">
+      <span class="sr-only">Barcode</span>
       <input type="text" name="username" id="login_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="login_usernameError" class="formError"></span>
     </div><br>
     <div class="textBoxContainer">
+      <span class="sr-only">PIN</span>
       <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="login_passwordError" class="formError"></span>
@@ -32,6 +34,7 @@
   <form role="reset" method="post" action="<?=$this->url('myresearch-resetpin')?>" name="resetForm" id="resetForm" autocomplete="off" target="loginFrame">
     <div style="margin:auto">
     <div class="textBoxContainer">
+      <span class="sr-only">Barcode</span>
       <input type="text" name="username" id="reset_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="reset_usernameError" class="formError"></span>
@@ -48,11 +51,13 @@
     <div class="EIN-col-m-12">
       <div class="EIN-col-m-12 fieldTitle">Name</div>
       <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+        <span class="sr-only">First Name</span>
         <input type="text" name="firstname" id="register_firstname" value="First Name" onfocus="ClearFormError(this); if (this.value=='First Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_firstnameError" class="formError"></span>
       </div>
       <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
+        <span class="sr-only">Last Name</span>
         <input type="text" name="lastname" id="register_lastname" value="Last Name" onfocus="ClearFormError(this); if (this.value=='Last Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_lastnameError" class="formError"></span>
@@ -77,6 +82,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-col-m-12 fieldTitle">Address</div>
       <div class="textBoxContainer EIN-col-m-12">
+        <span class="sr-only">Street or PO Box</span>
         <input type="text" name="address1" id="register_address1" value="Street or PO Box" onfocus="ClearFormError(this); if (this.value=='Street or PO Box') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_address1Error" class="formError"></span>
@@ -85,6 +91,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
       <div class="textBoxContainer EIN-col-m-12">
+        <span class="sr-only">Apartment Number or Suite</span>
         <input type="text" name="address2" id="register_address2" value="Apt # or Suite" onfocus="ClearFormError(this); if (this.value=='Apt # or Suite') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_address2Error" class="formError"></span>
@@ -93,6 +100,7 @@
     <div class="EIN-col-m-12">
       <div class="EIN-col-m-6 EIN-col-t-6 EIN-col-6">
         <div class="textBoxContainer EIN-col-m-12">
+          <span class="sr-only">City</span>
           <input type="text" name="city" id="register_city" value="City" onfocus="ClearFormError(this); if (this.value=='City') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
           <span id="regsister_cityError" class="formError"></span>
@@ -100,12 +108,14 @@
       </div>
       <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
         <div class="textBoxContainer EIN-col-m-12">
+          <span class="sr-only">State</span>
           <input type="text" name="state" id="register_state" value="State" onfocus="ClearFormError(this); if (this.value=='State') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
         </div>
       </div>
       <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
         <div class="textBoxContainer EIN-col-m-12">
+          <span class="sr-only">Zip</span>
           <input type="text" name="zip" id="register_zip" value="Zip" onfocus="ClearFormError(this); if (this.value=='Zip') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
         </div>
@@ -115,6 +125,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-col-m-12 fieldTitle">Security</div>
       <div class="textBoxContainer EIN-col-m-12">
+        <span class="sr-only">4 digit PIN</span>
         <input type="text" name="pin" id="register_pin" value="4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_pinError" class="formError"></span>
@@ -123,6 +134,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
       <div class="textBoxContainer EIN-col-m-12">
+        <span class="sr-only">Confirm 4 digit PIN</span>
         <input type="text" name="confirmpin" id="register_confirmpin" value="Confirm 4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='Confirm 4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_confirmpinError" class="formError"></span>
@@ -135,15 +147,15 @@
 </div>
 <div class="modal-footer">
   <div id="loginModalLoginFooter">
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitLogIn()">Log In</button>
   </div>
   <div id="loginModalResetFooter" style="display:none">
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitReset()">Request PIN Change</button>
   </div>
   <div id="loginModalRegisterFooter" style="display:none">
-    <button class="btn-alternate btn-wide" aria-hidden="true" onclick="$('#modalClose').click()">Cancel</button>
+    <button class="btn-alternate btn-wide" onclick="$('#modalClose').click()">Cancel</button>
     <button class="btn-default btn-wide" onclick="SubmitRegister()">Register</button>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
@@ -233,6 +245,7 @@
     if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
       document.getElementById("login_usernameError").style.display = "block";
       document.getElementById("login_usernameError").innerHTML = "Please enter your barcode above.";
+      $("#login_usernameError").attr("tabIndex", -1).focusout( function() { $("#login_username").focus(); } ).focus();
       if( "classList" in barcode ) {
         barcode.classList.add("textBoxError");
       } else {
@@ -242,6 +255,7 @@
     } else if( pword.value == "" || pword.value == "Enter your PIN" ) {
       document.getElementById("login_passwordError").style.display = "block";
       document.getElementById("login_passwordError").innerHTML = "Please enter your PIN above.";
+      $("#login_passwordError").attr("tabIndex", -1).focusout( function() { $("#login_password").focus(); } ).focus();
       if( "classList" in pword ) {
         pword.classList.add("textBoxError");
       } else {
@@ -283,6 +297,7 @@
     if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
       document.getElementById("reset_usernameError").style.display = "block";
       document.getElementById("reset_usernameError").innerHTML = "Please enter your barcode above.";
+      $("#reset_usernameError").attr("tabIndex", -1).focusout( function() { $("#reset_username").focus(); } ).focus();
       if( "classList" in barcode ) {
         barcode.classList.add("textBoxError");
       } else {
@@ -337,6 +352,7 @@
     if( firstname.value == "" || firstname.value == "First Name" ) {
       document.getElementById("register_firstnameError").style.display = "block";
       document.getElementById("register_firstnameError").innerHTML = "Please enter your first name above.";
+      $("#register_firstnameError").attr("tabIndex", -1).focusout( function() { $("#register_firstname").focus(); } ).focus();
       if( "classList" in firstname ) {
         firstname.classList.add("textBoxError");
       } else {
@@ -346,6 +362,7 @@
     } else if( lastname.value == "" || lastname.value == "Last Name" ) {
       document.getElementById("register_lastnameError").style.display = "block";
       document.getElementById("register_lastnameError").innerHTML = "Please enter your last name above.";
+      $("#register_lastnameError").attr("tabIndex", -1).focusout( function() { $("#register_lastname").focus(); } ).focus();
       if( "classList" in lastname ) {
         lastname.classList.add("textBoxError");
       } else {
@@ -355,6 +372,7 @@
     } else if( email.value == "" || email.value == "Enter your email address" ) {
       document.getElementById("register_emailError").style.display = "block";
       document.getElementById("register_emailError").innerHTML = "Please enter your email address above.";
+      $("#register_emailError").attr("tabIndex", -1).focusout( function() { $("#register_email").focus(); } ).focus();
       if( "classList" in email ) {
         email.classList.add("textBoxError");
       } else {
@@ -364,6 +382,7 @@
     } else if( phone.value == "" || phone.value == "123-456-7890" ) {
       document.getElementById("register_phoneError").style.display = "block";
       document.getElementById("register_phoneError").innerHTML = "Please enter your phone number above.";
+      $("#register_phoneError").attr("tabIndex", -1).focusout( function() { $("#register_phone").focus(); } ).focus();
       if( "classList" in phone ) {
         phone.classList.add("textBoxError");
       } else {
@@ -373,15 +392,7 @@
     } else if( phone.value.length != 12 || phone.value.match(/\d{3}-\d{3}-\d{4}/) == null ) {
       document.getElementById("register_phoneError").style.display = "block";
       document.getElementById("register_phoneError").innerHTML = "Phone numbers must be in the format XXX-XXX-XXXX.";
-      if( "classList" in phone ) {
-        phone.classList.add("textBoxError");
-      } else {
-        phone.className += " textBoxError";
-      }
-      phone.nextElementSibling.style.display = "block";
-    } else if( phone.value == "" || phone.value == "123-456-7890" ) {
-      document.getElementById("register_phoneError").style.display = "block";
-      document.getElementById("register_phoneError").innerHTML = "Please enter your phone number above.";
+      $("#register_phoneError").attr("tabIndex", -1).focusout( function() { $("#register_phone").focus(); } ).focus();
       if( "classList" in phone ) {
         phone.classList.add("textBoxError");
       } else {
@@ -391,6 +402,7 @@
     } else if( street.value == "" || street.value == "Street or PO Box" ) {
       document.getElementById("register_address1Error").style.display = "block";
       document.getElementById("register_address1Error").innerHTML = "Please enter your street address (or PO Box) above.";
+      $("#register_address1Error").attr("tabIndex", -1).focusout( function() { $("#register_address1").focus(); } ).focus();
       if( "classList" in street ) {
         street.classList.add("textBoxError");
       } else {
@@ -400,6 +412,7 @@
     } else if( city.value == "" || city.value == "City" ) {
       document.getElementById("register_cityError").style.display = "block";
       document.getElementById("register_cityError").innerHTML = "Please enter your city above.";
+      $("#register_cityError").attr("tabIndex", -1).focusout( function() { $("#register_city").focus(); } ).focus();
       if( "classList" in city ) {
         city.classList.add("textBoxError");
       } else {
@@ -409,6 +422,7 @@
     } else if( state.value == "" || state.value == "State" ) {
       document.getElementById("register_cityError").style.display = "block";
       document.getElementById("register_cityError").innerHTML = "Please enter your state's postal abbreviation above.";
+      $("#register_cityError").attr("tabIndex", -1).focusout( function() { $("#register_state").focus(); } ).focus();
       if( "classList" in state ) {
         state.classList.add("textBoxError");
       } else {
@@ -418,6 +432,7 @@
     } else if( state.value.length != 2 || state.value.match(/[A-Z]{2}/) == null ) {
       document.getElementById("register_cityError").style.display = "block";
       document.getElementById("register_cityError").innerHTML = "You must enter your state's postal abbreviation (2 capital letters).";
+      $("#register_cityError").attr("tabIndex", -1).focusout( function() { $("#register_state").focus(); } ).focus();
       if( "classList" in state ) {
         state.classList.add("textBoxError");
       } else {
@@ -427,6 +442,7 @@
     } else if( zip.value == "" || zip.value == "Zip" ) {
       document.getElementById("register_cityError").style.display = "block";
       document.getElementById("register_cityError").innerHTML = "Please enter your 5-digit zip code above.";
+      $("#register_cityError").attr("tabIndex", -1).focusout( function() { $("#register_zip").focus(); } ).focus();
       if( "classList" in zip ) {
         zip.classList.add("textBoxError");
       } else {
@@ -436,6 +452,7 @@
     } else if( zip.value.length != 5 || zip.value.match(/\d{5}/) == null ) {
       document.getElementById("register_cityError").style.display = "block";
       document.getElementById("register_cityError").innerHTML = "You must enter your 5-digit zip code.";
+      $("#register_cityError").attr("tabIndex", -1).focusout( function() { $("#register_zip").focus(); } ).focus();
       if( "classList" in zip ) {
         zip.classList.add("textBoxError");
       } else {
@@ -445,6 +462,7 @@
     } else if( pin.value == "" || pin.value == "4-digit PIN #" ) {
       document.getElementById("register_pinError").style.display = "block";
       document.getElementById("register_pinError").innerHTML = "Please enter your 4-digit PIN number above.";
+      $("#register_pinError").attr("tabIndex", -1).focusout( function() { $("#register_pin").focus(); } ).focus();
       if( "classList" in pin ) {
         pin.classList.add("textBoxError");
       } else {
@@ -454,6 +472,7 @@
     } else if( pin.value.length != 4 || pin.value.match(/\d{4}/) == null ) {
       document.getElementById("register_pinError").style.display = "block";
       document.getElementById("register_pinError").innerHTML = "Your PIN must be exactly 4 digits.";
+      $("#register_pinError").attr("tabIndex", -1).focusout( function() { $("#register_pin").focus(); } ).focus();
       if( "classList" in pin ) {
         pin.classList.add("textBoxError");
       } else {
@@ -463,6 +482,7 @@
     } else if( confirmpin.value == "" || confirmpin.value == "Confirm 4-digit PIN #" ) {
       document.getElementById("register_confirmpinError").style.display = "block";
       document.getElementById("register_confirmpinError").innerHTML = "Please confirm your 4-digit pin number above.";
+      $("#register_confirmpinError").attr("tabIndex", -1).focusout( function() { $("#register_confirmpin").focus(); } ).focus();
       if( "classList" in confirmpin ) {
         confirmpin.classList.add("textBoxError");
       } else {
@@ -472,6 +492,7 @@
     } else if( pin.value != confirmpin.value ) {
       document.getElementById("register_confirmpinError").style.display = "block";
       document.getElementById("register_confirmpinError").innerHTML = "Your confirmation does not match the selected PIN.";
+      $("#register_confirmpinError").attr("tabIndex", -1).focusout( function() { $("#register_confirmpin").focus(); } ).focus();
       if( "classList" in confirmpin ) {
         confirmpin.classList.add("textBoxError");
       } else {
@@ -496,7 +517,9 @@
     } else {
       element.className = element.className.replace("textBoxError", "");
     }
-    document.getElementById((((element.id == "register_state") || (element.id == "register_zip")) ? "register_city" : element.id) + "Error").style.display = "none";
+    var errorField = document.getElementById((((element.id == "register_state") || (element.id == "register_zip")) ? "register_city" : element.id) + "Error");
+    errorField.style.display = "none";
+    $(errorField).attr("tabIndex", null);
     element.nextElementSibling.style.display = "none";
   }
 

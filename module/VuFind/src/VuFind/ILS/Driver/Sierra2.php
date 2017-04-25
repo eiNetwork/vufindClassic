@@ -505,9 +505,9 @@ class Sierra2 extends Sierra implements
      */
     public function cancelHolds($holds){
         $success = true;
-        for($i=0; $i<count($holds["details"]); $i++ )
+        foreach( $holds["details"] as $thisHold )
         {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i],
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold,
                                                           \Zend\Http\Request::METHOD_DELETE));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
@@ -527,10 +527,10 @@ class Sierra2 extends Sierra implements
      */
     public function freezeHolds($holds, $doFreeze){
         $success = true;
-        for($i=0; $i<count($holds["details"]); $i++ )
+        foreach( $holds["details"] as $thisHold )
         {
             $body = json_encode(array('freeze' => $doFreeze));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i], 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold, 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
@@ -551,10 +551,10 @@ class Sierra2 extends Sierra implements
      */
     public function updateHolds($holds){
         $success = true;
-        for($i=0; $i<count($holds["details"]); $i++ )
+        foreach( $holds["details"] as $thisHold )
         {
             $body = json_encode(array('pickupLocation' => $holds["newLocation"]));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $holds["details"][$i], 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold, 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));

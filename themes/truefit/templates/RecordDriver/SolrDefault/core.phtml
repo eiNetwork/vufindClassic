@@ -94,21 +94,25 @@
         <? endif; ?>
 
         <? if( isset($this->holdings["CHECKIN_RECORDS"]) ): ?>
+          <? $serialCheckinRecord = false; ?>
           <? foreach( $this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"] as $checkinLoc ): ?>
             <? if( $this->currentLocation && in_array($this->currentLocation["code"], $checkinLoc["branchCode"]) ): ?>
               <? $heldHere = $checkinLoc; ?>
             <? endif; ?>
+            <? $serialCheckinRecord |= isset($checkinLoc["libHas"]); ?>
           <? endforeach; ?>
-          <tr>
-            <td class="EIN-hide-m itemDetailCategory">Availability:</td>
-            <td style="padding-bottom:5px">
-              <span class="availableTag"><i class="fa fa-check"></i>In Library Only</span>
-              <span class="availableCopyText"><?=count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"])?> location<?=((count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"]) != 1) ? "s" : "")?></span>
-              <? if( isset($heldHere) ): ?>
-                <div class="availableCopyText">It's here at <?=$heldHere['location']?></div>
-              <? endif; ?>
-            </td>
-          </tr>
+          <? if( $serialCheckinRecord ): ?>
+            <tr>
+              <td class="EIN-hide-m itemDetailCategory">Availability:</td>
+              <td style="padding-bottom:5px">
+                <span class="availableTag"><i class="fa fa-check"></i>In Library Only</span>
+                <span class="availableCopyText"><?=count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"])?> location<?=((count($this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"]) != 1) ? "s" : "")?></span>
+                <? if( isset($heldHere) ): ?>
+                  <div class="availableCopyText">It's here at <?=$heldHere['location']?></div>
+                <? endif; ?>
+              </td>
+            </tr>
+          <? endif; ?>
         <? endif; ?>
         <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; ?>
         <? foreach($this->holdings as $entry): ?>
@@ -136,7 +140,7 @@
         <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
         <? if( !isset($this->holdings["CHECKIN_RECORDS"]) || ($totalCopies > 0) ): ?>
           <tr>
-            <td class="EIN-hide-m itemDetailCategory"><?=(isset($this->holdings["CHECKIN_RECORDS"]) ? "" : "Availability:")?></td>
+            <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
               <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : ($isOneClick ? 'Access Online' : 'Available')))) : "Unavailable")?></span>
               <? if( $alwaysAvailable ): ?>
@@ -386,7 +390,7 @@
           </div>
           <div id="details1" class="panel-collapse collapse">
             <div class="panel-body" style="overflow-x:hidden">
-              <? if( isset($this->holdings["CHECKIN_RECORDS"]) ): ?>
+              <? if( isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord ): ?>
                 <? foreach( $this->holdings["CHECKIN_RECORDS"]["items"][0]["checkinRecords"] as $key => $thisRecord ): ?>
                   <? if( !$thisRecord["location"] ): continue; endif; ?>
                   <div class="EIN-col-m-12 checkinLoc">
@@ -543,7 +547,7 @@
                       </tr>
                       <? foreach($this->holdings as $thisHolding): ?>
                         <? foreach($thisHolding['items'] as $item): ?>
-                          <? if(!$item['availability'] && ($item['status'] != "o")): ?>
+                          <? if(!$item['availability'] && ($item['status'] != "o") && ($item['location'] != "CHECKIN_RECORDS")): ?>
                             <? for( $j=0; $j<(($item['status'] == "order") ? $item['copiesOwned'] : 1); $j++ ): ?>
                               <? /* tablet/desktop UI (three columns) */ ?>
                               <tr class="availabilityRow EIN-hide-m">

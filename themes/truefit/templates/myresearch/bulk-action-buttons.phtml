@@ -43,16 +43,16 @@
     var showFreeze = true;
     var showUnfreeze = true;
     testSet.find('.checkbox-select-item').each( function() {
-      if(this.checked && (($(this).parent().siblings(".changeTarget").length == 0) || ($(this).parent().siblings(".changeTarget").attr("value") == "email"))) {
+      if(this.checked && (($(this).parents(".pull-left").siblings(".changeTarget").length == 0) || ($(this).parents(".pull-left").siblings(".changeTarget").attr("value") == "email"))) {
         showPickup = false;
       }
-      if(this.checked && (($(this).parent().siblings(".changeTarget").length == 0) || ($(this).parent().siblings(".changeTarget").attr("value") == "pickup"))) {
+      if(this.checked && (($(this).parents(".pull-left").siblings(".changeTarget").length == 0) || ($(this).parents(".pull-left").siblings(".changeTarget").attr("value") == "pickup"))) {
         showEmail = false;
       }
-      if(this.checked && ($(this).parent().siblings(".freezeTarget").length == 0)) {
+      if(this.checked && ($(this).parents(".pull-left").siblings(".freezeTarget").length == 0)) {
         showFreeze = false;
       }
-      if(this.checked && ($(this).parent().siblings(".unfreezeTarget").length == 0)) {
+      if(this.checked && ($(this).parents(".pull-left").siblings(".unfreezeTarget").length == 0)) {
         showUnfreeze = false;
       }
     } );

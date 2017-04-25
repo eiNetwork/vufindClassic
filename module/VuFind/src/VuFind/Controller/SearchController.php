@@ -293,7 +293,7 @@ class SearchController extends AbstractSearch
                 'BookResults' => $this->getNewItemsByFormatAction(["Print Book", "Large Print"]),
                 'DVDResults' => $this->getNewItemsByFormatAction(["DVD"]),
                 'eBookResults' => $this->getNewItemsByFormatAction(["OverDrive Read", "Adobe EPUB ebook", "Kindle Book", "Adobe PDF eBook", "Ebook Download"]),
-                'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"]),
+                //'CDResults' => $this->getNewItemsByFormatAction(["Music CD", "Music Score"]),
                 'request' => $this->request
             ]
         );

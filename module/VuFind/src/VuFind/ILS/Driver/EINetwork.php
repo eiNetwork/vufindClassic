@@ -438,7 +438,7 @@ class EINetwork extends Sierra2 implements
                     unset($neededLocations[$code]);
                 }
 
-                array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
+                array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "availability" => false, "status" => "?", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
             }
 
             $this->memcached->set("holdingID" . $id, $results2, 120);
@@ -804,9 +804,22 @@ class EINetwork extends Sierra2 implements
             $success &= $overDriveResults["result"];
         }
 
+        // compare the sierra holds to my list of holds (workaround for item-level stuff)
+        if( count($holds["details"]) > 0 ) {
+            foreach( $holds["details"] as $key => $thisCancelId ) {
+                foreach( $this->session->holds as $thisHold ) {
+                    if( $thisHold["hold_id"] == $thisCancelId && isset( $thisHold["item_id"] ) ) {
+                        $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "cancel", "title", $thisHold["item_id"], null);
+                        unset($holds["details"][$key]);
+                    }
+                }
+            }
+        }
+
         // process the sierra holds
         if( count($holds["details"]) > 0 ) {
             $sierraResults = parent::cancelHolds($holds);
+
             $success &= $sierraResults["success"];
         }
 
@@ -886,6 +899,18 @@ class EINetwork extends Sierra2 implements
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->updateOverDriveHold($overDriveID, $holds["patron"], $holds["newEmail"]);
             $success &= $overDriveResults["result"];
+        }
+
+        // compare the sierra holds to my list of holds (workaround for item-level stuff)
+        if( count($holds["details"]) > 0 ) {
+            foreach( $holds["details"] as $key => $thisUpdateId ) {
+                foreach( $this->session->holds as $thisHold ) {
+                    if( $thisHold["hold_id"] == $thisUpdateId && isset( $thisHold["item_id"] ) ) {
+                        $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "update", "title", $thisHold["item_id"], $holds["newLocation"]);
+                        unset($holds["details"][$key]);
+                    }
+                }
+            }
         }
 
         // process the sierra holds
@@ -1378,7 +1403,7 @@ class EINetwork extends Sierra2 implements
         // add this info to the correct hold
         if ($scount > 2 && $curHoldPickupDate && $curHoldItemID) {
           foreach( $holds as $key => $thisHold ) {
-            if( $thisHold["available"] && substr($thisHold["item_id"], 1, -1) == $curHoldItemID ) {
+            if( isset($thisHold["available"]) && $thisHold["available"] && substr($thisHold["item_id"], 1, -1) == $curHoldItemID ) {
               $holds[$key]["released"] = $curHoldPickupDate;
             };
           }
@@ -1601,7 +1626,7 @@ class EINetwork extends Sierra2 implements
             }
             return $issueSummaries;
         } else {
-            return null;
+            return [];
         }
     }
 
@@ -1647,7 +1672,7 @@ class EINetwork extends Sierra2 implements
                     // find this location in the database
                     if( !$this->memcached->get("locationByName" . md5($name)) ) {
                         $row = $this->getDBTable('location')->getByName($name);
-                        $this->memcached->set("locationByName" . md5($name), [$row->toArray()]);
+                        $this->memcached->set("locationByName" . md5($name), [$row ? $row->toArray() : null]);
                     }
                     $row = $this->memcached->get("locationByName" . md5($name));
                 }
@@ -1674,5 +1699,241 @@ class EINetwork extends Sierra2 implements
             }
         }
         return $orders;
+    }
+
+    /**
+     * Update a hold that was previously placed in the system.
+     * Can cancel the hold or update pickup locations.
+     */
+    public function updateHoldDetailed($patron, $requestId, $patronId, $type, $title, $cancelId, $locationId)
+    {
+        //Login to the patron's account
+        $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+        $success = false;
+
+        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo";
+
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+        curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+        curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+        curl_setopt($curl_connection, CURLOPT_POST, true);
+        $post_string = 'code=' . $patron["cat_username"] . '&pin=' . $patron["cat_password"]  . '&submit=submit';
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+        $sresult = curl_exec($curl_connection);
+
+        //go to the holds page and get the number of holds on the account
+        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S1/" . $patron['id'] ."/holds";
+        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+        curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+        $sresult = curl_exec($curl_connection);
+        $holds = $this->parseHoldsPage($sresult);
+        $numHoldsStart = count($holds);
+
+
+        // put together the update args
+        if (isset($locationId)){
+            $paddedLocation = str_pad(trim($locationId), 5, "+");
+        }else{
+            $paddedLocation = null;
+        }
+
+        $cancelValue = ($type == 'cancel') ? 'on' : 'off';
+
+        foreach( $holds as $thisHold ) {
+            if ($thisHold["itemId"] == substr($cancelId, 1, -1)){
+                $extraGetInfo = array(
+                    'updateholdssome' => 'YES',
+                    'cancel' . $thisHold["itemId"] . "x" . $thisHold["xnum"] => $cancelValue,
+                    'currentsortorder' => 'current_pickup',
+                );
+                if ($paddedLocation && $thisHold['locationUpdateable']){
+                    $success = true;
+                    $extraGetInfo['loc' . $thisHold["itemId"] . "x" . $thisHold["xnum"]] = $paddedLocation;
+                } else if ($paddedLocation && !$thisHold['locationUpdateable']){
+                    $success = false;
+                }
+            }
+        }
+
+        $get_items = array();
+        foreach ($extraGetInfo as $key => $value) {
+            $get_items[] = $key . '=' . urlencode($value);
+        }
+        $holdUpdateParams = implode ('&', $get_items);
+
+        //Issue a get request with the information about what to do with the holds
+        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S{$scope}/" . $patron['id'] ."/holds";
+        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
+        curl_setopt($curl_connection, CURLOPT_HTTPPOST, true);
+        $sresult = curl_exec($curl_connection);
+        //At this stage, we get messages if there were any errors freezing holds.
+        //$holds = $this->parseHoldsPage($sresult);
+
+        //Go back to the hold page to check make sure our hold was cancelled
+        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S{$scope}/" . $patron['id'] ."/holds";
+        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+        curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+        $sresult = curl_exec($curl_connection);
+        $holds = $this->parseHoldsPage($sresult);
+        $numHoldsEnd = count($holds);
+
+        curl_close($curl_connection);
+
+        unlink($cookieJar);
+
+        //Finally, check to see if the update was successful.
+        if ($type == 'cancel'){
+            if ($numHoldsEnd != $numHoldsStart){
+                $success = true;
+            }
+        }
+
+        return $success;
+    }
+
+    public function parseHoldsPage($sresult){
+        $holds = array();
+
+        $sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sresult);
+        $s = substr($sresult, stripos($sresult, 'patFunc'));
+        $s = substr($s,strpos($s,">")+1);
+        $s = substr($s,0,stripos($s,"</table"));
+        $s = preg_replace ("/<br \/>/","", $s);
+
+        $srows = preg_split("/<tr([^>]*)>/",$s);
+        $scount = 0;
+        $skeys = array_pad(array(),10,"");
+        foreach ($srows as $srow) {
+            $scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+            $curHold= array();
+            $curHold['create'] = null;
+            $curHold['reqnum'] = null;
+
+            //Holds page occassionally has a header with number of items checked out.
+            for ($i=0; $i < sizeof($scols); $i++) {
+                $scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
+                $scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
+                $scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
+                if ($scount <= 2) {
+                    $skeys[$i] = $scols[$i];
+                } else if ($scount > 1) {
+                    if ($skeys[$i] == "CANCEL") { //Only check Cancel key, not Cancel if not filled by
+                        //Extract the id from the checkbox
+                        $matches = array();
+                        $numMatches = preg_match_all('/.*?cancel(.*?)x(\\d\\d).*/s', $scols[$i], $matches);
+                        if ($numMatches > 0){
+                            $curHold['renew'] = "BOX";
+                            $curHold['cancelable'] = true;
+                            $curHold['itemId'] = $matches[1][0];
+                            $curHold['xnum'] = $matches[2][0];
+                            $curHold['cancelId'] = $matches[1][0] . '~' . $matches[2][0];
+                        }else{
+                            $curHold['cancelable'] = false;
+                        }
+                    }
+                    if (stripos($skeys[$i],"TITLE") > -1) {
+                        if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+                            $shortId = $matches[1];
+                            $bibid = '.' . $matches[1]; //Technically, this isn't corrcect since the check digit is missing
+                            $title = $matches[2];
+                        }else{
+                            $bibid = '';
+                            $shortId = '';
+                            $title = trim($scols[$i]);
+                        }
+                        $curHold['id'] = $bibid;
+                        $curHold['shortId'] = $shortId;
+                        $curHold['title'] = $title;
+                    }
+                    if (stripos($skeys[$i],"Ratings") > -1) {
+                        $curHold['request'] = "STARS";
+                    }
+                    if (stripos($skeys[$i],"PICKUP LOCATION") > -1) {
+                        //Extract the current location for the hold if possible
+                        $matches = array();
+                        if (preg_match('/<select\s+name=loc(.*?)x(\d\d).*?<option\s+value="([\w]{1,5})[+ ]*"\s+selected="selected">.*/s', $scols[$i], $matches)){
+                            $curHold['locationId'] = $matches[1];
+                            $curHold['locationXnum'] = $matches[2];
+                            $curHold['currentPickupId'] = $matches[3];
+                            $curHold['currentPickupName'] = $matches[4];
+                            $curHold['locationUpdateable'] = true;
+                            //Return the full select box for reference.
+                            //$curHold['locationSelect'] = $scols[$i];
+                        }elseif (preg_match('/<select\s+name=loc(.*?)x(\d\d).*?<option\s+value="([\w]{1,5})[+ ]*"\s>.*/s', $scols[$i], $matches)){
+                            //no library selected, and it wants a holding from a location
+                            $curHold['location'] = "<font style='color:red'>No location selected</font>";
+                            $curHold['locationUpdateable'] = true;
+                        }else{
+                            $curHold['location'] = $scols[$i];
+                            $curHold['currentPickupName'] = $curHold['location'];
+                            $curHold['locationUpdateable'] = false;
+                        }
+                    }
+                    if (stripos($skeys[$i],"STATUS") > -1) {
+                        $status = trim(strip_tags($scols[$i]));
+                        $status = strtolower($status);
+                        $status = ucwords($status);
+                        if ($status !="&nbsp"){
+                            $curHold['status'] = $status;
+                            if (preg_match('/READY.*(\d{2}-\d{2}-\d{2})/i', $status, $matches)){
+                                $curHold['status'] = 'Ready';
+                                //Get expiration date
+                                $exipirationDate = $matches[1];
+                                $expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
+                                $curHold['expire'] = $expireDate->getTimestamp();
+                            }elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
+                                $curHold['status'] = 'Ready';
+                            }else{
+                                $curHold['status'] = $status;
+                            }
+                        }else{
+                            $curHold['status'] = "Pending $status";
+                        }
+                        $matches = array();
+                        $curHold['renewError'] = false;
+                        if (preg_match('/.*DUE\\s(\\d{2}-\\d{2}-\\d{2}).*(?:<font color="red">\\s*(.*)<\/font>).*/s', $scols[$i], $matches)){
+                            //Renew error
+                            $curHold['renewError'] = $matches[2];
+                            $curHold['statusMessage'] = $matches[2];
+                        }else{
+                            if (preg_match('/.*DUE\\s(\\d{2}-\\d{2}-\\d{2})\\s(.*)?/s', $scols[$i], $matches)){
+                                $curHold['statusMessage'] = $matches[2];
+                            }
+                        }
+                    }
+                    if (stripos($skeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
+                        //$curHold['expire'] = strip_tags($scols[$i]);
+                    }
+                    if (stripos($skeys[$i],"FREEZE") > -1){
+                        $matches = array();
+                        $curHold['frozen'] = false;
+                        if (preg_match('/<input.*name="freeze(.*?)"\\s*(\\w*)\\s*\/>/', $scols[$i], $matches)){
+                            $curHold['freezeable'] = true;
+                            if (strlen($matches[2]) > 0){
+                                $curHold['frozen'] = true;
+                                $curHold['status'] = 'Frozen';
+                            }
+                        }elseif (preg_match('/This hold can\s?not be frozen/i', $scols[$i], $matches)){
+                            //If we detect an error Freezing the hold, save it so we can report the error to the user later.
+                            $curHold['freezeError'] = true;
+                        }else{
+                            $curHold['freezeable'] = false;
+                        }
+                    }
+                }
+            } //End of columns
+            if ($scount > 2) {
+                $holds[] = $curHold;
+            }
+            $scount++;
+        }//End of the row
+        return $holds;
     }
 }

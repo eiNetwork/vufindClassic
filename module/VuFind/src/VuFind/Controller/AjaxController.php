@@ -695,6 +695,12 @@ class AjaxController extends AbstractBase
         );
 
         $checkinRecords = ($record[0]['location'] == "CHECKIN_RECORDS");
+        if ($checkinRecords) {
+            $checkinRecords = false;
+            foreach( $record[0]["checkinRecords"] as $thisRecord ) {
+                $checkinRecords |= isset($thisRecord["libHas"]);
+            }
+        }
         $availability_message = $use_unknown_status
             ? $messages['unknown']
             : $messages[isset($itsHere) ? 'itshere' : 
@@ -704,11 +710,13 @@ class AjaxController extends AbstractBase
                            ($isOneClick ? 'oneclick' : 'unavailable'))))];
         if ($checkinRecords) {
             $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
+            $serialCheckinRecords = false;
             foreach( $record[0]["checkinRecords"] as $thisRecord ) {
                 if( $currentLocation && in_array($currentLocation["code"], $thisRecord["branchCode"]) ) {
                     $inLibMessage .= "<div class=\"availableCopyText\">It's here at " . $thisRecord["location"] . "</div>";
                     break;
                 }
+                $serialCheckinRecords |= isset($thisRecord["libHas"]);
             }
             if( $totalItems > 0 ) {
                 $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message)];

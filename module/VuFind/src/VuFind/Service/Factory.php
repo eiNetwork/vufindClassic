@@ -589,9 +589,12 @@ class Factory
      */
     public static function getRecordLoader(ServiceManager $sm)
     {
+        $config = $sm->get('VuFind\Config')->get('config');
         return new \VuFind\Record\Loader(
             $sm->get('VuFind\Search'),
-            $sm->get('VuFind\RecordDriverPluginManager')
+            $sm->get('VuFind\RecordDriverPluginManager'),
+            $config->LimitedSearchFields->shortList,
+            $config->LimitedSearchFields->longList
         );
     }
 

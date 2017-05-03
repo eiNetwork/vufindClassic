@@ -67,6 +67,13 @@ class Options extends \VuFind\Search\Base\Options
     protected $emptySearchRelevanceOverride = null;
 
     /**
+     * Adaptable field list
+     *
+     * @var string
+     */
+    protected $fieldList = null;
+
+    /**
      * Constructor
      *
      * @param \VuFind\Config\PluginManager $configLoader Config loader
@@ -295,5 +302,27 @@ class Options extends \VuFind\Search\Base\Options
     public function getHierarchicalFacetSeparators()
     {
         return $this->hierarchicalFacetSeparators;
+    }
+
+    /**
+     * Set a different field list.
+     *
+     * @param string $fl Field list for Solr.
+     *
+     * @return void
+     */
+    public function setFieldList($fl)
+    {
+        $this->fieldList = $fl;
+    }
+
+    /**
+     * Get the customized field list.
+     *
+     * @return string
+     */
+    public function getFieldList()
+    {
+        return $this->fieldList;
     }
 }

@@ -72,7 +72,7 @@
             <td class="EIN-hide-m itemDetailCategory hidden">Links:</td>
             <td>
               <? foreach($urls as $count => $thisURL): ?>
-                <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : $thisURL["desc"])?></a>
+                <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : (isset($thisURL["desc"]) ? $thisURL["desc"] : ""))?></a>
                   <? if( $count == 2 && count($urls) > 3 ): ?>
                     <br><a href="<?=$this->recordLink()->getUrl($this->driver)?>">Plus <?=(count($urls) - 3)?> more ...</a>
                     </div>

@@ -370,6 +370,9 @@ class SearchController extends AbstractSearch
         // sort by newest first
         $this->getRequest()->getQuery()->set('sort', 'date_added desc');
 
+        // limit to only needed fields
+        $this->getRequest()->getQuery()->set('fl', $this->getConfig()->LimitedSearchFields->shortList);
+
         // Don't save to history -- history page doesn't handle correctly:
         $this->saveToHistory = false;
 
@@ -603,6 +606,7 @@ class SearchController extends AbstractSearch
 /******\
 * test *
 \******
+$query = $this->getRequest()->getQuery();
 $queryArgs = $query->toArray();
 if(isset($queryArgs["lookfor"]) && $queryArgs["lookfor"] == "magicsearch") {
   $queryArgs["lookfor"] = "";
@@ -679,6 +683,11 @@ if(isset($queryArgs["lookfor"]) && $queryArgs["lookfor"] == "magicsearch") {
             unset($queryArgs["lookfor"]);
             unset($queryArgs["type"]);
             $query->fromArray($queryArgs);
+        }
+
+        // limit to only needed fields
+        if( $this->getRequest()->getQuery("fl") === null ) {
+            $this->getRequest()->getQuery()->set('fl', $this->getConfig()->LimitedSearchFields->shortList);
         }
 
         // Default case -- standard behavior.

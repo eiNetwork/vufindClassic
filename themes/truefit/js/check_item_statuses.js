@@ -56,7 +56,7 @@ function handleItemStatusResponse(response) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
       if(result.availability_message.constructor === Array) {
         item.find('.status').empty().append(result.availability_message[0]);
-        var lastRow = item.find('.status').parents('tr');
+        var lastRow = item.find('.status').closest('tr');
         for( var i=1; i<result.availability_message.length; ++i ) {
           var newRow = lastRow.clone();
           newRow.children('.itemDetailCategory').empty().append('&nbsp;');

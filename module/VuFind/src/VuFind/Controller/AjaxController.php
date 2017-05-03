@@ -426,6 +426,9 @@ class AjaxController extends AbstractBase
             $limit = 20;
             $request = ['id' => $id, 'limit' => $limit, 'page' => $page, 'listContents' => true, 'sort' => $sort];
 
+            // limit to only needed fields
+            $request["fl"] = $this->getConfig()->LimitedSearchFields->shortList;
+
             // Set up listener for recommendations:
             $runner = $this->getServiceLocator()->get('VuFind\SearchRunner');
             $rManager = $this->getServiceLocator()->get('VuFind\RecommendPluginManager');

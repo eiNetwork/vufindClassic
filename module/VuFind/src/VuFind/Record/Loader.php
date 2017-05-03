@@ -28,6 +28,7 @@
 namespace VuFind\Record;
 use VuFind\Exception\RecordMissing as RecordMissingException,
     VuFind\RecordDriver\PluginManager as RecordFactory,
+    VuFindSearch\ParamBag as ParamBag,
     VuFindSearch\Service as SearchService;
 
 /**
@@ -41,6 +42,10 @@ use VuFind\Exception\RecordMissing as RecordMissingException,
  */
 class Loader
 {
+    // field limiters
+    private $shortFieldList;
+    private $longFieldList;
+
     /**
      * Record factory
      *
@@ -60,12 +65,16 @@ class Loader
      *
      * @param SearchService $searchService Search service
      * @param RecordFactory $recordFactory Record loader
+     * @param string        $shortList     Fields to limit response to in bulk requests
+     * @param string        $longList      Fields to limit response to in single requests
      */
     public function __construct(SearchService $searchService,
-        RecordFactory $recordFactory
+        RecordFactory $recordFactory, $shortList = null, $longList = null
     ) {
         $this->searchService = $searchService;
         $this->recordFactory = $recordFactory;
+        $this->shortFieldList = $shortList;
+        $this->longFieldList = $longList;
     }
 
     /**
@@ -81,7 +90,13 @@ class Loader
      */
     public function load($id, $source = 'VuFind', $tolerateMissing = false)
     {
-        $results = $this->searchService->retrieve($source, $id)->getRecords();
+        // limit to only needed fields
+        $params = new ParamBag();
+        if( $this->longFieldList !== null ) {
+            $params->set('fl', $this->longFieldList);
+        }
+
+        $results = $this->searchService->retrieve($source, $id, $params)->getRecords();
         if (count($results) > 0) {
             return $results[0];
         }
@@ -108,7 +123,12 @@ class Loader
      */
     public function loadBatchForSource($ids, $source = 'VuFind')
     {
-        return $this->searchService->retrieveBatch($source, $ids)->getRecords();
+        // limit to only needed fields
+        $params = new ParamBag();
+        if( $this->shortFieldList !== null ) {
+            $params->set('fl', $this->shortFieldList);
+        }
+        return $this->searchService->retrieveBatch($source, $ids, $params)->getRecords();
     }
 
     /**

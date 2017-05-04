@@ -124,7 +124,9 @@ class EINetwork extends Sierra2 implements
                 $key = trim(
                     preg_replace($regex_match, $regex_replace, $api_line_arr[0])
                 );
-                $api_data[$key] = trim($api_line_arr[1]);                
+                if( !isset($api_data[$key]) || ($key != "PATRNNAME") ) {
+                    $api_data[$key] = trim($api_line_arr[1]);
+                }
             }
 
             if (!$api_data['PBARCODE']) {

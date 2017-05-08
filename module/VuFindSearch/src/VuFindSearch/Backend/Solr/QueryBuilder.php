@@ -161,9 +161,13 @@ class QueryBuilder implements QueryBuilderInterface
                     if ($handler->hasFilterQuery()) {
                         $params->add('fq', $handler->getFilterQuery());
                     }
+/*
+                    $string = $handler->createEINQueryString($string);
                 } else {
                     $string = $handler->createSimpleQueryString($string);
+*/
                 }
+                $string = $handler->createEINQueryString($string);
             }
         }
         $params->set('q', $string);

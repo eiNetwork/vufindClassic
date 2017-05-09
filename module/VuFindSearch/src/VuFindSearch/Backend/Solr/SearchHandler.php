@@ -152,6 +152,9 @@ class SearchHandler
                         $i--;
                     }
                 }
+                while( strpos($exactMatch, "  ") !== false ) {
+                    $exactMatch = str_replace("  ", " ", $exactMatch);
+                }
                 $exactMatch = "EXACTSTART" . str_replace(" ", "SPACE", $exactMatch) . "EXACTEND";
             }
 

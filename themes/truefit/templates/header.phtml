@@ -110,6 +110,9 @@
         $(searchButton).parents("ul").find(".greenCheck").css({"display":"none"});
         $('.searchTypeInput').attr("value", $(searchButton).attr("id").substr(14));
         $(searchButton).find(".greenCheck").css({"display":"initial"});
+        // undo the advanced search button if needed
+        $(".searchboxAdvanced").css({"display":"none"});
+        $(".searchboxBasic").css({"display":"initial"});
       }
       function toggleRetainFilters(searchButton) {
         $('.applied-filter').click();

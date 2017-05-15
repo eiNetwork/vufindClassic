@@ -917,7 +917,7 @@ class EINetwork extends Sierra2 implements
 
         // process the sierra holds
         if( count($holds["details"]) > 0 ) {
-            return parent::updateHolds($holds);
+            $sierraResults = parent::updateHolds($holds);
             $success &= $sierraResults["success"];
         }
 

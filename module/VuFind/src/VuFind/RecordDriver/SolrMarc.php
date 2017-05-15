@@ -588,7 +588,7 @@ class SolrMarc extends SolrDefault
      */
     public function getTitleSection()
     {
-        return $this->getFirstFieldValue('245', ['n', 'p']);
+        return isset($this->fields['title_section']) ? $this->fields['title_section'] : $this->getFirstFieldValue('245', ['n', 'p']);
     }
 
     /**

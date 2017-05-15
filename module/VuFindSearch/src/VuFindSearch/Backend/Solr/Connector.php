@@ -419,7 +419,7 @@ class Connector implements \Zend\Log\LoggerAwareInterface
      */
     protected function send(HttpClient $client)
     {
-        $key = md5("solrCache" . $client->getMethod() . $client->getUri());
+        $key = md5("solrCache" . $client->getMethod() . (($client->getMethod() == "POST") ? $client->getRequest()->getContent() : $client->getUri()));
         if( !$this->memcached->get($key) ) {
             $this->debug(
                 sprintf('=> %s %s', $client->getMethod(), $client->getUri())

@@ -17,19 +17,6 @@
     $lastSort = $options->getLastSort();
     $lastLimit = $options->getLastLimit();
 ?>
-<? if ($this->searchType == 'advanced'): ?>
-  <div id="searchForm" class="navbar-form navbar-left">
-    <? $tabs = $this->render('search/searchTabs'); ?>
-    <? if (!empty($tabs)): ?><?=$tabs ?><div class="tab-content clearfix"><? endif; ?>
-      <p class="adv_search_terms"><?=$this->transEsc("Your search terms")?> : "<strong><?=$this->escapeHtml($this->lookfor)?></strong>"</p>
-      <p class="adv_search_links">
-        <a href="<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>"><?=$this->transEsc("Edit this Advanced Search")?></a> |
-        <a href="<?=$this->url($advSearch)?>"><?=$this->transEsc("Start a new Advanced Search")?></a> |
-        <a href="<?=$this->url($searchHome)?>"><?=$this->transEsc("Start a new Basic Search")?></a>
-      </p>
-    <? if (!empty($tabs)): ?></div><? endif; ?>
-  </div>
-<? else: ?>
   <form role="search" method="get" action="<?=$this->url($basicSearch)?>" name="searchForm" id="LCsearchForm" autocomplete="off">
     <?= $this->render('search/searchTabs'); ?>
     <table class="EIN-col-m-12">
@@ -41,7 +28,10 @@
           </div>
         </td>
         <td>
-          <button type="submit" class="btn btn-noBorderAlternate floatR"><span class="sr-only">Search</span><i class="fa fa-search"></i></button>
+          <? if( $this->searchType == 'advanced'): ?>
+            <button type="button" class="btn btn-noBorderAlternate floatR searchboxAdvanced"><span class="sr-only">Edit This Advanced Search</span><a href="<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>"><i class="fa fa-search"></i></a></button>
+          <? endif; ?>
+          <button type="submit"<?=(($this->searchType == 'advanced') ? " style=\"display:none\"" : "")?> class="btn btn-noBorderAlternate floatR searchboxBasic"><span class="sr-only">Search</span><i class="fa fa-search"></i></button>
         </td>
         <td>
           <button class="btn btn-noBorderAlternate floatR" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();"><span class="sr-only">Search Options</span><i class="fa fa-caret-down"></i></button>
@@ -115,5 +105,10 @@
         $(event.target).parents("form").submit();
       }
     });
+    <? if ($this->searchType == 'advanced'): ?>
+      // fix the advanced button
+      $(document).ready( function() {
+        $(".stcAdvanced").parents("a").attr("href", "<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>");
+      } );
+    <? endif; ?>
   </script>
-<? endif; ?>

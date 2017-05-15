@@ -16,7 +16,9 @@
       <div>You do not have any items in your reading list. It may take up to 3 hours for your reading history to be updated after you start recording your history.</div>
     <? else: ?>
       <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>" target="loginFrame">
-        <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => 'delete', 'history' => 'history'))?>
+        <span class="ajaxReadingHistory">
+          <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => 'delete', 'history' => 'history'))?>
+        </span>
         <div style="display:none">
           <? foreach ($this->readingHistory["titles"] as $i=>$current): ?>
             <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"])?>
@@ -38,7 +40,7 @@
             <? $lastIndex = (isset($item["itemindex"]) && ($item["itemindex"] > $lastIndex)) ? $item["itemindex"] : $lastIndex; ?>
             <tr class="historyItem">
               <td style="margin:auto">
-                <label class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></label>
+                <span class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></span>
                 <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getUniqueId())?>" class="hiddenId" />
                 <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getResourceSource())?>" class="hiddenSource" />
               </td>
@@ -90,6 +92,7 @@
     $('#loginFrame').load( function() { 
       $(this).contents().find('.readingHistoryTable tr').not('.historyHeaderRow').each( function() {
         $(this).clone().insertAfter($('.readingHistoryTable tr:last'));
+        $(".ajaxReadingHistory").next().append($(this).find("span.pull-left").find("span").clone());
       });
       $('.historyShowMore').css('display', ($(this).contents().find('.historyShowMore').length > 0) ? 'inline-block' : 'none');
     } );

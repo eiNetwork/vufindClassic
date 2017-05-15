@@ -17,8 +17,8 @@
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
   <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
   <table class="EIN-col-m-12"><tr>
-    <td class="EIN-col-m-1" style="margin:auto" rowspan="2">
-      <label class="pull-left flip"><?=$record->getCheckbox() ?></label>
+    <td class="EIN-col-m-1" style="margin:auto">
+      <span class="pull-left flip"><?=$record->getCheckbox() ?></span>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
     </td>

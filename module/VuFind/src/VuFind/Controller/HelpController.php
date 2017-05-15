@@ -62,4 +62,14 @@ class HelpController extends AbstractBase
     {
         return $this->createViewModel();
     }
+
+    /**
+     * Shows the patron the changelog
+     *
+     * @return mixed
+     */
+    public function changesAction()
+    {
+        return $this->createViewModel();
+    }
 }

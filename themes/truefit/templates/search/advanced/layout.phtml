@@ -43,7 +43,9 @@
   $setSearchGroups = [];
   $setGroupCount = 0;
   $setQueries = [];
+  $groupJoin ='AND';
   if (isset($searchDetails) && is_object($searchDetails)) {
+    $groupJoin = $searchDetails->getOperator();
     foreach ($searchDetails->getQueries() as $group=>$searchGroup) {
       $setSearchGroups[$group] = $searchGroup->isNegated() ? 'NOT' : $searchGroup->getOperator();
       if ($setGroupCount < $group) {
@@ -64,7 +66,6 @@
 <div class="EIN-col-m-12 padded">
   <form name="searchForm" id="advSearchForm" method="get" action="<?=$this->url($this->options->getSearchAction())?>">
     <input type="hidden" name="sort" value="relevance">
-    <!-- <h1 class="pageTitle"><?=$this->transEsc('Advanced Search')?></h1> -->
     <h1 class="pageTitle">
       <button class="btn-default btn-wide gap" onclick="$('#advSearchMasterButton').click();" style="line-height:20px;"><?= $this->transEsc('Advanced Search')?>&nbsp;<i class="fa fa-search searchButtonDecoration"></i></button>
     </h1>
@@ -79,8 +80,8 @@
           <div class="EIN-col-m-12 EIN-hide-t EIN-hide" style="height:10px"></div>
           <label for="groupJoinOptions"><?=$this->transEsc("search_match")?>:&nbsp;</label>
           <div style="display:inline;position:relative">
-            <input type="hidden" name="join" id="groupJoinOptions" value="AND">
-            <button class="btn-alternate advSearchJoinButton" id="advSearchJoin" data-toggle="dropdown" data-target="#advSearchJoinDropdown"><span><?=$this->transEsc("group_AND")?></span><i class="fa fa-caret-down"></i></button>
+            <input type="hidden" name="join" id="groupJoinOptions" value="<?=$groupJoin?>">
+            <button class="btn-alternate advSearchJoinButton" id="advSearchJoin" data-toggle="dropdown" data-target="#advSearchJoinDropdown"><span><?=$this->transEsc("group_" . $groupJoin)?></span><i class="fa fa-caret-down"></i></button>
             <div class="EIN-col-m-12 dropdown" id="advSearchJoinDropdown">
               <ul role="navigation" class="dropdown-menu standardDropdown">
                 <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="advSearchDropdownClick(this, 'AND'); return false;"><?=$this->transEsc("group_AND")?></button></li>
@@ -127,7 +128,7 @@
                         <div class="EIN-col-m-12 dropdown" id="advSearchGroupType<?=$group.'_'.$search ?>Dropdown">
                           <ul role="navigation" class="dropdown-menu standardDropdown">
                           <? foreach ($this->options->getAdvancedHandlers() as $searchVal => $searchDesc): ?>
-                            <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="advSearchDropdownClick(this, '<?=$this->escapeHtml($searchVal)?>'); return false;"><?=$this->transEsc($searchDesc)?></button></li>
+                            <li><button class="btn-dropdown btn-standardDropdown manageListDropdown btnTypeValue<?=$this->escapeHtml($searchVal)?>" onclick="advSearchDropdownClick(this, '<?=$this->escapeHtml($searchVal)?>'); return false;"><?=$this->transEsc($searchDesc)?></button></li>
                           <? endforeach; ?>
                           </ul>
                         </div>
@@ -152,9 +153,9 @@
                 <button class="btn-alternate advSearchMatchButton" id="advSearchMatch<?=$group?>" data-toggle="dropdown" data-target="#advSearchMatch<?=$group?>Dropdown"><span><?=$this->transEsc("search_AND")?></span><i class="fa fa-caret-down"></i></button>
                 <div class="EIN-col-m-12 dropdown" id="advSearchMatch<?=$group?>Dropdown">
                   <ul role="navigation" class="dropdown-menu standardDropdown">
-                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="advSearchDropdownClick(this, 'AND'); return false;"><?=$this->transEsc("search_AND")?></button></li>
-                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="advSearchDropdownClick(this, 'OR'); return false;"><?=$this->transEsc("search_OR")?></button></li>
-                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="advSearchDropdownClick(this, 'NOT'); return false;"><?=$this->transEsc("search_NOT")?></button></li>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown btnJoinValueAND" onclick="advSearchDropdownClick(this, 'AND'); return false;"><?=$this->transEsc("search_AND")?></button></li>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown btnJoinValueOR"  onclick="advSearchDropdownClick(this, 'OR');  return false;"><?=$this->transEsc("search_OR")?></button></li>
+                    <li><button class="btn-dropdown btn-standardDropdown manageListDropdown btnJoinValueNOT" onclick="advSearchDropdownClick(this, 'NOT'); return false;"><?=$this->transEsc("search_NOT")?></button></li>
                   </ul>
                 </div>
               </div>

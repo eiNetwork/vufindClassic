@@ -26,8 +26,14 @@ function addSearch(group, fieldValues)
   // the dropdown
   $newSearch.find('input.type').next().next()
     .attr('id', 'advSearchGroupType'+inputID + 'Dropdown');
-  // change the button to the first element in the dropdown
-  $newSearch.find('input.type').next().next().children('li:first-child').children('button').click();
+  // change the button to ...
+  if( fieldValues.field ) {
+    // ... the correct element in the dropdown
+    $newSearch.find('input.type').next().next().find('button.btnTypeValue' + fieldValues.field).click();
+  } else {
+    // ... the first element in the dropdown
+    $newSearch.find('input.type').next().next().children('li:first-child').children('button').click();
+  }
 
   $newSearch.find('.close')
     .attr('onClick', 'deleteSearch('+group+','+groupLength[group]+'); return false;');
@@ -113,7 +119,7 @@ function addGroup(firstTerm, firstField, join)
   $newGroup.find('.search_bool')
     .attr('for', 'search_bool'+nextGroup);
   if(join.length > 0) {
-    $newGroup.find('option[value="'+join+'"]').attr('selected', 1);
+    $newGroup.find('button.btnJoinValue' + join).click();
   }
   // Insert
   $('#groupPlaceHolder').before($newGroup);
@@ -215,5 +221,6 @@ jQuery(document).ready(function() {
       $(this).find('li:first-child button').click();
     }
   } );
+  CleanChecks();
 } );
 

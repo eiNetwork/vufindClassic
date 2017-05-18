@@ -57,7 +57,7 @@
                       <? foreach ($publications as $field): ?>
                         <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
                           <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
-                        <? endif; ?>
+                        <? break; endif; ?>
                       <? endforeach; ?>
                     <? endif; ?>
                     <? $firstTime = false; ?>

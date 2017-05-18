@@ -43,10 +43,10 @@
                           <li class="facetOffset0" value="<?=$this->escapeHtmlAttr(($value['operator'] == 'OR' ? '~' : '') . $field . ':"' . $value['value'] . '"')?>">
                             <span class="sr-only">
                               <?=$this->escapeHtml($display)?>
-                              <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                              <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=((isset($value['selected']) && $value['selected']) ? " selected" : "")?> />
                             </span>
-                            <span aria-hidden="true" class="facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><span class="sr-only">Checked</span><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
-                            <span aria-hidden="true" class="facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                            <span aria-hidden="true" class="facetToggle<?=((isset($value['selected']) && $value['selected']) ? "On" : "Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><span class="sr-only">Checked</span><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                            <span aria-hidden="true" class="facetToggle<?=((isset($value['selected']) && $value['selected']) ? "Off" : "On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
                             <span aria-hidden="true"><?=$this->escapeHtml($display)?></span>
                           </li>
                         <? endforeach; ?>
@@ -96,10 +96,10 @@
                               <li class="facetOffset<?=(in_array($type, $bookTypes) ? "2" : "1")?>" value="<?=$this->escapeHtmlAttr(($thisFacet['operator'] == 'OR' ? '~' : '') . $field . ':"' . $thisFacet['value'] . '"')?>">
                                 <span class="sr-only">
                                   <?=$this->escapeHtml($thisFacet['displayText'])?>
-                                  <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()" />
+                                  <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=((isset($thisFacet['selected']) && $thisFacet['selected']) ? " selected" : "")?> />
                                 </span>
-                                <span aria-hidden="true" class="facetToggleOff" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
-                                <span aria-hidden="true" class="facetToggleOn" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
+                                <span aria-hidden="true" class="facetToggle<?=((isset($thisFacet['selected']) && $thisFacet['selected']) ? "On" : "Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks();"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                                <span aria-hidden="true" class="facetToggle<?=((isset($thisFacet['selected']) && $thisFacet['selected']) ? "Off" : "On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks();"><i class="fa fa-square-o"></i></span>
                                 <span aria-hidden="true"><?=$this->escapeHtml($thisFacet['displayText'])?></span>
                               </li>
                             <? endforeach; ?>
@@ -118,6 +118,7 @@
                           </li>
                           <? usort($inputVals, function ($format1,$format2) { return strcmp($format1["displayText"], $format2["displayText"]); }); ?>
                           <? foreach( $inputVals as $thisFacet ): ?>
+                            <? if( substr($thisFacet['displayText'], 0, 10) == 'Category: ' ): continue; endif; ?>
                             <li class="facetOffset1" value="<?=$this->escapeHtmlAttr(($thisFacet['operator'] == 'OR' ? '~' : '') . $field . ':"' . $thisFacet['value'] . '"')?>">
                               <span class="sr-only">
                                 <?=$this->escapeHtml($thisFacet['displayText'])?>

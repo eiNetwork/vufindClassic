@@ -379,10 +379,13 @@ class EINetwork extends Sierra2 implements
                     $this->memcached->set("shelvingLocationByCode" . $results[$i]['locationCode'], $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']));
                 }
                 $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode'] );
-                if( isset($shelfLoc) && $shelfLoc && !$this->memcached->get("locationByID" . $shelfLoc->locationId) ) {
-                    $this->memcached->set("locationByID" . $shelfLoc->locationId, $this->getDBTable('location')->getByLocationId($shelfLoc->locationId));
+                $locationId = (isset($shelfLoc) && $shelfLoc) ? $shelfLoc->locationId : null;
+                if( $locationId && !$this->memcached->get("locationByID" . $locationId) ) {
+                    $this->memcached->set("locationByID" . $locationId, $this->getDBTable('location')->getByLocationId($locationId));
+                } else if( !$locationId && (strlen($results[$i]['locationCode']) == 2) && !$this->memcached->get("locationByCode" . $results[$i]['locationCode']) ) {
+                    $this->memcached->set("locationByCode" . $results[$i]['locationCode'], $this->getDBTable('location')->getByCode($results[$i]['locationCode']));
                 }
-                $location = (isset($shelfLoc) && $shelfLoc) ? $this->memcached->get("locationByID" . $shelfLoc->locationId ) : null;
+                $location = $locationId ? $this->memcached->get("locationByID" . $locationId ) : ((strlen($results[$i]['locationCode']) == 2) ? $this->memcached->get("locationByCode" . $results[$i]['locationCode']) : null);
                 $results[$i]['branchName'] = $location ? $location->displayName : (($results[$i]['status'] == 'order') ? $results[$i]['location'] : null);
                 $results[$i]['branchCode'] = $location ? $location->code : null;
                 $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;

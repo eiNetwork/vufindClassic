@@ -348,7 +348,7 @@ class SolrMarc extends SolrDefault
             $results = array_merge($results, $copyResults);
         }
 
-        if( count($results) == 0 ) {
+        if( count($results) == 0 && isset($this->fields['publishDate']) ) {
             $results = $this->fields['publishDate'];
         }
 

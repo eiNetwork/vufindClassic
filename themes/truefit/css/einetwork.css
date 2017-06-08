@@ -385,6 +385,8 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 
 .searchButtonDecoration {font-size:14px;margin-left:5px}
 .alert-announcement{background-color: #1da338;color: #fff}
+.alert-announcement .alertLink {color:#fafafa; text-decoration:underline}
+.alert-announcement .alertLink:hover {color:#5c6dcc}
 
 .loadingWall {text-align:center; margin:20px}
 

@@ -334,6 +334,10 @@ class Sierra2 extends Sierra implements
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines"));
         $fines = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
+            if( !isset($jsonVals->entries[$i]) ) {
+                continue;
+            }
+
             $thisItem = [];
 
             // get the bib id
@@ -388,6 +392,10 @@ class Sierra2 extends Sierra implements
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds"));
         $holds = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
+            if( !isset($jsonVals->entries[$i]) ) {
+                continue;
+            }
+
             $thisItem = [];
 
             // get the hold id

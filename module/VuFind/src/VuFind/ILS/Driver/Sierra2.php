@@ -280,6 +280,10 @@ class Sierra2 extends Sierra implements
 
         $checkedOutItems = [];
         for( $i=0; $i<$jsonVals->total; $i++ ) {
+            if( !isset($jsonVals->entries[$i]) ) {
+                continue;
+            }
+
             $thisItem = [];
 
             // fill in properties

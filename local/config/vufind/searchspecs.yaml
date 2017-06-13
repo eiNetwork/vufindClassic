@@ -192,7 +192,7 @@ Subject:
     - [bf, 'language_boost^300']
   DismaxFields:
     - topic^100
-    - word_think_heading^100
+#    - word_think_heading^100
     - geographic^50
     - genre^50
     - era
@@ -201,10 +201,10 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
-    word_think_heading:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
+#    word_think_heading:
+#      - [onephrase, 300]
+#      - [and, 100]
+#      - [or, ~]
     geographic:
       - [onephrase, 300]
       - [and, 100]

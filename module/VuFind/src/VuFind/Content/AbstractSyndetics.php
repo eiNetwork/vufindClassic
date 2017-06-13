@@ -132,6 +132,9 @@ abstract class AbstractSyndetics extends AbstractBase
     protected function htmlToDOMDocument($html)
     {
         $dom = new DOMDocument();
-        return $dom->loadHTML($html) ? $dom : false;
+        libxml_use_internal_errors(true);
+        $value = $dom->loadHTML($html) ? $dom : false;
+        libxml_clear_errors();
+        return $value;
     }
 }

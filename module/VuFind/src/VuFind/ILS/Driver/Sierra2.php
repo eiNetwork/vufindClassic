@@ -311,7 +311,9 @@ class Sierra2 extends Sierra implements
             // get the bib info
             $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
             $thisItem['title'] = $bibInfo->title;
-            $thisItem['publication_year'] = $bibInfo->publishYear;
+            if( isset($bibInfo->publishYear) ) {
+                $thisItem['publication_year'] = $bibInfo->publishYear;
+            }
             $thisItem['author'] = $bibInfo->author;
 
             $checkedOutItems[$i] = $thisItem;
@@ -417,7 +419,7 @@ class Sierra2 extends Sierra implements
             $id = $arr[count($arr)-1];
             $bibId = $id;
             // it's an item-level hold
-            if( $arr[count($arr)-2] == "items" ) {
+            if( count($arr) >= 2 && ($arr[count($arr)-2] == "items") ) {
                 $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
                 $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $id . "?fields=bibIds,varFields"));
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
@@ -434,7 +436,9 @@ class Sierra2 extends Sierra implements
 
             // get the bib info
             $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $bibId));
-            $thisItem['publication_year'] = $bibInfo->publishYear;
+            if( isset($bibInfo->publishYear) ) {
+                $thisItem['publication_year'] = $bibInfo->publishYear;
+            }
 
             $holds[$i] = $thisItem;
         }

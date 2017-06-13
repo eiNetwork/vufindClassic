@@ -148,7 +148,7 @@ class SearchHandler
                 $allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789 ";
                 for($i=0; $i<strlen($exactMatch); $i++) {
                     if(strpos($allowedChars, substr($exactMatch, $i, 1)) === false) {
-                        $exactMatch = substr($exactMatch, 0, i) . substr($exactMatch, i);
+                        $exactMatch = substr($exactMatch, 0, $i) . " " . substr($exactMatch, ($i + 1));
                         $i--;
                     }
                 }

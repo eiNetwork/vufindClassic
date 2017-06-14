@@ -159,6 +159,11 @@ class MyResearchController extends AbstractBase
         $page = isset($config->Site->defaultAccountPage)
             ? $config->Site->defaultAccountPage : 'Favorites';
 
+        // if they're coming from a library website, send them to the right place
+        if( $this->params()->fromPost('externalSiteLogin') ) {
+            return $this->forwardTo('MyResearch', $page);
+        }
+
         // Default to search history if favorites are disabled:
         if ($page == 'Favorites' && !$this->listsEnabled()) {
             return $this->forwardTo('Search', 'History');

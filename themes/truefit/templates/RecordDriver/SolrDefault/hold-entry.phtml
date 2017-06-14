@@ -103,17 +103,6 @@
               </td>
             </tr>
           <? endif; ?>
-          <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && $this->hold["status"] != "t" ): ?>
-            <tr>
-              <td colspan="2">
-                <? if( isset($this->hold["overDriveId"]) ): ?>
-                  <span class="bold"><?=$this->hold["position"]?></span>
-                <? else: ?>
-                  <span class="bold ajax-holdStatus holdStatus"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
-                <? endif; ?>
-              </td>
-            </tr>
-          <? endif; ?>
         </table>
       </div>
       <? if( isset($this->hold["overDriveId"]) && $this->hold["status"] == "i" ): ?>

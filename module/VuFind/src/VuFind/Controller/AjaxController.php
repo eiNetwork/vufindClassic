@@ -623,6 +623,9 @@ class AjaxController extends AbstractBase
                         if(isset($thisItem["overdriveRead"]) && $thisItem["overdriveRead"]) {
                             $overDriveInfo["ODread"] = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-overdrive", $user);
                         }
+                        if(isset($thisItem["mediaDo"]) && $thisItem["mediaDo"]) {
+                            $overDriveInfo["mediaDo"] = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-mediado", $user);
+                        }
                         if(isset($thisItem["overdriveListen"]) && $thisItem["overdriveListen"]) {
                             $overDriveInfo["ODlisten"] = $catalog->getDownloadLink($thisItem["overDriveId"], "audiobook-overdrive", $user);
                         }

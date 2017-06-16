@@ -94,6 +94,9 @@ function handleItemStatusResponse(response) {
         leftButton.prop('disabled', false);
         leftButton.attr('data-toggle', 'dropdown');
         leftButton.attr('data-target', '#holdButtonDropdown' + result.id.replace(".","") + ',#holdButtonDropdownMobile' + result.id.replace(".",""));
+        if( ("mediaDo" in result) && result.mediaDo.result ) {
+          leftButtonMenu.children(".standardDropdown").append("<li><a href=\"" + result.mediaDo.downloadUrl + "\" target=\"_blank\"><button class=\"btn-dropdown btn-standardDropdown\">Read Now</button></a></li>");
+        }
         if( ("ODread" in result) && result.ODread.result ) {
           leftButtonMenu.children(".standardDropdown").append("<li><a href=\"" + result.ODread.downloadUrl + "\" target=\"_blank\"><button class=\"btn-dropdown btn-standardDropdown\">Read Now</button></a></li>");
         }

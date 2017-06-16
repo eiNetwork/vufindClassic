@@ -212,6 +212,11 @@
                 <a href="<?=$this->ODread["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
               </li>
             <? endif; ?>
+            <? if( $this->mediaDo && $this->mediaDo["result"] ): ?>
+              <li>
+                <a href="<?=$this->mediaDo["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+              </li>
+            <? endif; ?>
             <? if( $this->ODlisten && $this->ODlisten["result"] ): ?>
               <li>
                 <a href="<?=$this->ODlisten["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Listen Now</button></a>

@@ -111,6 +111,11 @@
             <button class="btn-default singleButton" <?=$holdClick?>>Actions<i class="fa fa-caret-down"></i></button>
             <div class="dropdown" id="holdButtonDropdown<?=str_replace(".", "", $id) . ($this->addAllID ? "All" : "")?>">
               <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown">
+                <? if( isset($this->checkout["mediaDo"]) && $this->checkout["mediaDo"] && isset($this->checkout["mediaDoUrl"]) && $this->checkout["mediaDoUrl"] ): ?>
+                  <li>
+                    <a href="<?=$this->checkout["mediaDoUrl"]["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>
+                  </li>
+                <? endif; ?>
                 <? if( isset($this->checkout["overdriveRead"]) && $this->checkout["overdriveRead"] && isset($this->checkout["overdriveReadUrl"]) && $this->checkout["overdriveReadUrl"] ): ?>
                   <li>
                     <a href="<?=$this->checkout["overdriveReadUrl"]["downloadUrl"]?>" target="_blank"><button class="btn-dropdown btn-standardDropdown">Read Now</button></a>

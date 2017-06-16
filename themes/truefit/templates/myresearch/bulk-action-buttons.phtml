@@ -69,7 +69,7 @@
     $('#bulkAction' + id).attr('name','bulkHold');
     form.find('.checkbox-select-item').each(function() {
       if( $(this).prop('checked') ) {
-        var twin = form.siblings('.ajaxItem').find('.checkbox-select-item[value="' + $(this).attr("value") + '"]');
+        var twin = form.siblings('.ajaxListContents').find('.checkbox-select-item[value="' + $(this).attr("value") + '"]');
         var title = twin.parents('table').find('.itemTitle').children('a').html();
         $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
       }

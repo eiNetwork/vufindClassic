@@ -176,6 +176,9 @@ class RecordController extends AbstractRecord
                         if(isset($thisItem["overdriveRead"]) && $thisItem["overdriveRead"]) {
                             $view->ODread = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-overdrive", $user);
                         }
+                        if(isset($thisItem["mediaDo"]) && $thisItem["mediaDo"]) {
+                            $view->mediaDo = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-mediado", $user);
+                        }
                         if(isset($thisItem["overdriveListen"]) && $thisItem["overdriveListen"]) {
                             $view->ODlisten = $catalog->getDownloadLink($thisItem["overDriveId"], "audiobook-overdrive", $user);
                         }

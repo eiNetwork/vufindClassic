@@ -40,6 +40,7 @@ trait OverDriveTrait {
         'ebook-pdf-open' => 'Open PDF eBook',
         'ebook-kindle' => 'Kindle Book',
         'ebook-disney' => 'Disney Online Book',
+        'ebook-mediado' => 'MediaDo eBook',
         'ebook-overdrive' => 'OverDrive Read',
         'ebook-microsoft' => 'Microsoft eBook',
         'audiobook-wma' => 'OverDrive WMA Audiobook',
@@ -355,13 +356,16 @@ trait OverDriveTrait {
                 $bookshelfItem['duedate'] = substr($curTitle->expires, 0, 10);
                 $bookshelfItem['overdriveListen'] = false;
                 $bookshelfItem['overdriveRead'] = false;
+                $bookshelfItem['mediaDo'] = false;
                 $bookshelfItem['streamingVideo'] = false;                
                 $bookshelfItem['downloadable'] = false;
                 $bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
                 $bookshelfItem['formats'] = array();
                 if (isset($curTitle->formats)){
                     foreach ($curTitle->formats as $id => $format){
-                        if ($format->formatType == 'ebook-overdrive'){
+                        if ($format->formatType == 'ebook-mediado'){
+                            $bookshelfItem['mediaDo'] = true;
+                        }elseif ($format->formatType == 'ebook-overdrive'){
                             $bookshelfItem['overdriveRead'] = true;
                         }elseif ($format->formatType == 'video-streaming'){
                             $bookshelfItem['streamingVideo'] = true;
@@ -375,8 +379,13 @@ trait OverDriveTrait {
                         if (isset($format->links->self)){
                             $curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
                         }
+                        // MediaDo - access online instead of download
+                        if ($format->formatType == 'ebook-mediado') {
+                            if (isset($curFormat['downloadUrl'])){
+                                $bookshelfItem['mediaDoUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'ebook-mediado', $user);
+                            }
                         // OverDrive Read - access online instead of download
-                        if ($format->formatType == 'ebook-overdrive') {
+                        }elseif ($format->formatType == 'ebook-overdrive') {
                             if (isset($curFormat['downloadUrl'])){
                                 $bookshelfItem['overdriveReadUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'ebook-overdrive', $user);
                             }

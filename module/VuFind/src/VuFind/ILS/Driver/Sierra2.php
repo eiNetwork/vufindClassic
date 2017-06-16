@@ -401,10 +401,10 @@ class Sierra2 extends Sierra implements
         $holds = [];
 
         $offset = count($holds);
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
 
         while( count($holds) < $jsonVals->total ) {
-            for( $i=0; $i<$jsonVals->total; $i++ ) {
+            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
                 // get the hold id
@@ -451,7 +451,7 @@ class Sierra2 extends Sierra implements
             }
 
             $offset = count($holds);
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset"));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
         }
         return $holds;
     }

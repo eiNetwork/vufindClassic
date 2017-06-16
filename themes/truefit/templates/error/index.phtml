@@ -28,17 +28,21 @@
     <b><?=$this->transEsc('Message')?>:</b> <?=$this->exception->getMessage()?>
   </p>
 
+  <span style="display:none">
   <h2><?=$this->transEsc('Backtrace')?>:</h2>
   <pre><?=$this->exception->getTraceAsString()?>
   </pre>
+  </span>
 
   <? if ($e = $this->exception->getPrevious()): ?>
     <h3>Previous exceptions:</h3>
     <? while($e): ?>
         <h4><?php echo get_class($e); ?></h4>
         <p><?=$e->getMessage()?></p>
+        <span style="display:none">
         <pre><?=$e->getTraceAsString()?></pre>
         <? $e = $e->getPrevious(); ?>
+        </span>
     <? endwhile; ?>
   <? endif; ?>
 
@@ -46,4 +50,4 @@
     <h2><?=$this->transEsc('error_page_parameter_list_heading')?>:</h2>
     <pre><?=$this->escapeHtml(var_export($this->request->getParams(), true))?></pre>
   <? endif; ?>
-<? endif ?>
+<? endif; ?>

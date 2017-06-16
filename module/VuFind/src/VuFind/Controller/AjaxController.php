@@ -583,7 +583,7 @@ class AjaxController extends AbstractBase
             $args=array();
             foreach($record as $item) {
                 // look for a hold link
-                $marcHoldOK = isset($item['status']) && in_array(trim($item['status']), ['-','t','!','i','order']);
+                $marcHoldOK = isset($item['status']) && in_array(trim($item['status']), ['-','t','!','i','p','order']);
                 $overdriveHoldOK = isset($item["isOverDrive"]) && $item["isOverDrive"] && ($item["copiesOwned"] > 0) && ($item["copiesAvailable"] == 0);
                 if(($marcHoldOK || $overdriveHoldOK) && $item['link']['action'] == "Hold") {
                     foreach(explode('&',$item['link']['query']) as $piece) {

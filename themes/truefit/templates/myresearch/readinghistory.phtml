@@ -62,6 +62,18 @@
               </td>
               <td style="text-align:right"><?=$item["checkout"]?></td>
             </tr>
+          <? else: ?>
+            <tr class="historyItem">
+              <td style="margin:auto">
+                <span class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></span>
+              </td>
+              <td style="padding:15px 5px" class="itemTitle">
+                <span class="unlinkedTitle"><?=$this->escapeHtml($item["title"])?></span>
+              </td>
+              <td>
+              </td>
+              <td style="text-align:right"><?=$item["checkout"]?></td>
+            </tr>
           <? endif; ?>
         <? endforeach; ?>
       </table>

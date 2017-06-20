@@ -2,47 +2,49 @@
 <h2><?=$this->transEsc(($this->changePickup?"Change ":"")."Pickup Location")?></h2>
 <div class="hold-form">
   <table class="pickupLocationTable">
-    <tr><td colspan="2" class="modalSubheading center">Preferred Libraries</td></tr>
-    <? $showPreferredLibrary = isset($this->preferredLibrary); ?>
-    <? $showAlternateLibrary = isset($this->alternateLibrary) && (!isset($this->preferredLibrary) || ($this->alternateLibrary != $this->preferredLibrary)); ?>
-    <? $showHomeLibrary = isset($this->homeLibrary) && (!isset($this->preferredLibrary) || ($this->homeLibrary != $this->preferredLibrary)) && (!isset($this->alternateLibrary ) || ($this->homeLibrary != $this->alternateLibrary)); ?>
+    <? $showPreferredLibrary = isset($this->preferredLibrary) && ($this->preferredLibrary != "none"); ?>
+    <? $showAlternateLibrary = isset($this->alternateLibrary) && ($this->alternateLibrary != "none") && (!isset($this->preferredLibrary) || ($this->alternateLibrary != $this->preferredLibrary)); ?>
+    <? $showHomeLibrary = isset($this->homeLibrary) && ($this->homeLibrary != "99") && ($this->homeLibrary != "none") && (!isset($this->preferredLibrary) || ($this->homeLibrary != $this->preferredLibrary)) && (!isset($this->alternateLibrary ) || ($this->homeLibrary != $this->alternateLibrary)); ?>
     <? $selectedID = $showPreferredLibrary ? $this->preferredLibrary : ($showAlternateLibrary ? $this->alternateLibrary : ($showHomeLibrary ? $this->homeLibrary : "")) ?>
-    <? foreach ($this->pickup as $lib): ?>
-      <? if($showPreferredLibrary && $this->preferredLibrary == $lib['locationID'] ): ?>
-        <tr>
-          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
-          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
-        </tr>
-        <? break; ?>
-      <? endif; ?>
-    <? endforeach; ?>
-    <? foreach ($this->pickup as $lib): ?>
-      <? if($showAlternateLibrary && $this->alternateLibrary == $lib['locationID'] ): ?>
-        <tr>
-          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
-          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
-        </tr>
-        <? break; ?>
-      <? endif; ?>
-    <? endforeach; ?>
-    <? foreach ($this->pickup as $lib): ?>
-      <? if($showHomeLibrary && $this->homeLibrary == $lib['locationID'] ): ?>
-        <tr>
-          <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
-          <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?> (Home)</button></td>
-        </tr>
-        <? break; ?>
-      <? endif; ?>
-    <? endforeach; ?>
-    <tr><td colspan="2">&nbsp;</td></tr>
-    <tr><td colspan="2" class="center"><button class="btn-default btn-wide" onclick="ToggleOtherLibraries(this)">Show Other Libraries</button></tr>
-    <tr class="otherLibraryRow" style="display:none"><td colspan="2">&nbsp;</td></tr>
-    <tr class="otherLibraryRow" style="display:none"><td colspan="2" class="modalSubheading center">Other Libraries</td></tr>
+    <? if($selectedID != ""): ?>
+      <tr><td colspan="2" class="modalSubheading center">Preferred Libraries (<?=($showPreferredLibrary?"Y":"N") . ($showAlternateLibrary?"Y":"N") . ($showHomeLibrary?"Y":"N") . $selectedID?>)</td></tr>
+      <? foreach ($this->pickup as $lib): ?>
+        <? if($showPreferredLibrary && $this->preferredLibrary == $lib['locationID'] ): ?>
+          <tr>
+            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
+            <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
+          </tr>
+          <? break; ?>
+        <? endif; ?>
+      <? endforeach; ?>
+      <? foreach ($this->pickup as $lib): ?>
+        <? if($showAlternateLibrary && $this->alternateLibrary == $lib['locationID'] ): ?>
+          <tr>
+            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
+            <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
+          </tr>
+          <? break; ?>
+        <? endif; ?>
+      <? endforeach; ?>
+      <? foreach ($this->pickup as $lib): ?>
+        <? if($showHomeLibrary && $this->homeLibrary == $lib['locationID'] ): ?>
+          <tr>
+            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
+            <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?> (Home)</button></td>
+          </tr>
+          <? break; ?>
+        <? endif; ?>
+      <? endforeach; ?>
+      <tr><td colspan="2">&nbsp;</td></tr>
+      <tr><td colspan="2" class="center"><button class="btn-default btn-wide" onclick="ToggleOtherLibraries(this)">Show Other Libraries</button></tr>
+      <tr class="otherLibraryRow" style="display:none"><td colspan="2">&nbsp;</td></tr>
+      <tr class="otherLibraryRow" style="display:none"><td colspan="2" class="modalSubheading center">Other Libraries</td></tr>
+    <? endif; ?>
     <? foreach ($this->pickup as $lib): ?>
       <? if((!isset($this->preferredLibrary) || ($this->preferredLibrary != $lib['locationID'])) && 
             (!isset($this->alternateLibrary) || ($this->alternateLibrary != $lib['locationID'])) && 
             (!isset($this->homeLibrary)      || ($this->homeLibrary != $lib['locationID']))): ?>
-        <tr class="otherLibraryRow" style="display:none">
+        <tr class="otherLibraryRow"<?=(($selectedID=="") ? "" : " style='display:none'")?>>
           <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocation" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
         </tr>
@@ -70,7 +72,8 @@
           <input type="hidden" name="holdTitles[]" value="<?=$title?>">
         <? endforeach; ?>
       <? endif; ?>
-      <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?> onclick="$('#holdFooter').css('display', 'none');$('#loadingFooter').css('display', 'block');">Okay</button>
+      <span id="holdLocationError" class="formError">You must select a pickup location for your hold.</span>
+      <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?>>Okay</button>
     </form>
   </div>
   <div id="loadingFooter" style="display:none;padding:9px;color:#3d3d3d">
@@ -97,12 +100,20 @@
       $('span[name="check-' + currentID + '"]').css("color","#fff");
       $('input[name="gatheredDetails[pickUpLocation]"]').val(chosenID);
       $('span[name="check-' + chosenID + '"]').css("color","");
+      $('#holdLocationError').css('display','none');
     }
 
     function ProcessHoldForm() {
-      Lightbox.addFormHandler('placeHold', null);
-      $('form[name="placeHold"]').attr("action", Lightbox.lastURL);
-      $('form[name="placeHold"]').get(0).submit();
+      if( ($('input[name="gatheredDetails[pickUpLocation]"]').val() == "") || ($('input[name="gatheredDetails[pickUpLocation]"]').val() == "none") ) {
+        $('#holdLocationError').css('display','inherit');
+      } else {
+        $('#holdFooter').css('display', 'none');
+        $('#loadingFooter').css('display', 'block');
+        
+        Lightbox.addFormHandler('placeHold', null);
+        $('form[name="placeHold"]').attr("action", Lightbox.lastURL);
+        $('form[name="placeHold"]').get(0).submit();
+      }
       return false;
     }
 

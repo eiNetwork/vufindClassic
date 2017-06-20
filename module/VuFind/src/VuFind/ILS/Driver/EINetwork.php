@@ -944,7 +944,7 @@ class EINetwork extends Sierra2 implements
                                              "/overdues\"><button class=\"btn-default btn-wide\">Pay Online</button></a><br><br>(You will be sent to the old version of the Catalog and will need to login into your account again.)", 
                                 "extra" => " (Total: $" . number_format($profile["moneyOwed"],2) . ") Click here for details."];
         }
-        if( $profile["preferredlibrarycode"] == null ) {
+        if( $profile["preferredlibrarycode"] == null || $profile["preferredlibrarycode"] == "none" ) {
             $notifications[] = ["subject" => "Choose a preferred library", 
                                 "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical items much easier, since your preferred library is used as the default pickup " .
                                              "location.  You can assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];

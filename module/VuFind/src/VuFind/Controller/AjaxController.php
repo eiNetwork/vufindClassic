@@ -677,7 +677,7 @@ class AjaxController extends AbstractBase
             if( (!isset($itsHere) || (trim($itsHere['status']) == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
             }
-            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation->code == $info['branchCode']) && (trim($info['status']) != 'o') && (trim($info['status']) != 'order')) {
+            if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation["code"] == $info['branchCode']) && (trim($info['status']) != 'o') && (trim($info['status']) != 'order')) {
                 $holdableCopyHere = $info;
             }
             if( !$canHold && $item["status"] == "o" ) {

@@ -1168,6 +1168,11 @@ class EINetwork extends Sierra2 implements
                             $shortId = $matches[1];
                             $bibid = '.' . $matches[1];
                             $title = $matches[2];
+                        } else {
+                            preg_match('/.*?<span class=\\"patFuncTitleMain\\">(.*?)<\/span>.*/', $scols[$i], $matches);
+                            $shortId = null;
+                            $bibid = null;
+                            $title = $matches[1];
                         }
 
                         $historyEntry['id'] = $bibid;

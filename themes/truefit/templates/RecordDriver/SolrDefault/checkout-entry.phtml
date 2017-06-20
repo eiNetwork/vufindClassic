@@ -26,7 +26,7 @@
       <div class="text-center" style="padding:10px">
         <? /* Display thumbnail if appropriate: */ ?>
         <? $largeThumb = $record->getThumbnail('large'); ?>
-        <? if ($largeThumb): ?>
+        <? if ($largeThumb && !$this->checkout["ILL"]): ?>
           <a href="<?=$this->recordLink()->getUrl($this->driver)?>">
             <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
           </a>
@@ -37,34 +37,46 @@
     </td>
     <td class="EIN-col-m-8" style="padding-right:10px">
       <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
-        <h1 property="name" class="itemTitle"><a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml((($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))) . (isset($this->checkout["volumeInfo"]) ? (" (" . $this->checkout["volumeInfo"] . ")") : ""))?></a></h1>
+        <h1 property="name" class="itemTitle">
+          <? if( $this->checkout["ILL"] ): ?>
+            <?=$this->escapeHtml($this->checkout["title"])?>
+          <? else: ?>
+            <a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml((($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))) . (isset($this->checkout["volumeInfo"]) ? (" (" . $this->checkout["volumeInfo"] . ")") : ""))?></a>
+          <? endif; ?>
+        </h1>
 
-        <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
-        <? if (isset($authors['main']) && !empty($authors['main'])): ?>
-          <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
+        <? if( $this->checkout["ILL"] ): ?>
+          <h4 property="author" class="itemAuthor"><?=$this->escapeHtml($this->checkout['author'])?></h4>
+        <? else: ?>
+          <? $authors = $this->driver->getDeduplicatedAuthors(); ?>
+          <? if (isset($authors['main']) && !empty($authors['main'])): ?>
+            <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
+          <? endif; ?>
         <? endif; ?>
 
         <table class="checkoutFormats">
-          <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
-            <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
-              <tr>
-                <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
-                <td style="padding-bottom:5px">
-                  <span class="formatTag"><?=$thisFormat?></span>
+          <? if( !$this->checkout["ILL"] ): ?>
+            <? $formats = $this->driver->getFormats(); if (!empty($formats)): ?>
+              <? $firstTime = true; foreach( $formats as $thisFormat ): ?>
+                <tr>
+                  <td class="EIN-hide-m itemDetailCategory"><?=($firstTime?"Format:":"&nbsp;")?></td>
+                  <td style="padding-bottom:5px">
+                    <span class="formatTag"><?=$thisFormat?></span>
 
-                  <? if( $firstTime ): ?>
-                    <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
-                      <? foreach ($publications as $field): ?>
-                        <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
-                          <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
-                        <? break; endif; ?>
-                      <? endforeach; ?>
+                    <? if( $firstTime ): ?>
+                      <? $publications = $this->driver->getPublicationDetails(); if (!empty($publications)): ?>
+                        <? foreach ($publications as $field): ?>
+                          <? $pubDate = $field->getDate(); if (!empty($pubDate)): ?>
+                            <span property="publicationDate" class="publishDate"><?=$this->escapeHtml($pubDate)?></span>
+                          <? break; endif; ?>
+                        <? endforeach; ?>
+                      <? endif; ?>
+                      <? $firstTime = false; ?>
                     <? endif; ?>
-                    <? $firstTime = false; ?>
-                  <? endif; ?>
-                </td>
-              </tr>
-            <? endforeach; ?>
+                  </td>
+                </tr>
+              <? endforeach; ?>
+            <? endif; ?>
           <? endif; ?>
 
           <tr>

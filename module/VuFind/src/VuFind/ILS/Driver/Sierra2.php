@@ -297,7 +297,7 @@ class Sierra2 extends Sierra implements
                 $arr = explode("/", $jsonVals->entries[$i]->item);
                 $itemId = $arr[count($arr)-1];
                 $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId . "?fields=bibIds,location,varFields"));
+                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId . "?fields=bibIds,location,varFields,callNumber"));
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                 $thisItem['institution_name'] = $itemInfo->location->name;
                 $thisItem['borrowingLocation'] = $itemInfo->location->name;
@@ -307,13 +307,21 @@ class Sierra2 extends Sierra implements
                     }
                 }
 
-                // get the bib info
-                $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
-                $thisItem['title'] = $bibInfo->title;
-                if( isset($bibInfo->publishYear) ) {
-                    $thisItem['publication_year'] = $bibInfo->publishYear;
-                }
-                $thisItem['author'] = $bibInfo->author;
+                // see if it's ILL
+                if( $itemInfo->location->code == "xzill" ) {
+                    $thisItem['title'] = $itemInfo->callNumber;
+                    $thisItem['author'] = "InterLibrary Loan";
+                    $thisItem['ILL'] = true;
+                } else {
+                    // get the bib info
+                    $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
+                    $thisItem['title'] = $bibInfo->title;
+                    if( isset($bibInfo->publishYear) ) {
+                        $thisItem['publication_year'] = $bibInfo->publishYear;
+                    }
+                    $thisItem['author'] = $bibInfo->author;
+                    $thisItem['ILL'] = false;
+	                }
 
                 $checkedOutItems[$i + $offset] = $thisItem;
             }

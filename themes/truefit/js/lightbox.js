@@ -243,7 +243,7 @@ var Lightbox = {
         if (d.status == 200) {
           try {
             var data = JSON.parse(d.responseText);
-            Lightbox.changeContent('<p class="alert alert-danger">'+data.data+'</p>');
+            Lightbox.changeContent('<p class="alert alert-danger">'+data.data.msg+'</p>');
           } catch(error) {
             Lightbox.changeContent('<p class="alert alert-danger">'+d.responseText+'</p>');
           }

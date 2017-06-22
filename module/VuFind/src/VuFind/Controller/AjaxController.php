@@ -85,10 +85,11 @@ class AjaxController extends AbstractBase
             try {
                 return call_user_func($callback);
             } catch (\Exception $e) {
-                $debugMsg = ('development' == APPLICATION_ENV)
-                    ? ': ' . $e->getMessage() : '';
+                $debugMsg = (true || ('development' == APPLICATION_ENV))
+                    ? (': ' . $e->getMessage() . (($e->getMessage() == "Read timed out after 10 seconds") ? ". Your action may not have successfully completed." : "")) : '';
                 return $this->output(
-                    ["msg" => $this->translate('An error has occurred') . $debugMsg],
+                    ["msg" => $this->translate('An error has occurred') . $debugMsg,
+                     "id" => $ids = $this->params()->fromQuery('id')],
                     self::STATUS_ERROR
                 );
             }

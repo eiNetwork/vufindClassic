@@ -101,7 +101,7 @@ class Sierra2 extends Sierra implements
         {
             // Make the NCIP request:
             try {
-                $client = $this->httpService->createClient($url, $method);
+                $client = $this->httpService->createClient($url, $method, 45);
                 $client->setHeaders(
                     array('Accept' => 'application/json; charset=UTF-8',
                           'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"]),
@@ -143,7 +143,7 @@ class Sierra2 extends Sierra implements
         }
 
         // request a new token
-        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v3/token", \Zend\Http\Request::METHOD_POST);
+        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v3/token", \Zend\Http\Request::METHOD_POST, 45);
         $client->setHeaders(
                 array('Accept' => 'application/json; charset=UTF-8',
                       'Authorization' => ('Basic ' . base64_encode($this->config['SIERRAAPI']['apiKey'] . ':' . $this->config['SIERRAAPI']['apiSecret']))));

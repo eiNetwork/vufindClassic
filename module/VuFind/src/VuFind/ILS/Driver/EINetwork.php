@@ -634,8 +634,8 @@ class EINetwork extends Sierra2 implements
      * @return mixed          Associative array of patron info on successful login,
      * null on unsuccessful login.
      */
-    public function getMyHolds($patron) {
-        if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) ) {
+    public function getMyHolds($patron, $skipCache=false) {
+        if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) && !$skipCache ) {
             return $this->session->holds;
         }
 

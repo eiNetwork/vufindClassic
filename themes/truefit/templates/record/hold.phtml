@@ -7,7 +7,7 @@
     <? $showHomeLibrary = isset($this->homeLibrary) && ($this->homeLibrary != "99") && ($this->homeLibrary != "none") && (!isset($this->preferredLibrary) || ($this->homeLibrary != $this->preferredLibrary)) && (!isset($this->alternateLibrary ) || ($this->homeLibrary != $this->alternateLibrary)); ?>
     <? $selectedID = $showPreferredLibrary ? $this->preferredLibrary : ($showAlternateLibrary ? $this->alternateLibrary : ($showHomeLibrary ? $this->homeLibrary : "")) ?>
     <? if($selectedID != ""): ?>
-      <tr><td colspan="2" class="modalSubheading center">Preferred Libraries (<?=($showPreferredLibrary?"Y":"N") . ($showAlternateLibrary?"Y":"N") . ($showHomeLibrary?"Y":"N") . $selectedID?>)</td></tr>
+      <tr><td colspan="2" class="modalSubheading center">Preferred Libraries</td></tr>
       <? foreach ($this->pickup as $lib): ?>
         <? if($showPreferredLibrary && $this->preferredLibrary == $lib['locationID'] ): ?>
           <tr>

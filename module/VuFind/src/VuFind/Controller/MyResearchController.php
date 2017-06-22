@@ -1304,7 +1304,7 @@ class MyResearchController extends AbstractBase
         }
 
         // Get held item details:
-        $result = $catalog->getMyHolds($patron);
+        $result = $catalog->getMyHolds($patron, $this->params()->fromPost('reloadHolds'));
         $holdList = ['ready' => [], 'transit' => [], 'hold' => [], 'frozen' => []];
         $this->holds()->resetValidation();
         foreach ($result as $current) {

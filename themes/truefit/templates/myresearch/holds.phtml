@@ -39,9 +39,15 @@
   <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9 panel-group" id="holdAccordion">
     <h1 class="pageTitle EIN-hide-t EIN-hide">Holds</h1>
     <? if( $totalHolds == 0 ): ?>
-      <div class="EIN-col-m-12" style="height:110px"></div>
-      <div class="center">You don't currently have any holds.</div>
-      <div class="EIN-col-m-12" style="height:110px"></div>
+      <div class="EIN-col-m-12" style="height:50px"></div>
+      <div class="center" style="margin:0px 20px">You don't currently have any holds. If you have recently placed a hold, it may be a few minutes before it appears on this page. You can use the button below to check.</div><br>
+      <div class="center">
+        <form action="<?=$this->url('myresearch-holds')?>" method="post">
+          <input type="hidden" name="reloadHolds" value="true">
+          <button class="btn-default btn-wide">Refresh My Holds</button>
+        </form>
+      </div>
+      <div class="EIN-col-m-12" style="height:50px"></div>
     <? else: ?>
       <? foreach($order as $holdType): ?>
         <div class="panel panel-default listAccordion">
@@ -66,6 +72,16 @@
                   </div>
                 </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+                <? if( $holdType == "all" ): ?>
+                  <div class="center" style="margin:0px 20px">If you have recently placed a hold, it may be a few minutes before it appears on this page. You can use the button below to check.</div><br>
+                  <div class="center">
+                    <form action="<?=$this->url('myresearch-holds')?>" method="post">
+                      <input type="hidden" name="reloadHolds" value="true">
+                      <button class="btn-default btn-wide">Refresh My Holds</button>
+                    </form>
+                  </div>
+                  <div class="EIN-col-m-12"><hr style="margin:15px 0px 5px"></div>
+                <? endif; ?>
                 <? foreach ($this->holdList[$holdType] as $current): ?>
                   <?=$this->record($current["driver"])->getHoldEntry($current, ($holdType == 'all'))?>
                 <? endforeach; ?>

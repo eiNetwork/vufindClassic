@@ -33,6 +33,7 @@
 namespace VuFind\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
+use Memcached;
 
 /**
  * Sierra (III) ILS Driver for Vufind2
@@ -49,6 +50,7 @@ class Sierra2 extends Sierra implements
     use \VuFindHttp\HttpServiceAwareTrait;
 
     protected $authorizationCode = null;
+    protected $memcached = null;
 
     /**
      * Initialize the driver.
@@ -62,6 +64,10 @@ class Sierra2 extends Sierra implements
     public function init()
     {
         // this function does nothing, but it's necessary to override the Sierra init() function that creates a postgres connection
+
+        // start memcached
+        $this->memcached = new Memcached();
+        $this->memcached->addServer('localhost', 11211);
     }
 
     /**
@@ -104,7 +110,7 @@ class Sierra2 extends Sierra implements
                 $client = $this->httpService->createClient($url, $method, 45);
                 $client->setHeaders(
                     array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $_SESSION["SIERRA_API_TOKEN"]),
+                          'Authorization' => ('Bearer ' . $this->memcached->get("SIERRA_API_TOKEN")),
                           'Content-Type' => 'application/json',
                           'Connection' => 'close'));
                 if( $body != null ) 
@@ -134,9 +140,9 @@ class Sierra2 extends Sierra implements
     protected function connectToSierraAPI($refreshToken)
     {
         // see if we already have a valid token
-        if( isset($_SESSION["SIERRA_API_TOKEN"]) && !$refreshToken ) 
+        if( $this->memcached->get("SIERRA_API_TOKEN") && !$refreshToken ) 
         {
-            if( isset($_SESSION["SIERRA_API_TOKEN_EXPIRATION"]) && (time() < $_SESSION["SIERRA_API_TOKEN_EXPIRATION"]) ) 
+            if( $this->memcached->get("SIERRA_API_TOKEN_EXPIRATION") && (time() < $this->memcached->get("SIERRA_API_TOKEN_EXPIRATION")) ) 
             {
                 return true;
             }
@@ -157,8 +163,8 @@ class Sierra2 extends Sierra implements
 
         if( isset($result["access_token"]) && isset($result["expires_in"]) )
         {
-            $_SESSION["SIERRA_API_TOKEN"] = $result["access_token"];
-            $_SESSION["SIERRA_API_TOKEN_EXPIRATION"] = time() + $result["expires_in"];
+            $this->memcached->set("SIERRA_API_TOKEN", $result["access_token"]);
+            $this->memcached->set("SIERRA_API_TOKEN_EXPIRATION", time() + $result["expires_in"]);
             return true;
         }
         else
@@ -832,7 +838,7 @@ class Sierra2 extends Sierra implements
      */
     public function isSerial($id)
     {
-        $bibs = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/?fields=id,bibLevel&suppressed=false&id=" . substr($id,2,-1)));
+        $bibs = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . substr($id,2,-1) . "/?fields=id,bibLevel&suppressed=false"));
         if( isset($bibs->entries) ) {
             foreach($bibs->entries as $thisEntry) {
                 if( $thisEntry->bibLevel->code == "s" ) {

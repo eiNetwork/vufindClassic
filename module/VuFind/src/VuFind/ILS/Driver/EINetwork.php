@@ -9,7 +9,6 @@ namespace VuFind\ILS\Driver;
 use VuFind\Exception\ILS as ILSException;
 use Zend\Session\Container as SessionContainer;
 use DateTime;
-use Memcached;
 
 class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
@@ -18,7 +17,6 @@ class EINetwork extends Sierra2 implements
     use \VuFind\ILS\Driver\OverDriveTrait;
 
     protected $session = null;
-    protected $memcached = null;
 
     /**
      * Initialize the driver.
@@ -35,10 +33,6 @@ class EINetwork extends Sierra2 implements
 
         // create the session
         $this->session = new SessionContainer("EINetwork");
-
-        // start memcached
-        $this->memcached = new Memcached();
-        $this->memcached->addServer('localhost', 11211);
     }
 
     public function getConfigVar($section, $name) {

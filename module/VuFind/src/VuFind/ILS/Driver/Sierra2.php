@@ -734,7 +734,7 @@ class Sierra2 extends Sierra implements
     {
         try {
             $holdings = [];
-            $pageSize = 20;
+            $pageSize = 100;
             $currentOffset = 0;
             do {
                 $processed = 0;

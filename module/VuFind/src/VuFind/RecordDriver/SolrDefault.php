@@ -607,6 +607,17 @@ class SolrDefault extends AbstractBase
     }
 
     /**
+     * Get the items attached to the record.
+     *
+     * @return array
+     */
+    public function getItems()
+    {
+        return isset($this->fields['items'])
+            ? $this->fields['items'] : [];
+    }
+
+    /**
      * Get an array of all the languages associated with the record.
      *
      * @return array

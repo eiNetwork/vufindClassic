@@ -736,10 +736,23 @@ class Sierra2 extends Sierra implements
             $holdings = [];
             $pageSize = 100;
             $currentOffset = 0;
+            $itemIDlist = ($this->memcached->get("items" . $id) !== null) ? $this->memcached->get("items" . $id) : null;
             do {
                 $processed = 0;
-                $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
-                if( !isset($apiHoldings->entries) ) {
+                if( $itemIDlist !== null ) {
+                  $apiHoldings = null;
+                  if( count($itemIDlist) ) {
+                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&id=19";
+                    for( $i=$currentOffset; $i<($currentOffset + $pageSize) && $i<count($itemIDlist); $i++ ) {
+                      $url .= "," . substr($itemIDlist[$i],1);
+                    }
+                    $url .= "&limit=" . $pageSize; // . "&offset=" . $currentOffset;
+                    $apiHoldings = json_decode($this->sendAPIRequest($url));
+                  }
+                } else {
+                  $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                }
+                if( ($itemIDlist == null) && !isset($apiHoldings->entries) ) {
                     break;
 /***** BJP => This is commented out for now, due to the API not giving us this info anymore.
               It is supposed to return sometime soon, so we can just uncomment it and remove 
@@ -802,7 +815,7 @@ class Sierra2 extends Sierra implements
                     }
                 }
                 $currentOffset += $pageSize;
-            } while( $processed == $pageSize );
+            } while( $processed == $pageSize || (($itemIDlist != null) && ($currentOffset < count($itemIDlist)) && (currentOffset == 0)) );
 
             return $holdings;
         } catch (\Exception $e) {

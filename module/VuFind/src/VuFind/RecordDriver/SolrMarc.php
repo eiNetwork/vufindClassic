@@ -1043,8 +1043,12 @@ class SolrMarc extends SolrDefault
      */
     public function getRealTimeHoldings()
     {
+        $id = $this->getUniqueID();
+        if( $this->hasILS() && !$this->ils->getMemcachedVar("items" . $id) ) {
+            $this->ils->setMemcachedVar("items" . $id, $this->getItems());
+        }
         return $this->hasILS() ? $this->holdLogic->getHoldings(
-            $this->getUniqueID(), $this->getConsortialIDs()
+            $id, $this->getConsortialIDs()
         ) : [];
     }
 

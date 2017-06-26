@@ -298,7 +298,7 @@ class EINetwork extends Sierra2 implements
                         "copiesAvailable" => $availability->collections[0]->copiesAvailable,
                         "numberOfHolds" => $availability->collections[0]->numberOfHolds,
                         "availability" => ($availability->collections[0]->copiesAvailable > 0)
-                       ]], 120);
+                       ]], 900);
                 return $this->memcached->get("holdingID" . $id);
             }
             $results = parent::getHolding($id, $patron);
@@ -440,7 +440,7 @@ class EINetwork extends Sierra2 implements
                 array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "availability" => false, "status" => "?", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
             }
 
-            $this->memcached->set("holdingID" . $id, $results2, 120);
+            $this->memcached->set("holdingID" . $id, $results2, 900);
         }
         return $this->memcached->get("holdingID" . $id);
     }

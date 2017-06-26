@@ -1,1 +1,5 @@
 /* override whatever is in the bootstrap css file */
+
+.bold {
+  font-weight: bold;
+}

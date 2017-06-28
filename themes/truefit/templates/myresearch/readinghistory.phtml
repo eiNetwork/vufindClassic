@@ -21,7 +21,11 @@
         </span>
         <div style="display:none">
           <? foreach ($this->readingHistory["titles"] as $i=>$current): ?>
-            <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"])?>
+            <? if( isset($current["driver"]) ): ?>
+              <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"])?>
+            <? else: ?>
+              <?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $current["rsh"], 'count' => $i])?>
+            <? endif; ?>
           <? endforeach; ?>
         </div>
       </form>
@@ -34,7 +38,7 @@
           <td style="text-align:right">Checked Out</td>
         </tr>
         <? $lastIndex = -1; ?>
-        <? foreach( $this->readingHistory["titles"] as $item ): ?>
+        <? foreach( $this->readingHistory["titles"] as $i=>$item ): ?>
           <? if( isset($item["driver"]) ): ?>
             <? $record = $this->record($item["driver"]); ?>
             <? $lastIndex = (isset($item["itemindex"]) && ($item["itemindex"] > $lastIndex)) ? $item["itemindex"] : $lastIndex; ?>
@@ -65,7 +69,7 @@
           <? else: ?>
             <tr class="historyItem">
               <td style="margin:auto">
-                <span class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></span>
+                <span class="pull-left flip checkBoxLabel"><?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $item["rsh"], 'count' => $i])?></span>
               </td>
               <td style="padding:15px 5px" class="itemTitle">
                 <span class="unlinkedTitle"><?=$this->escapeHtml($item["title"])?></span>

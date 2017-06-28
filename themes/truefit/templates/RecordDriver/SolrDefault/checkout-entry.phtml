@@ -26,7 +26,7 @@
       <div class="text-center" style="padding:10px">
         <? /* Display thumbnail if appropriate: */ ?>
         <? $largeThumb = $record->getThumbnail('large'); ?>
-        <? if ($largeThumb && !$this->checkout["ILL"]): ?>
+        <? if ($largeThumb && !$this->checkout["ILL"] && (get_class($this->driver) != "VuFind\RecordDriver\Missing")): ?>
           <a href="<?=$this->recordLink()->getUrl($this->driver)?>">
             <img alt="<?=$this->transEsc('Cover Image')?>" class="recordcover" src="<?=$this->escapeHtmlAttr($largeThumb);?>"/>
           </a>
@@ -38,7 +38,7 @@
     <td class="EIN-col-m-8" style="padding-right:10px">
       <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
         <h1 property="name" class="itemTitle">
-          <? if( $this->checkout["ILL"] ): ?>
+          <? if( $this->checkout["ILL"] || (get_class($this->driver) == "VuFind\RecordDriver\Missing") ): ?>
             <?=$this->escapeHtml($this->checkout["title"])?>
           <? else: ?>
             <a href="<?=$this->recordLink()->getUrl($this->driver)?>"><?=$this->escapeHtml((($this->driver->getShortTitle() == "") ? trim($this->driver->getTitle(),"\0\t\n\x0B\r /") : (trim($this->driver->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($this->driver->getTitleSection(),"\0\t\n\x0B\r /"))) . (isset($this->checkout["volumeInfo"]) ? (" (" . $this->checkout["volumeInfo"] . ")") : ""))?></a>

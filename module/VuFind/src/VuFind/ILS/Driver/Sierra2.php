@@ -191,7 +191,6 @@ class Sierra2 extends Sierra implements
 /** BP => Authorization Code Grant **
         $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/find?barcode=" . $patron['barcode'] . 
                                                       "&fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
-//        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/2865172"), true );
 /** **/
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
@@ -289,7 +288,7 @@ class Sierra2 extends Sierra implements
 
         while( count($checkedOutItems) < $jsonVals->total ) {
             // make the initial items API call to get base info
-            $itemIDList = "19";
+            $itemIDList = "";
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 // get the item id
                 $arr = explode("/", $jsonVals->entries[$i]->item);
@@ -297,10 +296,14 @@ class Sierra2 extends Sierra implements
 
                 $itemIDList .= "," . $itemId;
             }
-            $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . $itemIDList));
+            if( strlen($itemIDList) > 0 ) {
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . substr($itemIDList,1)));
+            } else {
+                $itemInfoJson = json_decode("{'entries':[]}");
+            }
 
             // parse this response into a dictionary and create the bibID list
-            $bibIDList = "19";
+            $bibIDList = "";
             $itemInfoList = [];
             for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
                 // add the bib id to the list
@@ -312,7 +315,11 @@ class Sierra2 extends Sierra implements
 
             // grab the bib info and parse it into a dictionary
             $bibInfoList = [];
-            $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=title,publishYear,author&limit=50&id=" . $bibIDList));
+            if( strlen($bibIDList) > 0 ) {
+                $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=title,publishYear,author&limit=50&id=" . substr($bibIDList,1)));
+            } else {
+                $bibInfoJson = json_decode("{'entries':[]}");
+            }
             for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
                 // put this bib info into the parsed dictionary
                 $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
@@ -449,8 +456,8 @@ class Sierra2 extends Sierra implements
 
         while( count($holds) < $jsonVals->total ) {
             // make the initial items API call to get bib info
-            $itemIDList = "19";
-            $bibIDList = "19";
+            $itemIDList = "";
+            $bibIDList = "";
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 // get the item id
                 $arr = explode("/", $jsonVals->entries[$i]->record);
@@ -464,8 +471,8 @@ class Sierra2 extends Sierra implements
                 }
             }
             $itemInfoList = [];
-            if( $itemIDList != "19" ) {
-                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields&limit=50&id=" . $itemIDList));
+            if( strlen($itemIDList) > 0 ) {
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields&limit=50&id=" . substr($itemIDList,1)));
 
                 // parse this response into a dictionary and create the bibID list
                 for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
@@ -479,7 +486,11 @@ class Sierra2 extends Sierra implements
 
             // grab the bib info and parse it into a dictionary
             $bibInfoList = [];
-            $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=publishYear&limit=50&id=" . $bibIDList));
+            if( strlen($bibIDList) > 0 ) {
+                $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=publishYear&limit=50&id=" . substr($bibIDList,1)));
+            } else {
+                $bibInfoJson = json_decode("{'entries':[]}");
+            }
             for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
                 // put this bib info into the parsed dictionary
                 $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
@@ -817,7 +828,7 @@ class Sierra2 extends Sierra implements
                     $apiHoldings = json_decode($this->sendAPIRequest($url));
                   }
                 } else {
-                  $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                  $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                 }
                 if( ($itemIDlist == null) && !isset($apiHoldings->entries) ) {
                     break;
@@ -826,7 +837,7 @@ class Sierra2 extends Sierra implements
               the orders functionality added to the EINetwork driver.  At that point, we also
               need to remove the break above.
                     //If there are no attached items, check to see if it is on order
-                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                     if( !isset($apiOrders->entries) ) {
                         break;
                     }

@@ -71,7 +71,7 @@
           <? if (isset($list) && !($list->isBookCart())): ?>
             <? if ($list->editAllowed($account->isLoggedIn())): ?>
               <div class="EIN-col-m-12" style="height:10px"></div>
-              <div class="EIN-col-m-12 center">Edit List:
+              <div class="EIN-col-m-12 center">
                 <button class="btn-alternate btn-wide EIN-hide-m" onclick="Lightbox.get('MyResearch', 'EditList', {'id':'<?=$list->id?>'})"><i class="fa fa-pencil"></i><?=$this->transEsc("edit_list")?></button></td>
                 <button class="btn-alternate btn-wide EIN-hide-m" onclick="Lightbox.get('MyResearch', 'DeleteList', {'id':'<?=$list->id?>'})"><i class="fa fa-trash"></i><?=$this->transEsc("delete_list")?></button></td>
               </div>

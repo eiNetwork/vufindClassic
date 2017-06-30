@@ -288,6 +288,36 @@ class Sierra2 extends Sierra implements
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
 
         while( count($checkedOutItems) < $jsonVals->total ) {
+            // make the initial items API call to get base info
+            $itemIDList = "19";
+            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+                // get the item id
+                $arr = explode("/", $jsonVals->entries[$i]->item);
+                $itemId = $arr[count($arr)-1];
+
+                $itemIDList .= "," . $itemId;
+            }
+            $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . $itemIDList));
+
+            // parse this response into a dictionary and create the bibID list
+            $bibIDList = "19";
+            $itemInfoList = [];
+            for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
+                // add the bib id to the list
+                $bibIDList .= "," . $itemInfoJson->entries[$i]->bibIds[0];
+
+                // put this item info into the parsed dictionary
+                $itemInfoList[$itemInfoJson->entries[$i]->id] = $itemInfoJson->entries[$i];
+            }
+
+            // grab the bib info and parse it into a dictionary
+            $bibInfoList = [];
+            $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=title,publishYear,author&limit=50&id=" . $bibIDList));
+            for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
+                // put this bib info into the parsed dictionary
+                $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
+            }
+
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
@@ -303,7 +333,7 @@ class Sierra2 extends Sierra implements
                 $arr = explode("/", $jsonVals->entries[$i]->item);
                 $itemId = $arr[count($arr)-1];
                 $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-                $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId . "?fields=bibIds,location,varFields,callNumber"));
+                $itemInfo = $itemInfoList[$itemId];
                 $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                 $thisItem['institution_name'] = $itemInfo->location->name;
                 $thisItem['borrowingLocation'] = $itemInfo->location->name;
@@ -320,14 +350,14 @@ class Sierra2 extends Sierra implements
                     $thisItem['ILL'] = true;
                 } else {
                     // get the bib info
-                    $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $itemInfo->bibIds[0]));
+                    $bibInfo = $bibInfoList[$itemInfo->bibIds[0]];
                     $thisItem['title'] = $bibInfo->title;
                     if( isset($bibInfo->publishYear) ) {
                         $thisItem['publication_year'] = $bibInfo->publishYear;
                     }
                     $thisItem['author'] = $bibInfo->author;
                     $thisItem['ILL'] = false;
-	                }
+                }
 
                 $checkedOutItems[$i + $offset] = $thisItem;
             }
@@ -418,6 +448,43 @@ class Sierra2 extends Sierra implements
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
 
         while( count($holds) < $jsonVals->total ) {
+            // make the initial items API call to get bib info
+            $itemIDList = "19";
+            $bibIDList = "19";
+            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+                // get the item id
+                $arr = explode("/", $jsonVals->entries[$i]->record);
+                $id = $arr[count($arr)-1];
+                $itemId = $id;
+                // it's an item-level hold
+                if( count($arr) >= 2 && ($arr[count($arr)-2] == "items") ) {
+                    $itemIDList .= "," . $itemId;
+                } else {
+                    $bibIDList .= "," . $itemId;
+                }
+            }
+            $itemInfoList = [];
+            if( $itemIDList != "19" ) {
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields&limit=50&id=" . $itemIDList));
+
+                // parse this response into a dictionary and create the bibID list
+                for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
+                    // add the bib id to the list
+                    $bibIDList .= "," . $itemInfoJson->entries[$i]->bibIds[0];
+
+                    // put this item info into the parsed dictionary
+                    $itemInfoList[$itemInfoJson->entries[$i]->id] = $itemInfoJson->entries[$i];
+                }
+            }
+
+            // grab the bib info and parse it into a dictionary
+            $bibInfoList = [];
+            $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=publishYear&limit=50&id=" . $bibIDList));
+            for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
+                // put this bib info into the parsed dictionary
+                $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
+            }
+
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
@@ -442,7 +509,7 @@ class Sierra2 extends Sierra implements
                 // it's an item-level hold
                 if( count($arr) >= 2 && ($arr[count($arr)-2] == "items") ) {
                     $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
-                    $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $id . "?fields=bibIds,varFields"));
+                    $itemInfo = $itemInfoList[$id];
                     $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                     $bibId = $itemInfo->bibIds[0];
                     foreach( $itemInfo->varFields as $thisVarField ) {
@@ -456,7 +523,7 @@ class Sierra2 extends Sierra implements
                 }
 
                 // get the bib info
-                $bibInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . $bibId));
+                $bibInfo = $bibInfoList[$bibId];
                 if( isset($bibInfo->publishYear) ) {
                     $thisItem['publication_year'] = $bibInfo->publishYear;
                 }
@@ -851,12 +918,10 @@ class Sierra2 extends Sierra implements
      */
     public function isSerial($id)
     {
-        $bibs = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . substr($id,2,-1) . "/?fields=id,bibLevel&suppressed=false"));
-        if( isset($bibs->entries) ) {
-            foreach($bibs->entries as $thisEntry) {
-                if( $thisEntry->bibLevel->code == "s" ) {
-                    return true;
-                }
+        $thisBib = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . substr($id,2,-1) . "?fields=id,bibLevel"));
+        if( isset($thisBib->bibLevel) ) {
+            if( $thisBib->bibLevel->code == "s" ) {
+                return true;
             }
         }
         return false;

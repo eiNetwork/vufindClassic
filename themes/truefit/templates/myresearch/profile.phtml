@@ -165,7 +165,7 @@
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Preferred Library</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
               <? $selected = (isset($this->profile['preferredlibrarycode']) && $this->profile['preferredlibrarycode'] != "") ? $this->profile['preferredlibrarycode'] : $this->defaultPickupLocation ?>
-              <? $caption = ($selected == "none") ? "None Selected" : ""; ?>
+              <? $caption = (!$selected || ($selected == "none")) ? "None Selected" : ""; ?>
               <? foreach ($this->pickup as $lib): ?>
                 <? if( ($caption == "") || ($lib['locationID'] == $selected) ): ?>
                   <? $caption = $lib['locationDisplay']; ?>
@@ -185,7 +185,7 @@
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">Alternate Library</div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8">
               <? $selected = (isset($this->profile['alternatelibrarycode']) && $this->profile['alternatelibrarycode'] != "") ? $this->profile['alternatelibrarycode'] : $this->defaultPickupLocation ?>
-              <? $caption = ($selected == "none") ? "None Selected" : ""; ?>
+              <? $caption = (!$selected || ($selected == "none")) ? "None Selected" : ""; ?>
               <? foreach ($this->pickup as $lib): ?>
                 <? if( ($caption == "") || ($lib['locationID'] == $selected) ): ?>
                   <? $caption = $lib['locationDisplay']; ?>

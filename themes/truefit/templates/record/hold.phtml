@@ -2,8 +2,8 @@
 <h2><?=$this->transEsc(($this->changePickup?"Change ":"")."Pickup Location")?></h2>
 <div class="hold-form">
   <table class="pickupLocationTable">
-    <? $showPreferredLibrary = isset($this->preferredLibrary) && ($this->preferredLibrary != "none"); ?>
-    <? $showAlternateLibrary = isset($this->alternateLibrary) && ($this->alternateLibrary != "none") && (!isset($this->preferredLibrary) || ($this->alternateLibrary != $this->preferredLibrary)); ?>
+    <? $showPreferredLibrary = isset($this->preferredLibrary) && ($this->preferredLibrary != "none") && ($this->preferredLibrary != ""); ?>
+    <? $showAlternateLibrary = isset($this->alternateLibrary) && ($this->alternateLibrary != "none") && ($this->alternateLibrary != "") && (!isset($this->preferredLibrary) || ($this->alternateLibrary != $this->preferredLibrary)); ?>
     <? $showHomeLibrary = isset($this->homeLibrary) && ($this->homeLibrary != "99") && ($this->homeLibrary != "none") && (!isset($this->preferredLibrary) || ($this->homeLibrary != $this->preferredLibrary)) && (!isset($this->alternateLibrary ) || ($this->homeLibrary != $this->alternateLibrary)); ?>
     <? $selectedID = $showPreferredLibrary ? $this->preferredLibrary : ($showAlternateLibrary ? $this->alternateLibrary : ($showHomeLibrary ? $this->homeLibrary : "")) ?>
     <? if($selectedID != ""): ?>
@@ -20,7 +20,7 @@
       <? foreach ($this->pickup as $lib): ?>
         <? if($showAlternateLibrary && $this->alternateLibrary == $lib['locationID'] ): ?>
           <tr>
-            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
+            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
             <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?></button></td>
           </tr>
           <? break; ?>
@@ -29,7 +29,7 @@
       <? foreach ($this->pickup as $lib): ?>
         <? if($showHomeLibrary && $this->homeLibrary == $lib['locationID'] ): ?>
           <tr>
-            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>" style="color:#fff"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
+            <td><span class="bigGreenCheck" name="check-<?=$this->escapeHtmlAttr($lib['locationID']).(($lib['locationID'] == $selectedID)?"":"\" style=\"color:#fff")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></td>
             <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocationPreferred" onclick="return SelectPickupLocation('<?=$this->escapeHtmlAttr($lib['locationID'])?>');"><?=$this->escapeHtml($lib['locationDisplay'])?> (Home)</button></td>
           </tr>
           <? break; ?>

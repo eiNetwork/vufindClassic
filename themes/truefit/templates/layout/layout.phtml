@@ -75,7 +75,7 @@
     <link href="/themes/truefit/css/einetwork.css?cacheBuster=10" media="all" rel="stylesheet" type="text/css">
     <script src="/themes/truefit/js/hmac-sha256.js"></script>
     <script src="/themes/truefit/js/enc-base64-min.js"></script>
-    <script src="/themes/truefit/js/backgroundLoader.js?cacheBuster=1"></script>
+    <script src="/themes/truefit/js/backgroundLoader.js?cacheBuster=2"></script>
   </head>
   <body>
     <!-- *google analytics* -->
@@ -138,12 +138,12 @@
           $(window).scroll(moveButtons);
           $(window).resize(moveButtons);
 
-<?    /* log them out if they're at a library location AND this isn't a background loader page AND */ 
-  if( $this->ils()->getDriver()->getCurrentLocation() && !isset($_REQUEST["backgroundLoad"]) && 
-      /* they're logged in OR not on the home page */
-      ($account->isLoggedIn() || ($_SERVER["REQUEST_URI"] != "/")) ): 
+<?    /* log them out if they're at a library location AND (they're logged in OR not on the home page) */ 
+  if( $this->ils()->getDriver()->getCurrentLocation() && ($account->isLoggedIn() || ($_SERVER["REQUEST_URI"] != "/")) ): 
 ?>
-          autoLogoutResetTimer();
+          if( self.window === self.top ) {
+            autoLogoutResetTimer();
+          }
 <? endif; ?>
         });
 

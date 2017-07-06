@@ -104,12 +104,15 @@
 <script type="text/javascript">
   var pageNum = 2;
   function LoadMoreHistory() {
+    $('.historyShowMore').prop("disabled", true).html("<span><i class=\"fa fa-spinner\"></i></span><span>&nbsp;Loading...</span>");
     $('#loginFrame').attr("src", "<?=$this->url('myresearch-readinghistory')?>?pageNum=" + pageNum);
+    $('#loginFrame').unbind("load"); 
     $('#loginFrame').load( function() { 
       $(this).contents().find('.readingHistoryTable tr').not('.historyHeaderRow').each( function() {
         $(this).clone().insertAfter($('.readingHistoryTable tr:last'));
         $(".ajaxReadingHistory").next().append($(this).find("span.pull-left").find("span").clone());
       });
+      $('.historyShowMore').prop("disabled", false).html("<i class='fa fa-repeat'></i>&nbsp;<?=$this->transEsc("reading_history_load_more")?>");
       $('.historyShowMore').css('display', ($(this).contents().find('.historyShowMore').length > 0) ? 'inline-block' : 'none');
     } );
     pageNum++;

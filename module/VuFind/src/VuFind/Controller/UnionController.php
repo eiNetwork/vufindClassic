@@ -46,11 +46,7 @@ class UnionController extends AbstractSearch
      */
     public function searchAction()
     {
-        //$this->getRequest()->getQuery()->set('type', $this->getRequest()->getQuery()->basicType); 
-        //return $this->forwardTo('Search', 'Results');
-
-        return $this->redirect()->toUrl('/Search/Results?type=' . $this->getRequest()->getQuery()->basicType . '&lookfor=' . $this->getRequest()->getQuery()->lookfor);
-        //return $this->redirect()->toUrl($this->url()->fromRoute('search-results', ['type' => $this->getRequest()->getQuery()->basicType, 'lookfor' => $this->getRequest()->getQuery()->lookfor]));
+        return $this->redirect()->toUrl('/Search/Results?type=' . (isset($this->getRequest()->getQuery()->basicType) ? $this->getRequest()->getQuery()->basicType : "Keyword") . '&lookfor=' . (isset($this->getRequest()->getQuery()->lookfor) ? $this->getRequest()->getQuery()->lookfor : $this->getRequest()->getQuery()->q));
     }
 }
 

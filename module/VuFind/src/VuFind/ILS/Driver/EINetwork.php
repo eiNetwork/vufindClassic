@@ -939,7 +939,7 @@ class EINetwork extends Sierra2 implements
                                 "extra" => " (Total: $" . number_format($profile["moneyOwed"],2) . ") Click here for details."];
         }
         if( $profile["preferredlibrarycode"] == null || $profile["preferredlibrarycode"] == "none" ) {
-            $notifications[] = ["attnSubject" => "<span class=\"messageWarning\">Please choose a preferred library. Click here to learn how.</span>", 
+            $notifications[] = ["attnSubject" => "<span class=\"messageWarning\">Please choose a preferred library.</span> Click here to learn how.", 
                                 "subject" => "Choose a preferred library", 
                                 "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical items much easier, since your preferred library is used as the default pickup " .
                                              "location.  You can assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];

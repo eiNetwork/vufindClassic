@@ -16,7 +16,7 @@
       if( isset($item["number"]) && $item["number"]):
         $hasVolumes = true;
       endif;
-      if( isset($item["status"]) && $item["status"]=="order" ):
+      if( isset($item["status"]) && (($item["status"]=="order") || ($item["status"]=="i")) ):
         $onOrder = true;
       endif;      
     endforeach;
@@ -142,7 +142,7 @@
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
-              <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . ($onOrder ? 'On Order' : (isset($itsHere) ? 'It\'s Here!' : ($isOneClick ? 'Access Online' : 'Available')))) : "Unavailable")?></span>
+              <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . (isset($itsHere) ? 'It\'s Here!' : (($availableCopies > 0) ? 'Available' : ($onOrder ? 'On Order' : ($isOneClick ? 'Access Online' : 'Available'))))) : "Unavailable")?></span>
               <? if( $alwaysAvailable ): ?>
                 <span class="availableCopyText">Always Available</span>
               <? elseif( $isOneClick ): ?>

@@ -662,7 +662,7 @@ class AjaxController extends AbstractBase
                 $available = true;
                 $availableItems += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
             }
-            if (trim($info['status']) == 'order') {
+            if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
                 $onOrder = true;
             }
             //$totalItems += ((isset($item["isOverDrive"]) && $item["isOverDrive"]) | ($onOrder)) ? $item["copiesOwned"] : 1;

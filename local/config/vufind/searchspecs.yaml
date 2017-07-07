@@ -323,7 +323,7 @@ Title:
     DismaxFields:
       - title_unstemmed^450
     QueryFields:
-      - title_unstemmed:
+      title_unstemmed:
         - [onephrase, 450]
         - [and, 400]
 

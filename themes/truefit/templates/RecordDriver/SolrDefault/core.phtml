@@ -127,7 +127,7 @@
             <? else: ?>
               <? $availableCopies += $item["availability"]; ?>
               <? $noncirculatingCopies += ($item["status"] == "o"); ?>
-              <? if(!isset($itsHere) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
+              <? if((!isset($itsHere) || ($itsHere["status"] == "o")) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
                 <? $itsHere = $item; ?>
               <? endif; ?>
               <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"]) && ($item["status"] != "o") && ($item["status"] != "order")): ?>

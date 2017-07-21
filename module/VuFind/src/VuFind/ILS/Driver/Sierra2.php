@@ -994,24 +994,4 @@ class Sierra2 extends Sierra implements
     {
         return $this->getHolding($id);
     }
-
-    /**
-     * Test Serial
-     *
-     * This checks the API to see if this bib has a serial type.
-     *
-     * @param string $id The record id to test the bibLevel
-     *
-     * @return bool  Whether or not this bib is a serial type (used to determine if we need to look for checkin records)
-     */
-    public function isSerial($id)
-    {
-        $thisBib = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs/" . substr($id,2,-1) . "?fields=id,bibLevel"));
-        if( isset($thisBib->bibLevel) ) {
-            if( $thisBib->bibLevel->code == "s" ) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

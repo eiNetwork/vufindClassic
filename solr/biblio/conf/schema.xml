@@ -130,6 +130,7 @@
    <field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
    <field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
+   <field name="bib_level" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="format" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
    <field name="format_category" type="string" indexed="true" stored="true" multiValued="true"/>

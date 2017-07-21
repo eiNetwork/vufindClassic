@@ -34,17 +34,60 @@ function handleHoldStatusResponse(response) {
 
 function checkItemStatuses() {
   var id = $.map($('.ajaxItem'), function(i) {
-    return $(i).find('.hiddenId')[0].value;
+    return [$.map($(i).find('.hiddenItemId'), function(j) { return $(j)[0].value; } )];
   });
   if (!id.length) {
     return;
   }
   $(".ajax-availability").removeClass('hidden');
+
+  // sort these by number of items
+  id.sort(function(a,b) { return a.length - b.length; });
+
+  var itemPreloadIDs = [];
+  var pageSize = 100;
   while( id.length ) {
+    itemPreloadIDs = itemPreloadIDs.concat(id[0].splice(0, pageSize - itemPreloadIDs.length));
+    if( id[0].length == 0 ) {
+      id.splice(0,1);
+    }
+    if( itemPreloadIDs.length == pageSize ) {
+      $.ajax({
+        dataType: 'json',
+        url: path + '/AJAX/JSON?method=preloadItemStatuses',
+        data: {itemID:itemPreloadIDs},
+        success: handleItemPreloadResponse
+      });
+      itemPreloadIDs = [];
+    }
+  }
+
+  $.ajax({
+    dataType: 'json',
+    url: path + '/AJAX/JSON?method=preloadItemStatuses',
+    data: {itemID:itemPreloadIDs},
+    success: handleItemPreloadResponse
+  });
+}
+
+function handleItemPreloadResponse(response) {  
+  if(response.status == 'OK') {
+    // remove all of the preloaded items
+    $.each(response.data.itemIDs, function(i, result) {
+      $('.hiddenItemId[value="' + result + '"]').remove();
+    } );
+    // grab all of the bibIDs
+    var bibIDs = [];
+    $('.hiddenLoadThisStatus').each( function() {
+      if( $(this).siblings('.hiddenItemId').length == 0 ) {
+        bibIDs.push($(this).siblings('.hiddenId')[0].value);
+        $(this).remove();
+      }
+    } );
     $.ajax({
       dataType: 'json',
       url: path + '/AJAX/JSON?method=getItemStatuses',
-      data: {id:id.splice(0,4)},
+      data: {id:bibIDs},
       success: handleItemStatusResponse
     });
   }
@@ -190,21 +233,31 @@ function handleItemStatusResponse(response) {
     });
   // it was a time out.  try again.
   } else if( response.data.msg.indexOf("timed out") != -1 ) {
-    $.ajax({
-      dataType: 'json',
-      url: path + '/AJAX/JSON?method=getItemStatuses',
-      data: {id:JSON.parse(response.data.id)},
-      success: handleItemStatusResponse
+/*
+    $.each(response.data.id, function(i, bib) {
+      alert("no dice on " + bib + ",  retrying #2");
+      $.ajax({
+        dataType: 'json',
+        url: path + '/AJAX/JSON?method=getItemStatuses',
+        data: {id:[bib]},
+        success: handleItemStatusResponse
+      });
     });
+*/
   // display the error message on each of the ajax status place holder
   } else {
 //alert("ERROR");
-//alert(JSON.stringify(response));
-    $.each(JSON.parse(response.data.id), function(i, bib) {
-      var item = $('.hiddenId[value="' + bib + '"]').parents('.ajaxItem');
-      item.find(".ajax-availability").empty().append(response.data.msg);
-      item.find(".ajax-availability").removeClass('ajax-availability');
+/*
+    $.each(response.data.id, function(i, bib) {
+      alert("no dice on " + bib + ",  retrying");
+      $.ajax({
+        dataType: 'json',
+        url: path + '/AJAX/JSON?method=getItemStatuses',
+        data: {id:[bib]},
+        success: handleItemStatusResponse
+      });
     });
+*/
   }
 }
 

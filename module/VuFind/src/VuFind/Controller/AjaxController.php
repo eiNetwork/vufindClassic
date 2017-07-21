@@ -239,6 +239,7 @@ class AjaxController extends AbstractBase
 
         // Loop through all the status information that came back
         $statuses = [];
+
         foreach ($results as $recordNumber => $record) {
             // Filter out suppressed locations:
             $record = $this->filterSuppressedLocations($record);
@@ -307,6 +308,30 @@ class AjaxController extends AbstractBase
 
         // Done
         return $this->output($statuses, self::STATUS_OK);
+    }
+
+
+    /**
+     * Preload Item Statuses
+     *
+     * This is responsible for preloading the information for a
+     * collection of items. This is to optimize our API calls for loading items across
+     * multiple bibIDs.
+     *
+     * @return \Zend\Http\Response
+     * @author Chris Delis <cedelis@uillinois.edu>
+     * @author Tuan Nguyen <tuan@yorku.ca>
+     */
+    protected function preloadItemStatusesAjax()
+    {
+        $this->writeSession();  // avoid session write timing bug
+        $catalog = $this->getILS();
+        $ids = $this->params()->fromQuery('itemID');
+
+        $preloadResults = $catalog->preloadItems($ids);
+
+        // Done
+        return $this->output(['itemIDs' => $ids], self::STATUS_OK);
     }
 
 

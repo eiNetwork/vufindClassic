@@ -995,6 +995,31 @@ class EINetwork extends Sierra2 implements
         $this->session->dismissedAnnouncements[$hash] = time();
     }
 
+    /**
+     * Test Serial
+     *
+     * This checks the API to see if this bib has a serial type.
+     *
+     * @param string $id The record id to test the bibLevel
+     *
+     * @return bool  Whether or not this bib is a serial type (used to determine if we need to look for checkin records)
+     */
+    public function isSerial($id)
+    {
+        // grab a bit more information from Solr
+        $solrBaseURL = $this->config['Solr']['url'];
+        $curl_url = $solrBaseURL . "/biblio/select?q=*%3A*&fq=id%3A%22" . strtolower($id) . "%22&fl=bib_level&wt=csv";
+        $curl_connection = curl_init($curl_url);
+        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+        $sresult = curl_exec($curl_connection);
+        $values = explode("\n", $sresult);
+
+        // is it a Solr item?
+        return (count($values) > 2) && ($values[1] == "s");
+    }
+
 
 
     /**

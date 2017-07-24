@@ -21,6 +21,10 @@
       <span class="pull-left flip"><?=$record->getCheckbox() ?></span>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
+      <? foreach( $this->driver->getItems() as $item): ?>
+        <input type="hidden" value="<?=$item?>" class="hiddenItemId">
+      <? endforeach; ?>
+      <input type="hidden" value="true" class="hiddenLoadThisStatus">
     </td>
     <td class="EIN-col-m-3" style="vertical-align:top">
       <div class="text-center" style="padding:10px">

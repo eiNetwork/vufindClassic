@@ -817,14 +817,20 @@ class Sierra2 extends Sierra implements
             $itemIDlist = ($this->memcached->get("items" . $id) !== null) ? $this->memcached->get("items" . $id) : null;
             do {
                 $processed = 0;
+                $idList = "";
+                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && $i<count($itemIDlist); $i++ ) {
+                  $itemID = substr($itemIDlist[$i],1);
+                  if( $this->memcached->get("itemInfo" . $itemID) ) {
+                    $holdings[] = $this->memcached->get("itemInfo" . $itemID);
+                    $processed++;
+                  } else {
+                    $idList .= ($idList ? "," : "") . $itemID;
+                  }
+                }
                 if( $itemIDlist !== null ) {
                   $apiHoldings = null;
-                  if( count($itemIDlist) ) {
-                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&id=19";
-                    for( $i=$currentOffset; $i<($currentOffset + $pageSize) && $i<count($itemIDlist); $i++ ) {
-                      $url .= "," . substr($itemIDlist[$i],1);
-                    }
-                    $url .= "&limit=" . $pageSize; // . "&offset=" . $currentOffset;
+                  if( $idList ) {
+                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
                     $apiHoldings = json_decode($this->sendAPIRequest($url));
                   }
                 } else {
@@ -863,7 +869,7 @@ class Sierra2 extends Sierra implements
                         }
                     }
 *****/
-                } else {
+                } else if( $apiHoldings ) {
                     foreach($apiHoldings->entries as $thisItem) {
                         $number = null;
                         if( isset($thisItem->varFields) ) {
@@ -889,13 +895,84 @@ class Sierra2 extends Sierra implements
                             "copiesOwned" => 1
                             ];
                         $holdings[] = $itemInfo;
+                        $this->memcached->set("itemInfo" . $thisItem->id, $itemInfo);
                         $processed++;
                     }
                 }
                 $currentOffset += $pageSize;
-            } while( $processed == $pageSize || (($itemIDlist != null) && ($currentOffset < count($itemIDlist)) && (currentOffset == 0)) );
+            } while( $processed == $pageSize || (($itemIDlist != null) && ($currentOffset < count($itemIDlist)) && ($currentOffset == 0)) );
 
             return $holdings;
+        } catch (\Exception $e) {
+            throw new ILSException($e->getMessage());
+        }
+    }
+
+    /**
+     * Preload Items
+     *
+     * This is responsible for retrieving the holding information of a list of items.
+     *
+     * @param array $ids     The item ids to retrieve the holdings for
+     *
+     * @throws DateException
+     * @throws ILSException
+     * @return bool Success
+     */
+    public function preloadItems(array $ids)
+    {
+        try {
+            $pageSize = 100;
+            $currentOffset = 0;
+            do {
+                $processed = 0;
+                $idList = "";
+                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && $i<count($ids); $i++ ) {
+                    $itemID = substr($ids[$i],1);
+                    if( !$this->memcached->get("itemInfo" . $itemID) ) {
+                        $idList .= (($idList == "") ? "" : ",") . $itemID;
+                    } else {
+                        $processed++;
+                    }
+                }
+
+                if( $idList ) {
+                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,bibIds,status,location,callNumber,barcode,varFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
+                    $apiHoldings = json_decode($this->sendAPIRequest($url));
+
+                    foreach($apiHoldings->entries as $thisItem) {
+                        $number = null;
+                        if( isset($thisItem->varFields) ) {
+                            foreach($thisItem->varFields as $thisVarField) {
+                                if( $thisVarField->fieldTag == "v" ) {
+                                    $number = $thisVarField->content;
+                                }
+                            }
+                        }
+                        $itemInfo = [
+                          "id" => ".b" . $thisItem->bibIds[0] . $this->getCheckDigit($thisItem->bibIds[0]),
+                          "itemId" => $thisItem->id,
+                          "availability" => ((trim($thisItem->status->code) == "-") || (trim($thisItem->status->code) == "o") || (trim($thisItem->status->code) == "p")) && !isset($thisItem->status->duedate),
+                          "status" => trim($thisItem->status->code),
+                          "location" => $thisItem->location->name,
+                          "reserve" => "N",
+                          "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
+                          "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
+                          "returnDate" => false,
+                          "number" => $number,
+                          "barcode" => $thisItem->barcode,
+                          "locationCode" => $thisItem->location->code,
+                          "copiesOwned" => 1
+                        ];
+                        $holdings[] = $itemInfo;
+                        $this->memcached->set("itemInfo" . $thisItem->id, $itemInfo);
+                        $processed++;
+                    }
+                }
+                $currentOffset += $pageSize;
+            } while( $processed == $pageSize || (($ids != null) && ($currentOffset < count($ids)) && ($currentOffset == 0)) );
+
+            return true;
         } catch (\Exception $e) {
             throw new ILSException($e->getMessage());
         }

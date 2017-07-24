@@ -130,6 +130,8 @@ trait HoldsTrait
                 // If we made it this far, we're ready to place the hold;
                 // if successful, we will redirect and can stop here.
 
+                // BJP - need to hold onto bib ID for screen scrape.  when the API does local copy override holds properly, you can remove the next line
+                $gatheredDetails['bibId'] = $gatheredDetails['id'];
                 // see whether they are trying to hold a specific item instead of a bib
                 if( isset($gatheredDetails['itemID']) && $gatheredDetails['itemID'] != "" ) {
                     // BJP - need to hold onto bib ID for screen scrape.  when the API allows us to do item level holds properly, you can remove the next line

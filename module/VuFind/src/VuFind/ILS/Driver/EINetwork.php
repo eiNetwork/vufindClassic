@@ -765,7 +765,8 @@ class EINetwork extends Sierra2 implements
         $this->session->staleHoldsHash = md5(json_encode($this->session->holds));
 
         // item level holds via the API don't work yet
-        if( substr($details["id"], 1, 1) == "i" ) {
+        // BJP - neither do local copy overriding the hold
+        if( true || substr($details["id"], 1, 1) == "i" ) {
             return $this->placeItemLevelHold($details);
         }
 
@@ -1517,7 +1518,11 @@ class EINetwork extends Sierra2 implements
         $post_data['submit.y']="21";
         $post_data['submit']="submit";
         $post_data['locx00']= str_pad($details["pickUpLocation"], 5-strlen($details["pickUpLocation"]), '+');
-        $post_data['radio']=substr($details["id"], 1 , -1);
+        // BJP - we're temporarily running ALL holds through screen scraping. when that goes away, you can remove the if wrapper around the contents of this since 
+        //       all holds coming through here will be item-level
+        if( substr($details["id"], 1, 1) == "i" ) {
+            $post_data['radio']=substr($details["id"], 1 , -1);
+        }
         $post_data['submit']="REQUEST SELECTED ITEM";
         $post_data['x']="48";
         $post_data['y']="15";

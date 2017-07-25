@@ -326,7 +326,7 @@ class AjaxController extends AbstractBase
     {
         $this->writeSession();  // avoid session write timing bug
         $catalog = $this->getILS();
-        $ids = $this->params()->fromQuery('itemID');
+        $ids = $this->params()->fromQuery('itemID') ? $this->params()->fromQuery('itemID') : [];
 
         $preloadResults = $catalog->preloadItems($ids);
 

@@ -818,14 +818,14 @@ class Sierra2 extends Sierra implements
             do {
                 $processed = 0;
                 $idList = "";
-                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && $i<count($itemIDlist); $i++ ) {
+                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && (($itemIDlist === null) || $i<count($itemIDlist)); $i++ ) {
                   $itemID = substr($itemIDlist[$i],1);
                   if( $this->memcached->get("itemInfo" . $itemID) ) {
                     $holdings[] = $this->memcached->get("itemInfo" . $itemID);
-                    $processed++;
                   } else {
                     $idList .= ($idList ? "," : "") . $itemID;
                   }
+                  $processed++;
                 }
                 if( $itemIDlist !== null ) {
                   $apiHoldings = null;
@@ -896,7 +896,7 @@ class Sierra2 extends Sierra implements
                             ];
                         $holdings[] = $itemInfo;
                         $this->memcached->set("itemInfo" . $thisItem->id, $itemInfo);
-                        $processed++;
+                        $processed += ($itemIDlist === null) ? 1 : 0;
                     }
                 }
                 $currentOffset += $pageSize;

@@ -1,7 +1,7 @@
 <? if( $this->inLightbox ): ?>
   <?
     // Set up page title:
-    $this->headTitle($this->translate('Log In or Register'));
+    $this->headTitle($this->translate('Log In'));
 
     // Set up breadcrumbs:
     $this->layout()->breadcrumbs = '<li><a href="' . $this->url('myresearch-home') . '">' . $this->transEsc('Your Account') . '</a></li> <li class="active">' . $this->transEsc('Login') . '</li>';
@@ -22,7 +22,7 @@
     </div>
   <? endif; ?>
 
-  <p class="lead lightbox-header" style="display:none"><?=$this->transEsc('Log In or Register')?></p>
+  <p class="lead lightbox-header" style="display:none"><?=$this->transEsc('Log In')?></p>
   <span id="loginFlashMessages">
     <?=$this->flashmessages(false)?>
   </span>

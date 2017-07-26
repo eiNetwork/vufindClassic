@@ -108,7 +108,7 @@ class EINetwork extends Sierra2 implements
             // released under the GPL
             $api_contents = trim(strip_tags($result));
             $api_array_lines = explode("\n", $api_contents);
-            $api_data = ['PBARCODE' => false];
+            $api_data = ['PBARCODE' => false, 'RECORDNUM' => '', 'PATRNNAME' => '', 'EMAILADDR' => '', 'HOMELIBR' => '', 'ADDRESS' => '', 'PTYPE' => '', 'EXPDATE' => '', 'AGENCY' => ''];
 
             foreach ($api_array_lines as $api_line) {
                 $api_line = str_replace("p=", "peq", $api_line);
@@ -698,6 +698,7 @@ class EINetwork extends Sierra2 implements
                 foreach($solrInfo as $key => $value) {
                     $item[$key] = $value;
                 }
+                $item['ILL'] = false;
                 $sierraTransactions[] = $item;
             }
         }

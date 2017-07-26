@@ -560,6 +560,7 @@ class AjaxController extends AbstractBase
     ) {
         // grab the driver
         $catalog = $this->getILS();
+        $user = $this->getUser();
         $bib = $record[0]['id'];
         $driver = $this->getRecordLoader()->load( $bib );
         $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
@@ -581,7 +582,7 @@ class AjaxController extends AbstractBase
         }
 
         // see if they already have a hold on it
-        if($canHold && ($user = $this->getUser()) && !$hasVolumes) {
+        if($canHold && $user && !$hasVolumes) {
             foreach($holds as $thisHold) {
                 if($thisHold['id'] == $bib) {
                     $canHold = false;
@@ -702,6 +703,8 @@ class AjaxController extends AbstractBase
             $locations[] = isset($info['location']) ? $info['location'] : null;
             if( (!isset($itsHere) || (trim($itsHere['status']) == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
+            } else if( !isset($atPreferred) && $info['availability'] && (($info['branchCode'] == $user->preferred_library) || ($info['branchCode'] == $user->alternate_library) || ($info['branchCode'] == $user->home_library)) ) {
+                $atPreferred = true;
             }
             if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation["code"] == $info['branchCode']) && (trim($info['status']) != 'o') && (trim($info['status']) != 'order')) {
                 $holdableCopyHere = $info;
@@ -754,7 +757,7 @@ class AjaxController extends AbstractBase
                 $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message)];
             }
             $availability_message = $inLibMessage;
-        } else if (isset($onOrder) && $onOrder) {
+        } else if (isset($onOrder) && $onOrder && ($availableItems == 0)) {
             $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
         } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
             $availability_message = str_replace("<countText>", "Always Available", $availability_message);
@@ -763,6 +766,17 @@ class AjaxController extends AbstractBase
             if( isset($itsHere) ) {
                 $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
             }
+        }
+        if( !isset($itsHere) ) {
+            if( isset($atPreferred) ) {
+                $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
+            } else if( $currentLocation ) {
+                $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);
+            } else {
+                $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+            }
+        } else {
+            $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
         }
 
         // see if we have any urls we should show

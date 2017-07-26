@@ -129,6 +129,8 @@
               <? $noncirculatingCopies += ($item["status"] == "o"); ?>
               <? if((!isset($itsHere) || ($itsHere["status"] == "o")) && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"])): ?>
                 <? $itsHere = $item; ?>
+              <? elseif($user && !isset($atPreferred) && $item["availability"] && (($item["branchCode"] == $user->preferred_library) || ($item["branchCode"] == $user->alternate_library) || ($item["branchCode"] == $user->home_library))): ?>
+                <? $atPreferred = true; ?>
               <? endif; ?>
               <? if(!$holdableCopyHere && $this->currentLocation && $item["availability"] && ($item["branchCode"] == $this->currentLocation["code"]) && ($item["status"] != "o") && ($item["status"] != "order")): ?>
                 <? $holdableCopyHere = $item; ?>
@@ -142,12 +144,32 @@
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
-              <span class="<?=($green ? "availableTag" : "unavailableTag")?>"><?=($green ? ('<i class="fa fa-check"></i>' . (isset($itsHere) ? 'It\'s Here!' : (($availableCopies > 0) ? 'Available' : ($onOrder ? 'On Order' : ($isOneClick ? 'Access Online' : 'Available'))))) : "Unavailable")?></span>
+              <span class="<?=($green ? "availableTag\" style=\"display:inline-table" : "unavailableTag")?>"><?
+                if( $green ): 
+                  echo '<i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">';
+                  if( isset($itsHere) ):
+                    echo 'It\'s Here!';
+                  elseif( isset($atPreferred) ):
+                    echo 'Available at your preferred Libraries!';
+                  elseif( $availableCopies > 0 ):
+                    echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                  elseif( $onOrder ):
+                    echo 'On Order';
+                  elseif( $isOneClick ):
+                    echo 'Access Online';
+                  else:
+                    echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                  endif; 
+                  echo '</span>';
+                else: 
+                  echo 'Unavailable';
+                endif;
+              ?></span>
               <? if( $alwaysAvailable ): ?>
                 <span class="availableCopyText">Always Available</span>
               <? elseif( $isOneClick ): ?>
                 <span class="availableCopyText"></span>
-              <? elseif( $onOrder ): ?>
+              <? elseif( $onOrder && ($availableCopies == 0) ): ?>
                 <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
               <? else: ?>
                 <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
@@ -412,7 +434,7 @@
                     <? $issues = []; ?>
                     <? foreach($this->holdings as $thisHolding): ?>
                       <? foreach($thisHolding['items'] as $item): ?>
-                        <? if( in_array($item['locationCode'], $thisRecord["code"]) ): ?>
+                        <? if( isset($item['locationCode']) && in_array($item['locationCode'], $thisRecord["code"]) ): ?>
                           <? $issues[] = $item; ?>
                         <? endif; ?>
                       <? endforeach; ?>

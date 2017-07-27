@@ -1,12 +1,10 @@
-<button id="loginModalLogin" class="btn-alternate btn-wide active" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Log In</button>
-<button id="loginModalRegister" class="btn-alternate btn-wide" onmouseover="HighlightLoginModal(this.id, true)" onmouseout="HighlightLoginModal(this.id, false)" onclick="ToggleLoginModal(this);">Register</button><br><br>
 <div id="loginModalLoginBody">
   <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
     <? $account = $this->auth()->getManager(); ?>
     <div style="margin:auto">
     <div class="textBoxContainer">
-      <span class="sr-only">Barcode</span>
-      <input type="text" name="username" id="login_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+      <span class="sr-only">Library Card Number</span>
+      <input type="text" name="username" id="login_username" value="Enter your Library Card Number" onfocus="ClearFormError(this); if (this.value=='Enter your Library Card Number') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="login_usernameError" class="formError"></span>
     </div><br>
@@ -28,14 +26,17 @@
   </form>
   <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalReset" onclick="ToggleLoginModal(this);">
     <span class="headerLink">I forgot or want to change my PIN</span>
+  </button><br>
+  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalRegister" onclick="ToggleLoginModal(this);">
+    <span class="headerLink">I need a library card</span>
   </button>
 </div>
 <div id="loginModalResetBody" style="color:#3f51b5;display:none">
   <form role="reset" method="post" action="<?=$this->url('myresearch-resetpin')?>" name="resetForm" id="resetForm" autocomplete="off" target="loginFrame">
     <div style="margin:auto">
     <div class="textBoxContainer">
-      <span class="sr-only">Barcode</span>
-      <input type="text" name="username" id="reset_username" value="Enter your Barcode" onfocus="ClearFormError(this); if (this.value=='Enter your Barcode') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+      <span class="sr-only">Library Card Number</span>
+      <input type="text" name="username" id="reset_username" value="Enter your Library Card Number" onfocus="ClearFormError(this); if (this.value=='Enter your Library Card Number') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="reset_usernameError" class="formError"></span>
     </div><br>
@@ -45,8 +46,14 @@
       If you don't have an email address on file, please contact your library staff to assign one to your record.
     </div>
   </form>
+  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalLogin" onclick="ToggleLoginModal(this);">
+    <span class="headerLink">I remembered my PIN and want to sign in</span>
+  </button>
 </div>
 <div id="loginModalRegisterBody" class="registerBody" style="color:#3f51b5;display:none">
+  <div class="forgotText">
+    Submitting this form will register you for a new library card. If you already have a library card and just want to sign into your account, please use the link below to go back to the login window.
+  </div><br><br>
   <form role="register" method="post" action="<?=$this->url('myresearch-account')?>" name="registerForm" id="registerForm" autocomplete="off" target="loginFrame">
     <div class="EIN-col-m-12">
       <div class="EIN-col-m-12 fieldTitle">Name</div>
@@ -144,6 +151,9 @@
     <input type="hidden" name="confirm" value="true">
     <input type="hidden" name="registerAttempt" value="true">
   </form>
+  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalLogin" onclick="ToggleLoginModal(this);">
+    <span class="headerLink">I already have a library card and want to sign in</span>
+  </button>
 </div>
 <div class="modal-footer">
   <div id="loginModalLoginFooter">
@@ -174,29 +184,13 @@
     if( processingLogin ) {
       return;
     }
-    document.getElementById(loginToggle).classList.remove('active');
     document.getElementById(loginToggle + "Body").style.display = "none";
     document.getElementById(loginToggle + "Footer").style.display = "none";
     loginToggle = target.id
-    document.getElementById(loginToggle).classList.add('active');
     document.getElementById(loginToggle + "Body").style.display = "block";
     document.getElementById(loginToggle + "Footer").style.display = "block";
+    $('#modalTitle').html((loginToggle == "loginModalReset") ? "Reset my PIN" : ((loginToggle == "loginModalRegister") ? "Register New Account" : "Log In"))
     sizeModal();
-  }
-
-  // make the switcher buttons more responsive
-  function HighlightLoginModal(targetID, turnOn) {
-    // can't do anything while we're processing
-    if( processingLogin ) {
-      return;
-    }
-    if( targetID != loginToggle ) {
-      if( turnOn ) {
-        document.getElementById(loginToggle).classList.remove('active');
-      } else {
-        document.getElementById(loginToggle).classList.add('active');
-      }
-    }
   }
 
   // process an attempted login
@@ -242,9 +236,9 @@
     // make sure they've given us all the relevant info
     var barcode = document.getElementById("login_username");
     var pword = document.getElementById("login_password");
-    if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
+    if( barcode.value == "" || barcode.value == "Enter your Library Card Number" ) {
       document.getElementById("login_usernameError").style.display = "block";
-      document.getElementById("login_usernameError").innerHTML = "Please enter your barcode above.";
+      document.getElementById("login_usernameError").innerHTML = "Please enter your library card number above.";
       $("#login_usernameError").attr("tabIndex", -1).focusout( function() { $("#login_username").focus(); } ).focus();
       if( "classList" in barcode ) {
         barcode.classList.add("textBoxError");
@@ -294,9 +288,9 @@
 
     // make sure they've given us all the relevant info
     var barcode = document.getElementById("reset_username");
-    if( barcode.value == "" || barcode.value == "Enter your Barcode" ) {
+    if( barcode.value == "" || barcode.value == "Enter your Library Card Number" ) {
       document.getElementById("reset_usernameError").style.display = "block";
-      document.getElementById("reset_usernameError").innerHTML = "Please enter your barcode above.";
+      document.getElementById("reset_usernameError").innerHTML = "Please enter your library card number above.";
       $("#reset_usernameError").attr("tabIndex", -1).focusout( function() { $("#reset_username").focus(); } ).focus();
       if( "classList" in barcode ) {
         barcode.classList.add("textBoxError");

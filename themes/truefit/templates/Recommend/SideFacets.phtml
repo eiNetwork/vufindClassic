@@ -1,4 +1,9 @@
 <?
+  $account = $this->auth()->getManager();
+  $user = $account->isLoggedIn();
+  $catalog = $this->ils()->getDriver();
+  $currentLocation = $catalog->getCurrentLocation();
+
   $results = $this->recommend->getResults();
   $urlParams = $this->results->getUrlQuery()->getParamArray();
   $urlString = $this->currentPath();
@@ -184,14 +189,74 @@
                   // Sort the current facet list alphabetically; we'll use this data
                   // along with the foreach below to display facet options in the
                   // correct order.
+                  $current = array();
+                  $preferred = array();
                   $sorted = array();
-                  foreach ($cluster['list'] as $i => $value) {
-                    if (!empty($value['displayText'])) {
-                      $sorted[$i] = $value['displayText'];
+                  $preferredMatches = array();
+                  if( $title == "building" && $user ) {
+                    $thisMatch = $catalog->getDbTable('Location')->getByCode($user->preferred_library);
+                    if( $thisMatch ) {
+                      $preferredMatches[] = $thisMatch->displayName;
+                    }
+                    $thisMatch = $catalog->getDbTable('Location')->getByCode($user->alternate_library);
+                    if( $thisMatch ) {
+                      $preferredMatches[] = $thisMatch->displayName;
+                    }
+                    $thisMatch = $catalog->getDbTable('Location')->getByCode($user->home_library);
+                    if( $thisMatch ) {
+                      $preferredMatches[] = $thisMatch->displayName;
                     }
                   }
+                  foreach ($cluster['list'] as $i => $value) {
+                    if (!empty($value['displayText'])) {
+                      if( $title == "building" && $currentLocation && ($value['displayText'] == $currentLocation["displayName"]) ) {
+                        $current[$i] = $value['displayText'];
+                      } else if( $title == "building" && $currentLocation && in_array($value['displayText'], $preferredMatches) ) {
+                        $preferred[$i] = $value['displayText'];
+                      } else {
+                        $sorted[$i] = $value['displayText'];
+                      }
+                    }
+                  }
+                  natcasesort($current);
+                  natcasesort($preferred);
                   natcasesort($sorted);
                 ?>
+                <? if( ($title == "building") && (count($current) > 0) ): ?>
+                  <span class="bold">Currently at:</span>
+                  <? foreach ($current as $i=>$dummy): ?>
+                    <? $thisFacet = $cluster['list'][$i]; ?>
+                    <li class="facetOffset0">
+                      <span class="sr-only">
+                        <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                        <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=($thisFacet['isApplied']?" checked":"")?> />
+                      </span>
+                      <span aria-hidden="true" class="facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(urlencode($thisFacet['value']))?>%22"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                      <span aria-hidden="true" class="facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
+                      <span aria-hidden="true"><?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?></span>
+                    </li>
+                  <? endforeach; ?>
+                  <br>
+                <? endif; ?>
+                <? if( ($title == "building") && (count($preferred) > 0) ): ?>
+                  <span class="bold">Your Preferred Libraries:</span>
+                  <? foreach ($preferred as $i=>$dummy): ?>
+                    <? $thisFacet = $cluster['list'][$i]; ?>
+                    <li class="facetOffset0">
+                      <span class="sr-only">
+                        <?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?>
+                        <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=($thisFacet['isApplied']?" checked":"")?> />
+                      </span>
+                      <span aria-hidden="true" class="facetToggle<?=($thisFacet['isApplied']?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7E<?=$title."%3A%22".$this->escapeHtml(urlencode($thisFacet['value']))?>%22"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+                      <span aria-hidden="true" class="facetToggle<?=($thisFacet['isApplied']?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
+                      <span aria-hidden="true"><?=$this->escapeHtml($thisFacet['displayText']) . (($thisFacet['count'] > 0) ? (" (" . $this->localizedNumber($thisFacet['count']) . ")") : "")?></span>
+                    </li>
+                  <? endforeach; ?>
+                  <br>
+                <? endif; ?>
+                <? if( ($title == "building") && ((count($current) > 0) || (count($preferred) > 0)) ): ?>
+                  <span class="bold">Other Libraries:</span>
+                <? endif; ?>
                 <? foreach ($sorted as $i=>$dummy): ?>
                   <? $thisFacet = $cluster['list'][$i]; ?>
                   <li class="facetOffset0">

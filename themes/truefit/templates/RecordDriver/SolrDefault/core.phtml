@@ -147,7 +147,9 @@
               <span class="<?=($green ? "availableTag\" style=\"display:inline-table" : "unavailableTag")?>"><?
                 if( $green ): 
                   echo '<i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">';
-                  if( isset($itsHere) ):
+                  if( $isOverDrive ):
+                    echo 'Available from OverDrive';
+                  elseif( isset($itsHere) ):
                     echo 'It\'s Here!';
                   elseif( isset($atPreferred) ):
                     echo 'Available at your preferred Libraries!';

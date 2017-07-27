@@ -472,7 +472,7 @@ class Holds extends AbstractRequestBase
                     $defaultRequired = $this->getController()->getServiceLocator()->get('VuFind\DateConverter')
                         ->convertToDisplayDate("U", $defaultRequired);
                     $holdResults = $catalog->placeHold(
-                        ['id' => $id, 'patron' => $patron, 'pickUpLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"], 'requiredBy' => $defaultRequired]
+                        ['id' => $id, 'bibId' => $id, 'patron' => $patron, 'pickUpLocation' => $params->fromPost('gatheredDetails')["pickUpLocation"], 'requiredBy' => $defaultRequired]
                     );
                     if( $holdResults['success'] ) {
                         $successes++;

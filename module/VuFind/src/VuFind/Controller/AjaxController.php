@@ -703,7 +703,7 @@ class AjaxController extends AbstractBase
             $locations[] = isset($info['location']) ? $info['location'] : null;
             if( (!isset($itsHere) || (trim($itsHere['status']) == 'o')) && $currentLocation && $info['availability'] && ($currentLocation['code'] == $info['branchCode']) ) {
                 $itsHere = $info;
-            } else if( !isset($atPreferred) && $info['availability'] && (($info['branchCode'] == $user->preferred_library) || ($info['branchCode'] == $user->alternate_library) || ($info['branchCode'] == $user->home_library)) ) {
+            } else if( $user && !isset($atPreferred) && $info['availability'] && (($info['branchCode'] == $user->preferred_library) || ($info['branchCode'] == $user->alternate_library) || ($info['branchCode'] == $user->home_library)) ) {
                 $atPreferred = true;
             }
             if( !isset($holdableCopyHere) && $currentLocation && $info['availability'] && ($currentLocation["code"] == $info['branchCode']) && (trim($info['status']) != 'o') && (trim($info['status']) != 'order')) {
@@ -768,7 +768,9 @@ class AjaxController extends AbstractBase
             }
         }
         if( !isset($itsHere) ) {
-            if( isset($atPreferred) ) {
+            if( $isOverDrive ) {
+                $availability_message = str_replace("<modifyAvailableText>", " from OverDrive", $availability_message);
+            } else if( isset($atPreferred) ) {
                 $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
             } else if( $currentLocation ) {
                 $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);

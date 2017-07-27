@@ -54,6 +54,6 @@
 </div>
 <? if( $downloadId == "video-streaming" ): ?>
   <script type="text/javascript">
-    $( function() { $('#format-video-streaming')[0].click(); Lightbox.close(); } );
+    $( function() { $('#format-video-streaming')[0].click(); SetTimeout( function() { Lightbox.close(); }, 10); } );
   </script>
 <? endif; ?>

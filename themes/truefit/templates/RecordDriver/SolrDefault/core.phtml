@@ -520,7 +520,7 @@
                   <? endif; ?>
                 <? endif; ?>
                 <? if( (($availableCopies - $noncirculatingCopies) > 0) || $isOneClick ): ?>
-                  <h6 class="accordionSubheading">Available<?=($isOverDrive?" on OverDrive":($isOneClick?" on OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies)?>)</h6>
+                  <h6 class="accordionSubheading">Available<?=($isOverDrive?" from OverDrive":($isOneClick?" from OneClick":""))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies)?>)</h6>
                   <? if( !$isOverDrive && !$isOneClick ): ?>
                     <table class="EIN-col-m-12">
                       <? /* tablet/desktop UI (three columns) */ ?>
@@ -565,7 +565,7 @@
                   <? endif; ?>
                 <? endif; ?>
                 <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
-                  <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" on OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
+                  <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" from OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
                   <? if( !$isOverDrive ): ?>
                     <table class="EIN-col-m-12">
                       <? /* tablet/desktop UI (three columns) */ ?>

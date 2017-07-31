@@ -963,7 +963,7 @@ class Sierra2 extends Sierra implements
                           "copiesOwned" => 1
                         ];
                         $holdings[] = $itemInfo;
-                        $this->memcached->set("itemInfo" . $thisItem->id, $itemInfo);
+                        $this->memcached->set("itemInfo" . $thisItem->id, $itemInfo, 900);
                         $processed++;
                     }
                 }

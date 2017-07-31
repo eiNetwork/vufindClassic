@@ -282,11 +282,11 @@ class Sierra2 extends Sierra implements
      */
     public function getMyTransactions($patron){
         $checkedOutItems = [];
-
         $offset = count($checkedOutItems);
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
 
-        while( count($checkedOutItems) < $jsonVals->total ) {
+        while( !isset($jsonVals) || (count($checkedOutItems) < $jsonVals->total) ) {
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
+
             // make the initial items API call to get base info
             $itemIDList = "";
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
@@ -370,7 +370,6 @@ class Sierra2 extends Sierra implements
             }
 
             $offset = count($checkedOutItems);
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
         }
         return $checkedOutItems;
     }
@@ -450,11 +449,11 @@ class Sierra2 extends Sierra implements
      */
     public function getMyHolds($patron){
         $holds = [];
-
         $offset = count($holds);
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
 
-        while( count($holds) < $jsonVals->total ) {
+        while( !isset($jsonVals) || (count($holds) < $jsonVals->total) ) {
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
+
             // make the initial items API call to get bib info
             $itemIDList = "";
             $bibIDList = "";
@@ -543,7 +542,6 @@ class Sierra2 extends Sierra implements
             }
 
             $offset = count($holds);
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
         }
         return $holds;
     }

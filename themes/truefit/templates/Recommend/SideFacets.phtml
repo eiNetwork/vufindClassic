@@ -211,7 +211,7 @@
                     if (!empty($value['displayText'])) {
                       if( $title == "building" && $currentLocation && ($value['displayText'] == $currentLocation["displayName"]) ) {
                         $current[$i] = $value['displayText'];
-                      } else if( $title == "building" && $currentLocation && in_array($value['displayText'], $preferredMatches) ) {
+                      } else if( $title == "building" && in_array($value['displayText'], $preferredMatches) ) {
                         $preferred[$i] = $value['displayText'];
                       } else {
                         $sorted[$i] = $value['displayText'];

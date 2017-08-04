@@ -507,7 +507,7 @@ class Sierra2 extends Sierra implements
                 $thisItem['expire'] = isset($jsonVals->entries[$i]->notNeededAfterDate) ? $jsonVals->entries[$i]->notNeededAfterDate : null;
                 $thisItem['status'] = $jsonVals->entries[$i]->status->code;
                 $thisItem['frozen'] = $jsonVals->entries[$i]->frozen;
-                if( $jsonVals->entries[$i]->status->code == "i" ) {
+                if( in_array($jsonVals->entries[$i]->status->code, ["i", "b", "j"]) ) {
                     $thisItem['available'] = true;
                 } else {
                     $thisItem['position'] = $jsonVals->entries[$i]->priority;

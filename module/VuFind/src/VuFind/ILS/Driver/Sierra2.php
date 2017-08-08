@@ -102,32 +102,36 @@ class Sierra2 extends Sierra implements
      */
     protected function sendAPIRequest($url, $method=\Zend\Http\Request::METHOD_GET, $body=null)
     {
-        // make sure we have an access token
-        if( $this->connectToSierraAPI(false) )
-        {
-            // Make the NCIP request:
-            try {
-                $client = $this->httpService->createClient($url, $method, 45);
-                $client->setHeaders(
-                    array('Accept' => 'application/json; charset=UTF-8',
-                          'Authorization' => ('Bearer ' . $this->memcached->get("SIERRA_API_TOKEN")),
-                          'Content-Type' => 'application/json',
-                          'Connection' => 'close'));
-                if( $body != null ) 
-                {
-                    $client->setRawBody($body);
+        if( !$this->memcached->get(md5($url . ($body ? ("###" . $body) : ""))) ) {
+            // make sure we have an access token
+            if( $this->connectToSierraAPI(false) )
+            {
+                // Make the NCIP request:
+                try {
+                    $client = $this->httpService->createClient($url, $method, 45);
+                    $client->setHeaders(
+                        array('Accept' => 'application/json; charset=UTF-8',
+                              'Authorization' => ('Bearer ' . $this->memcached->get("SIERRA_API_TOKEN")),
+                              'Content-Type' => 'application/json',
+                              'Connection' => 'close'));
+                    if( $body != null ) 
+                    {
+                        $client->setRawBody($body);
+                    }
+                    $result = $client->send();
+                } catch (\Exception $e) {
+                    throw new ILSException($e->getMessage());
                 }
-                $result = $client->send();
-            } catch (\Exception $e) {
-                throw new ILSException($e->getMessage());
-            }
 
-            if (!$result->isSuccess()) {
-                //throw new ILSException('HTTP error<br>' . $url . '<br>' . $body . "<br>" . $result->toString());
-            }
+                if (!$result->isSuccess()) {
+                    //throw new ILSException('HTTP error<br>' . $url . '<br>' . $body . "<br>" . $result->toString());
+                }
 
-            return $result->getBody();
-        }
+                $this->memcached->set(md5($url . ($body ? ("###" . $body) : "")), $result->getBody(), 30);
+            }
+        } 
+
+        return $this->memcached->get(md5($url . ($body ? ("###" . $body) : "")));
     }
 
     /**

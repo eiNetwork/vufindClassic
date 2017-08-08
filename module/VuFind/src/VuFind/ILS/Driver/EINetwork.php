@@ -631,6 +631,15 @@ class EINetwork extends Sierra2 implements
     public function getMyHolds($patron, $skipCache=false) {
         if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) && !$skipCache ) {
             return $this->session->holds;
+        // clear out these intermediate cached API results
+        } else if( $skipCache ) {
+            $offset = 0;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+            while( $this->memcached->get($hash) ) {
+                $this->memcached->set($hash, null);
+                $offset += 50;
+                $hash = md5($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+            }
         }
 
         $sierraHolds = parent::getMyHolds($patron);

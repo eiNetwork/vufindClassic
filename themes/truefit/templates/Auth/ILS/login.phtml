@@ -1,35 +1,4 @@
 <div id="loginModalLoginBody">
-  <form role="login" method="post" action="<?=$this->url('myresearch-home')?>" name="loginForm" id="loginForm" autocomplete="off" target="loginFrame">
-    <? $account = $this->auth()->getManager(); ?>
-    <div style="margin:auto">
-    <div class="textBoxContainer">
-      <span class="sr-only">Library Card Number</span>
-      <input type="text" name="username" id="login_username" value="Enter your Library Card Number" onfocus="ClearFormError(this); if (this.value=='Enter your Library Card Number') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
-      <i class="fa fa-exclamation-circle formErrorIcon"></i>
-      <span id="login_usernameError" class="formError"></span>
-    </div><br>
-    <div class="textBoxContainer">
-      <span class="sr-only">PIN</span>
-      <input type="text" name="password" id="login_password" value="Enter your PIN" onfocus="ClearFormError(this); if (this.value=='Enter your PIN') { this.value = ''; this.type='password'; this.style.color='#3d3d3d';}" class="form-control textBox"/>
-      <i class="fa fa-exclamation-circle formErrorIcon"></i>
-      <span id="login_passwordError" class="formError"></span>
-    </div>
-    </div>
-    <? if( isset( $this->request->clearLightbox ) ): ?>
-      <input type="hidden" name="clearLightbox" value="<?=$this->request->clearLightbox?>">
-    <? endif; ?>
-    <? if( isset( $this->followup ) ): ?>
-      <input type="hidden" name="lightboxFollowup" value="<?=$this->followup?>">
-    <? endif; ?>
-    <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
-    <input type="hidden" name="authorization_code" id="authorization_code" value="">
-  </form>
-  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalReset" onclick="ToggleLoginModal(this);">
-    <span class="headerLink">I forgot or want to change my PIN</span>
-  </button><br>
-  <button style="margin-top:10px" class="btn-noBorderAlternate" id="loginModalRegister" onclick="ToggleLoginModal(this);">
-    <span class="headerLink">I need a library card</span>
-  </button>
 </div>
 <div id="loginModalResetBody" style="color:#3f51b5;display:none">
   <form role="reset" method="post" action="<?=$this->url('myresearch-resetpin')?>" name="resetForm" id="resetForm" autocomplete="off" target="loginFrame">
@@ -147,7 +116,7 @@
         <span id="register_confirmpinError" class="formError"></span>
       </div>
     </div>
-    <input type="hidden" name="auth_method" value="<?=$account->getAuthMethod()?>">
+    <input type="hidden" name="auth_method" value="<?=$this->auth()->getManager()->getAuthMethod()?>">
     <input type="hidden" name="confirm" value="true">
     <input type="hidden" name="registerAttempt" value="true">
   </form>
@@ -208,6 +177,7 @@
       var messages = frame.contentDocument.getElementById("loginFlashMessages");
       var lightboxFollowup = frame.contentDocument.getElementById("lightboxFollowup");
       var redirectMessage = frame.contentDocument.getElementById("redirectMessage");
+      var nextLocation = null;
       // success, but need to reuse the lightbox
       if( lightboxFollowup != null ) {
         var lightboxArgs = jQuery.parseJSON(lightboxFollowup.innerHTML.replace(/'/g,"\""));
@@ -217,19 +187,31 @@
                      (lightboxArgs.length > 4) ? lightboxArgs[4] : undefined);
       // success, but they have messages, so send them to the message center
       } else if( $(frame.contentDocument).find('.notificationsCount').length > 0 ) {
-        window.location.replace("/MyResearch/Notifications");
+        nextLocation = "/MyResearch/Notifications";
       // success, reload the desired page
       } else if( redirectMessage != null ) {
-        window.location.replace("/MyResearch/" + redirectMessage.innerHTML);
+        nextLocation = "/MyResearch/" + redirectMessage.innerHTML;
       // success, reload this page
       } else if( messages == null || messages.children.length == 0 ) {
-        location.reload(true);
+        nextLocation = frame.contentWindow.location.href;
       // failure, find the error message and display it in the modal
       } else {
         processingLogin = false;
         document.getElementById(loginToggle + "Footer").style.display = "block";
         document.getElementById("loadingFooter").style.display = "none";
         document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;
+      }
+
+      if( nextLocation ) {
+        $('#realLoginContents').empty();
+        $('#loginForm').clone().appendTo('#realLoginContents').attr("id", "REAL_loginForm");
+        $('#REAL_loginForm').attr("action", nextLocation);
+        $('#REAL_loginForm').attr("target", "");
+        setTimeout( function() {
+          $('#REAL_loginForm .submitButton').css({"display":""});
+          $('#realLoginContents').css({"display":"", "width":"0px", "height":"0px"});
+          $('#REAL_loginForm .submitButton').click();
+        }, 300);
       }
     }, 100); } );
 
@@ -517,11 +499,33 @@
     element.nextElementSibling.style.display = "none";
   }
 
-  // submit the login on enter press
-  $("#loginForm input").keypress(function(event) {
-    if (event.which == 13) {
-      event.preventDefault();
-      SubmitLogIn();
-    }
-  });
+  jQuery(document).ready(function() {
+    // grab the form from the standard layout
+    $('#loginModalLoginBody').html( $('#realLoginContents').html() );
+    $('#loginModalLoginBody #DUMMY_loginForm').attr("id", "loginForm");
+    $('#loginModalLoginBody #DUMMY_login_username').attr("id", "login_username");
+    $('#loginModalLoginBody #DUMMY_login_usernameError').attr("id", "login_usernameError");
+    $('#loginModalLoginBody #DUMMY_login_password').attr("id", "login_password");
+    $('#loginModalLoginBody #DUMMY_login_passwordError').attr("id", "login_passwordError");
+    $('#loginModalLoginBody #DUMMY_authorization_code').attr("id", "authorization_code");
+    $('#loginModalLoginBody #DUMMY_loginModalReset').attr("id", "loginModalReset");
+    $('#loginModalLoginBody #DUMMY_loginModalRegister').attr("id", "loginModalRegister");
+
+    // see whether we need to add these arguments
+    <? if( isset( $this->request->clearLightbox ) ): ?>
+      $('#loginForm').append("<input type=\"hidden\" name=\"clearLightbox\" value=\"<?=$this->request->clearLightbox?>\">");
+    <? endif; ?>
+    <? if( isset( $this->followup ) ): ?>
+      $('#loginForm').append("<input type=\"hidden\" name=\"lightboxFollowup\" value=\"<?=$this->followup?>\">");
+    <? endif; ?>
+
+
+    // submit the login on enter press
+    $("#loginForm input").keypress(function(event) {
+      if (event.which == 13) {
+        event.preventDefault();
+        SubmitLogIn();
+      }
+    });
+  } );
 </script>

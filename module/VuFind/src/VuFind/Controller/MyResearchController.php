@@ -168,10 +168,7 @@ class MyResearchController extends AbstractBase
         if ($page == 'Favorites' && !$this->listsEnabled()) {
             return $this->forwardTo('Search', 'History');
         }
-        $this->flashMessenger()->addMessage("<span id='redirectMessage'>" . $page . "</span>", "info");        
-        $view = $this->createViewModel();
-        $view->setTemplate('myresearch/resetpin');
-        return $view;
+	return $this->forwardTo('MyResearch', $page);
     }
 
     /**

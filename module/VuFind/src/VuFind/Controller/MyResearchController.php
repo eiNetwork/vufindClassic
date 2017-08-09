@@ -1943,7 +1943,7 @@ class MyResearchController extends AbstractBase
             }
         }
 
-        $readingHistory = $catalog->getReadingHistory($patron, ($this->params()->fromQuery("pageNum") ? $this->params()->fromQuery("pageNum") : 1));
+        $readingHistory = $catalog->getReadingHistory($patron, ($this->params()->fromQuery("pageNum") ? $this->params()->fromQuery("pageNum") : 1), -1, ($this->params()->fromQuery("sort") ? $this->params()->fromQuery("sort") : "date"));
         foreach( $readingHistory["titles"] as $key => $item ) {
             try{
                 $item["driver"] = $this->getServiceLocator()->get('VuFind\RecordLoader')->load($item['id'] . $catalog->getCheckDigit(substr($item['id'], 2)), 'VuFind');
@@ -1953,6 +1953,7 @@ class MyResearchController extends AbstractBase
         }
         
         $view = $this->createViewModel();
+        $view->sort = $this->params()->fromQuery("sort");
         $view->readingHistory = $readingHistory;
         $view->indexOffset = ($this->params()->fromQuery("pageNum") ? (($this->params()->fromQuery("pageNum") - 1) * 50) : 0) + 1;
         return $view;

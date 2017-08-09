@@ -15,6 +15,15 @@
     <? if( $this->readingHistory["numTitles"] == 0 ): ?>
       <div>You do not have any items in your reading list. It may take up to 3 hours for your reading history to be updated after you start recording your history.</div>
     <? else: ?>
+      <div class="clearfix hidden-print center">
+        <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:10px"></div>
+        <table style="margin:auto;display:inline-block">
+          <tr>
+            <td><span><strong><?=$this->readingHistory["numTitles"]?></strong> titles sorted by </span></td>
+            <td style="padding-left:5px" class="ajaxListSortControls"><?=$this->render('myresearch/readinghistorysort.phtml', ['sort' => $this->sort])?></td>
+          </tr>
+        </table>
+      </div>
       <form class="form-inline" method="post" name="bulkActionForm" action="<?=$this->url('cart-myresearchbulk')?>" target="loginFrame">
         <span class="ajaxReadingHistory">
           <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => 'delete', 'history' => 'history'))?>
@@ -105,7 +114,7 @@
   var pageNum = 2;
   function LoadMoreHistory() {
     $('.historyShowMore').prop("disabled", true).html("<span><i class=\"fa fa-spinner\"></i></span><span>&nbsp;Loading...</span>");
-    $('#loginFrame').attr("src", "<?=$this->url('myresearch-readinghistory')?>?pageNum=" + pageNum);
+    $('#loginFrame').attr("src", "<?=$this->url('myresearch-readinghistory')?>?pageNum=" + pageNum<?=($this->sort ? (" + \"&sort=" . $this->sort . "\"") : "")?>);
     $('#loginFrame').unbind("load"); 
     $('#loginFrame').load( function() { 
       $(this).contents().find('.readingHistoryTable tr').not('.historyHeaderRow').each( function() {

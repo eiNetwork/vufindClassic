@@ -45,6 +45,7 @@ return array(
     'myresearch/renewResults'                    => APPLICATION_PATH . '/themes/truefit/templates/myresearch/renewResults.phtml',
     'myresearch/listContents'                    => APPLICATION_PATH . '/themes/truefit/templates/myresearch/listContents.phtml',
     'myresearch/readinghistory'                  => APPLICATION_PATH . '/themes/truefit/templates/myresearch/readinghistory.phtml',
+    'myresearch/readinghistorysort'              => APPLICATION_PATH . '/themes/truefit/templates/myresearch/readinghistorysort.phtml',
     'myresearch/fines'                           => APPLICATION_PATH . '/themes/truefit/templates/myresearch/fines.phtml',
     'myresearch/profile'                         => APPLICATION_PATH . '/themes/truefit/templates/myresearch/profile.phtml',
     'myresearch/login'                           => APPLICATION_PATH . '/themes/truefit/templates/myresearch/login.phtml',

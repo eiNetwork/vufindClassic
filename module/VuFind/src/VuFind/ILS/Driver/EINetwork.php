@@ -138,8 +138,8 @@ class EINetwork extends Sierra2 implements
             $ret['cat_password'] = urlencode($password);
 
             $names = explode(',', $api_data['PATRNNAME']);
-            $ret['firstname'] = $names[1];
-            $ret['lastname'] = $names[0];
+            //$ret['firstname'] = $names[1];
+            //$ret['lastname'] = $names[0];
             $ret['email'] = $api_data['EMAILADDR'];
             $ret['major'] = null;
             $ret['college'] = $api_data['HOMELIBR'];

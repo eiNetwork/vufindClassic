@@ -629,7 +629,7 @@ class EINetwork extends Sierra2 implements
      * null on unsuccessful login.
      */
     public function getMyHolds($patron, $skipCache=false) {
-        if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) && !$skipCache ) {
+        if( isset($this->session->holds) && !isset($this->session->staleHoldsHash) && !$skipCache && isset($this->session->holdsExpiration) && ($this->session->holdsExpiration >= time()) ) {
             return $this->session->holds;
         // clear out these intermediate cached API results
         } else if( $skipCache ) {
@@ -656,6 +656,7 @@ class EINetwork extends Sierra2 implements
             }
         }
         $this->session->holds = $sierraHolds;
+        $this->session->holdsExpiration = time() + 1800;
         if( isset($this->session->staleHoldsHash) ) {
             if( md5(json_encode($sierraHolds)) != $this->session->staleHoldsHash ) {
                 unset( $this->session->staleHoldsHash );
@@ -695,7 +696,7 @@ class EINetwork extends Sierra2 implements
      * @return array         Associative array of checked out items.
      */
     public function getMyTransactions($patron){
-        if( isset($this->session->checkouts) && !isset($this->session->staleCheckoutsHash) ) {
+        if( isset($this->session->checkouts) && !isset($this->session->staleCheckoutsHash) && isset($this->session->checkoutsExpiration) && ($this->session->checkoutsExpiration >= time()) ) {
             return $this->session->checkouts;
         }
 
@@ -712,6 +713,7 @@ class EINetwork extends Sierra2 implements
             }
         }
         $this->session->checkouts = $sierraTransactions;
+        $this->session->checkoutsExpiration = time() + 1800;
         if( isset($this->session->staleCheckoutsHash) ) {
             if( md5(json_encode($sierraTransactions)) != $this->session->staleCheckoutsHash ) {
                 unset( $this->session->staleCheckoutsHash );

@@ -19,7 +19,7 @@
         <div class="EIN-hide-m EIN-col-t-12 EIN-col-12" style="height:10px"></div>
         <table style="margin:auto;display:inline-block">
           <tr>
-            <td><span><strong><?=$this->readingHistory["numTitles"]?></strong> titles sorted by </span></td>
+            <td><span><strong id="historyCount"><?=$this->readingHistory["numTitles"]?></strong> titles sorted by </span></td>
             <td style="padding-left:5px" class="ajaxListSortControls"><?=$this->render('myresearch/readinghistorysort.phtml', ['sort' => $this->sort])?></td>
           </tr>
         </table>
@@ -58,7 +58,7 @@
                 <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getResourceSource())?>" class="hiddenSource" />
               </td>
               <td style="padding:15px 5px" class="itemTitle">
-                <a href="<?=$this->recordLink()->getUrl($item["driver"])?>"><?=$this->escapeHtml(trim($item["driver"]->getTitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getTitleSection(),"\0\t\n\x0B\r /"))?></a>
+                <a href="<?=$this->recordLink()->getUrl($item["driver"])?>"><?=$this->escapeHtml(trim(($item["driver"]->getShortTitle() == "") ? $item["driver"]->getTitle() : $item["driver"]->getShortTitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getSubtitle(),"\0\t\n\x0B\r /") . ' ' . trim($item["driver"]->getTitleSection(),"\0\t\n\x0B\r /"))?></a>
                 <? $authors = $item["driver"]->getDeduplicatedAuthors(); ?>
                 <? if (isset($authors['main']) && !empty($authors['main'])): ?>
                   <h4 property="author" class="itemAuthor">by <a href="<?=$record->getLink('author', $authors['main'])?>" class="authorLink"><?=$this->escapeHtml($authors['main'])?></a></h4>
@@ -123,6 +123,7 @@
       });
       $('.historyShowMore').prop("disabled", false).html("<i class='fa fa-repeat'></i>&nbsp;<?=$this->transEsc("reading_history_load_more")?>");
       $('.historyShowMore').css('display', ($(this).contents().find('.historyShowMore').length > 0) ? 'inline-block' : 'none');
+      $('#historyCount').html($('.historyItem').length);
     } );
     pageNum++;
   }

@@ -743,6 +743,8 @@ class AjaxController extends AbstractBase
                          ($available ? 'available' : 
                           ($onOrder ? 'order' : 
                            ($isOneClick ? 'oneclick' : 'unavailable'))))];
+        $numberOfHolds = $catalog->getNumberOfHoldsOnRecord($bib);
+        $waitlistText = $numberOfHolds ? ("<br>" . (($numberOfHolds > 1) ? ($numberOfHolds . " people") : "1 person") . " on waitlist") : "";
         if ($checkinRecords) {
             $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
             $serialCheckinRecords = false;
@@ -754,15 +756,15 @@ class AjaxController extends AbstractBase
                 $serialCheckinRecords |= isset($thisRecord["libHas"]);
             }
             if( $totalItems > 0 ) {
-                $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message)];
+                $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message)];
             }
             $availability_message = $inLibMessage;
         } else if (isset($onOrder) && $onOrder && ($availableItems == 0)) {
-            $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) , $availability_message);
+            $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) . $waitlistText, $availability_message);
         } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
             $availability_message = str_replace("<countText>", "Always Available", $availability_message);
         } else {
-            $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies"), $availability_message);
+            $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
             if( isset($itsHere) ) {
                 $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
             }

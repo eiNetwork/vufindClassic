@@ -203,6 +203,7 @@ class RecordController extends AbstractRecord
 
         $view->canCheckOut = $canCheckOut;
         $view->canHold = $canHold;
+        $view->numberOfHolds = $catalog->getNumberOfHoldsOnRecord($bib);
         $view->idArgs = str_replace("\"", "'", json_encode(["id" => $bib]));
 
         // see whether they have this item in any lists

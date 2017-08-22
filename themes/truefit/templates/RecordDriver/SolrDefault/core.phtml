@@ -177,9 +177,9 @@
               <? elseif( $isOneClick ): ?>
                 <span class="availableCopyText"></span>
               <? elseif( $onOrder && ($availableCopies == 0) ): ?>
-                <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+                <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
               <? else: ?>
-                <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies"))?></span>
+                <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
               <? endif; ?>
               <? if( isset($itsHere) ): ?>
                 <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>

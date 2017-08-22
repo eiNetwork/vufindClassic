@@ -41,6 +41,7 @@
       <div class="EIN-col-m-12" style="height:110px"></div>
     <? else: ?>
       <? foreach($order as $checkoutType): ?>
+        <? $showPhysicalHeader = $this->splitEcontent; $showEcontentHeader = $this->splitEcontent; ?>
         <div class="panel panel-default listAccordion">
           <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
@@ -66,6 +67,16 @@
                 </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? foreach ($this->checkoutList[$checkoutType] as $current): ?>
+                  <? if( $showPhysicalHeader && !isset($current["overDriveId"]) ): ?>
+                    <div class="EIN-col-m-12" style="font-weight:700;font-size:24px;text-align:center;color:#3f51b5;background:#ededed;margin:-5px 0 -5px;padding:5px">Physical Items</div>
+                    <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+                    <? $showPhysicalHeader = false; ?>
+                  <? endif; ?>
+                  <? if( $showEcontentHeader && isset($current["overDriveId"]) ): ?>
+                    <div class="EIN-col-m-12" style="font-weight:700;font-size:24px;text-align:center;color:#3f51b5;background:#ededed;margin:-5px 0 -5px;padding:5px">E-content Items</div>
+                    <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
+                    <? $showEcontentHeader = false; ?>
+                  <? endif; ?>
                   <?=$this->record($current["driver"])->getCheckoutEntry($current, $user, ($checkoutType == "all"))?>
                 <? endforeach; ?>
               </div>

@@ -224,6 +224,7 @@ class EINetwork extends Sierra2 implements
         $patron['OD_audiobook'] = $lendingOptions["Audiobook"];
         $patron['OD_video'] = $lendingOptions["Video"];
         $patron['OD_renewalInDays'] = $lendingOptions["renewalInDays"];
+        $patron['splitEcontent'] = $user->splitEcontent;
 
         $this->session->patron = $patron;
         return $patron;
@@ -294,6 +295,7 @@ class EINetwork extends Sierra2 implements
                         "id" => $id,
                         "location" => "OverDrive",
                         "isOverDrive" => true,
+                        "isOneClick" => false,
                         "copiesOwned" => $availability->collections[0]->copiesOwned,
                         "copiesAvailable" => $availability->collections[0]->copiesAvailable,
                         "numberOfHolds" => $availability->collections[0]->numberOfHolds,
@@ -499,6 +501,12 @@ class EINetwork extends Sierra2 implements
         if( isset($updatedInfo['alternate_library']) ) {
             $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
             $user->changeAlternateLibrary($updatedInfo['alternate_library']);
+        }
+
+        // see whether they have given us a new splitEcontent preference
+        if( isset($updatedInfo['splitEcontent']) ) {
+            $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
+            $user->changeSplitEcontent($updatedInfo['splitEcontent']);
         }
 
         // see whether they have updated their overdrive lending periods
@@ -1608,6 +1616,37 @@ class EINetwork extends Sierra2 implements
             $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your hold';
         }
         return $hold_result;
+    }
+
+    public function getNumberOfHoldsOnRecord($id) {
+        if( $this->memcached->get("numberOfHoldsOnID" . $id) !== null ) {
+            $cookieJar = tempnam("/tmp", "CURLCOOKIE");
+
+            $bib = substr($id, 2, -1);
+            $curl_url = $this->config['Catalog']['classic_url'] . "/search~S1/.b" . $bib ."/.b" . $bib . "/1,1,1,B/frameset~" . $bib;
+            $this->curl_connection = curl_init($curl_url);
+
+            curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+            curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+            curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+            curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
+
+            $checkinText = curl_exec($this->curl_connection);
+            curl_close($this->curl_connection);
+
+            if (preg_match('/(\d+) hold(s?) on .*? of \d+ (copies|copy)/', $checkinText, $matches)){
+                $holdQueueLength = $matches[1];
+            }else{
+                $holdQueueLength = 0;
+            }
+
+            $this->memcached->set("numberOfHoldsOnID" . $id, $holdQueueLength, 900);
+        }
+        return $this->memcached->get("numberOfHoldsOnID" . $id);
     }
 
     private function getCheckinRecords($id) {

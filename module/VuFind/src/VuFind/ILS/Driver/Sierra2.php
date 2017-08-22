@@ -475,7 +475,7 @@ class Sierra2 extends Sierra implements
             }
             $itemInfoList = [];
             if( strlen($itemIDList) > 0 ) {
-                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields&limit=50&id=" . substr($itemIDList,1)));
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields,location,callNumber&limit=50&id=" . substr($itemIDList,1)));
 
                 // parse this response into a dictionary and create the bibID list
                 for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
@@ -530,6 +530,12 @@ class Sierra2 extends Sierra implements
                         if( $thisVarField->fieldTag == "v" ) {
                             $thisItem['volumeInfo'] = $thisVarField->content;
                         }
+                    }
+                    // see if it's ILL
+                    if( $itemInfo->location->code == "xzill" ) {
+                        $thisItem['title'] = $itemInfo->callNumber;
+                        $thisItem['author'] = "InterLibrary Loan";
+                        $thisItem['ILL'] = true;
                     }
                 // it's bib level
                 } else {
@@ -820,7 +826,7 @@ class Sierra2 extends Sierra implements
             do {
                 $processed = 0;
                 $idList = "";
-                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && (($itemIDlist === null) || $i<count($itemIDlist)); $i++ ) {
+                for( $i=$currentOffset; $i<($currentOffset + $pageSize) && ($itemIDlist !== null) && $i<count($itemIDlist); $i++ ) {
                   $itemID = substr($itemIDlist[$i],1);
                   if( $this->memcached->get("itemInfo" . $itemID) ) {
                     $holdings[] = $this->memcached->get("itemInfo" . $itemID);

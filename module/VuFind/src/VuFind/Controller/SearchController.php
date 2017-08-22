@@ -594,6 +594,11 @@ class SearchController extends AbstractSearch
             $this->getILS()->setSessionVar("retainFilters", ($this->getRequest()->getQuery()->retainFilters == "true") ? true : false);
         }
 
+        // suppress the search prompt
+        if( $this->params()->fromQuery('lookfor') == "Search For..." ) {
+            $this->getRequest()->getQuery()->set('lookfor', "");
+        }
+
         // parse out advanced style lookfors
         $searchTypes = ["Keyword" => "Keyword", "AllFields" => "All Fields", "Title" => "Title", "Author" => "Author",
                         "Contributor" => "Author/Artist/Contributor", "Subject" => "Subject", "ISN" => "ISBN/ISSN/UPC",
@@ -603,21 +608,6 @@ class SearchController extends AbstractSearch
             $regExStr .= (($regExStr == "") ? "/(" : "|") . str_replace("/", "\/", $thisType);
         }
         $regExStr .= "):/";
-/******\
-* test *
-\******
-$query = $this->getRequest()->getQuery();
-$queryArgs = $query->toArray();
-if(isset($queryArgs["lookfor"]) && $queryArgs["lookfor"] == "magicsearch") {
-  $queryArgs["lookfor"] = "";
-  for($i=0; $i<8; $i++) {
-    $queryArgs["lookfor"] .= substr("abcdefghijklmnopqrstuvwxyz", rand(0,25), 1) . " ";
-  }
-  $query->fromArray($queryArgs);
-}
-/******\
-* test *
-\******/
         if( isset($query->lookfor) && (substr($query->lookfor, 0, 1) == "(") && (substr($query->lookfor, -1) == ")") && 
             preg_match($regExStr, $query->lookfor) ) {
             $queryArgs = $query->toArray();

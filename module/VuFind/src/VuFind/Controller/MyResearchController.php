@@ -168,7 +168,10 @@ class MyResearchController extends AbstractBase
         if ($page == 'Favorites' && !$this->listsEnabled()) {
             return $this->forwardTo('Search', 'History');
         }
-	return $this->forwardTo('MyResearch', $page);
+        $this->flashMessenger()->addMessage("<span id='redirectMessage'>" . $page . "</span>", "info");        
+        $view = $this->createViewModel();
+        $view->setTemplate('myresearch/resetpin');
+        return $view;
     }
 
     /**
@@ -428,6 +431,7 @@ class MyResearchController extends AbstractBase
 
         // Process update parameters (if present):
         $notification = $this->params()->fromPost('notification', false);
+        $splitEcontent = $this->params()->fromPost('splitEcontent', false);
         $preferredLibrary = $this->params()->fromPost('preferred_library', false);
         $alternateLibrary = $this->params()->fromPost('alternate_library', false);
         $phone = $this->params()->fromPost('phone', false);
@@ -449,6 +453,9 @@ class MyResearchController extends AbstractBase
             $updatedInfo = [];
             if( !empty($notification) && $profile["notificationCode"] != $notification ) {
                 $updatedInfo["notices"] = $notification;
+            }
+            if( !empty($splitEcontent) && $profile["splitEcontent"] != $splitEcontent ) {
+                $updatedInfo["splitEcontent"] = $splitEcontent;
             }
             if( !empty($preferredLibrary) && $profile["preferredlibrarycode"] != $preferredLibrary) {
                 $updatedInfo["preferred_library"] = $preferredLibrary;
@@ -1330,6 +1337,23 @@ class MyResearchController extends AbstractBase
         }
         $holdList['all'] = $allList;
 
+        // if they're splitting econtent, bubble those to the bottom
+        $user = $this->getUser();
+        if( $user['splitEcontent'] == "Y" ) {
+            foreach( $holdList as $key => $thisList ) {
+                usort($holdList[$key], function($co1, $co2) {
+                    if(!isset($co1["overDriveId"]) && isset($co2["overDriveId"])) {
+                        return -1;
+                    } else if(isset($co1["overDriveId"]) && !isset($co2["overDriveId"])) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                } );
+            }
+        }
+        $view->splitEcontent = ($user['splitEcontent'] == "Y");
+
         // Get List of PickUp Libraries based on patron's home library
         try {
             $view->pickup = $catalog->getPickUpLocations($patron);
@@ -1539,6 +1563,23 @@ class MyResearchController extends AbstractBase
         }
         $checkoutList['all'] = $allList;
 
+        // if they're splitting econtent, bubble those to the bottom
+        $user = $this->getUser();
+        if( $user['splitEcontent'] == "Y" ) {
+            foreach( $checkoutList as $key => $thisList ) {
+                usort($checkoutList[$key], function($co1, $co2) {
+                    if(!isset($co1["overDriveId"]) && isset($co2["overDriveId"])) {
+                        return -1;
+                    } else if(isset($co1["overDriveId"]) && !isset($co2["overDriveId"])) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                } );
+            }
+        }
+
+        $view->splitEcontent = ($user['splitEcontent'] == "Y");
         $view->checkoutList = $checkoutList;
         $view->showCheckoutType = $this->session->lastCheckoutType;
         return $view;

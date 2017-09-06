@@ -1326,32 +1326,34 @@ class MyResearchController extends AbstractBase
             // Build record driver:
             $current["driver"] = $this->getDriverForILSRecord($current);
             $group = (($current["status"] == "i") || ($current["status"] == "b") || ($current["status"] == "j")) ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'));
-            $key = $current["driver"]->GetTitle().$current["hold_id"];
+            $key = ($current["ILL"] ? $current["title"] : $current["driver"]->GetTitle()).$current["hold_id"];
             $holdList[$group][$key] = $current;
         }
         $allList = [];
+        $user = $this->getUser();
         foreach($holdList as $name => $grouping) {
-            ksort($grouping);
-            $holdList[$name] = $grouping;
+            // if they're splitting econtent, bubble those to the bottom
+            if( $user['splitEcontent'] == "Y" ) {
+                $physical = [];
+                $econtent = [];
+                foreach( $grouping as $key => $thisItem ) {
+                    if( isset($thisItem["overDriveId"]) ) {
+                        $econtent[$key] = $thisItem;
+                    } else {
+                        $physical[$key] = $thisItem;
+                    }
+                }
+                ksort($physical);
+                ksort($econtent);
+                $holdList[$name] = array_merge($physical, $econtent);
+            } else {
+                ksort($grouping);
+                $holdList[$name] = $grouping;
+            }
             $allList = array_merge($allList, $holdList[$name]);
         }
         $holdList['all'] = $allList;
 
-        // if they're splitting econtent, bubble those to the bottom
-        $user = $this->getUser();
-        if( $user['splitEcontent'] == "Y" ) {
-            foreach( $holdList as $key => $thisList ) {
-                usort($holdList[$key], function($co1, $co2) {
-                    if(!isset($co1["overDriveId"]) && isset($co2["overDriveId"])) {
-                        return -1;
-                    } else if(isset($co1["overDriveId"]) && !isset($co2["overDriveId"])) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                } );
-            }
-        }
         $view->splitEcontent = ($user['splitEcontent'] == "Y");
 
         // Get List of PickUp Libraries based on patron's home library
@@ -1545,39 +1547,52 @@ class MyResearchController extends AbstractBase
 
         // sort lists by due date, then title
         $allList = [];
-        foreach( $checkoutList as $key => $thisList ) {
-            usort($checkoutList[$key], function($co1, $co2) {
-                if($co1["duedate"] > $co2["duedate"]) {
-                    return 1;
-                } else if($co1["duedate"] < $co2["duedate"]) {
-                    return -1;
-                } else if($co1["title"] > $co2["title"]) {
-                    return 1;
-                } else if($co1["title"] < $co2["title"]) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            } );
-            $allList = array_merge($allList, $checkoutList[$key]);
-        }
-        $checkoutList['all'] = $allList;
-
-        // if they're splitting econtent, bubble those to the bottom
         $user = $this->getUser();
-        if( $user['splitEcontent'] == "Y" ) {
-            foreach( $checkoutList as $key => $thisList ) {
+        foreach( $checkoutList as $key => $thisList ) {
+            // if they're splitting econtent, bubble those to the bottom
+            if( $user['splitEcontent'] == "Y" ) {
                 usort($checkoutList[$key], function($co1, $co2) {
                     if(!isset($co1["overDriveId"]) && isset($co2["overDriveId"])) {
                         return -1;
                     } else if(isset($co1["overDriveId"]) && !isset($co2["overDriveId"])) {
                         return 1;
+                    } else if($co1["duedate"] > $co2["duedate"]) {
+                        return 1;
+                    } else if($co1["duedate"] < $co2["duedate"]) {
+                        return -1;
+                    } 
+                    $t1 = isset($co1["title"]) ? $co1["title"] : $co1["driver"]->getTitle();
+                    $t2 = isset($co2["title"]) ? $co2["title"] : $co2["driver"]->getTitle();
+                    if($t1 > $t2) {
+                        return 1;
+                    } else if($t1 < $t2) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                } );
+            // otherwise, normal sort
+            } else {
+                usort($checkoutList[$key], function($co1, $co2) {
+                    if($co1["duedate"] > $co2["duedate"]) {
+                        return 1;
+                    } else if($co1["duedate"] < $co2["duedate"]) {
+                        return -1;
+                    } 
+                    $t1 = isset($co1["title"]) ? $co1["title"] : $co1["driver"]->getTitle();
+                    $t2 = isset($co2["title"]) ? $co2["title"] : $co2["driver"]->getTitle();
+                    if($t1 > $t2) {
+                        return 1;
+                    } else if($t1 < $t2) {
+                        return -1;
                     } else {
                         return 0;
                     }
                 } );
             }
+            $allList = array_merge($allList, $checkoutList[$key]);
         }
+        $checkoutList['all'] = $allList;
 
         $view->splitEcontent = ($user['splitEcontent'] == "Y");
         $view->checkoutList = $checkoutList;

@@ -49,7 +49,7 @@ function handleListContentResponse(response) {
       // stop loading, enable the sort/bulk buttons and grab item statuses
       } else {
         $(this).find(".ajaxListContents .loadingWall").remove();
-        $("span.pull-left").css({"display":"initial"});
+        $("span.pull-left").css({"display":"block"});
 
         // sort buttons
         $(this).find(".ajaxListSortControls").html(response.data.sortHtml).parents("tr").css({"display":"inherit"});

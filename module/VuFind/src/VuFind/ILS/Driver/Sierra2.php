@@ -271,7 +271,7 @@ class Sierra2 extends Sierra implements
      */
     public function getNumberOfMyTransactions($patron){
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=1&offset=0"));
-        return $jsonVals->total;
+        return $jsonVals ? $jsonVals->total : 0;
     }
 
     /**
@@ -293,7 +293,7 @@ class Sierra2 extends Sierra implements
 
             // make the initial items API call to get base info
             $itemIDList = "";
-            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+            for( $i=0; $jsonVals && $i<count($jsonVals->entries); $i++ ) {
                 // get the item id
                 $arr = explode("/", $jsonVals->entries[$i]->item);
                 $itemId = $arr[count($arr)-1];
@@ -303,33 +303,18 @@ class Sierra2 extends Sierra implements
             if( strlen($itemIDList) > 0 ) {
                 $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . substr($itemIDList,1)));
             } else {
-                $itemInfoJson = json_decode("{'entries':[]}");
+                $itemInfoJson = json_decode("{\"entries\":[]}");
             }
 
             // parse this response into a dictionary and create the bibID list
             $bibIDList = "";
             $itemInfoList = [];
             for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
-                // add the bib id to the list
-                $bibIDList .= "," . $itemInfoJson->entries[$i]->bibIds[0];
-
                 // put this item info into the parsed dictionary
                 $itemInfoList[$itemInfoJson->entries[$i]->id] = $itemInfoJson->entries[$i];
             }
 
-            // grab the bib info and parse it into a dictionary
-            $bibInfoList = [];
-            if( strlen($bibIDList) > 0 ) {
-                $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=title,publishYear,author&limit=50&id=" . substr($bibIDList,1)));
-            } else {
-                $bibInfoJson = json_decode("{'entries':[]}");
-            }
-            for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
-                // put this bib info into the parsed dictionary
-                $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
-            }
-
-            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+            for( $i=0; $jsonVals && $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
                 // fill in properties
@@ -344,30 +329,25 @@ class Sierra2 extends Sierra implements
                 $arr = explode("/", $jsonVals->entries[$i]->item);
                 $itemId = $arr[count($arr)-1];
                 $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
-                $itemInfo = $itemInfoList[$itemId];
-                $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
-                $thisItem['institution_name'] = $itemInfo->location->name;
-                $thisItem['borrowingLocation'] = $itemInfo->location->name;
-                foreach( $itemInfo->varFields as $thisVarField ) {
-                    if( $thisVarField->fieldTag == "v" ) {
-                        $thisItem['volumeInfo'] = $thisVarField->content;
+                if( isset($itemInfoList[$itemId]) ) {
+                    $itemInfo = $itemInfoList[$itemId];
+                    $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
+                    $thisItem['institution_name'] = $itemInfo->location->name;
+                    $thisItem['borrowingLocation'] = $itemInfo->location->name;
+                    foreach( $itemInfo->varFields as $thisVarField ) {
+                        if( $thisVarField->fieldTag == "v" ) {
+                            $thisItem['volumeInfo'] = $thisVarField->content;
+                        }
                     }
-                }
 
-                // see if it's ILL
-                if( $itemInfo->location->code == "xzill" ) {
-                    $thisItem['title'] = $itemInfo->callNumber;
-                    $thisItem['author'] = "InterLibrary Loan";
-                    $thisItem['ILL'] = true;
-                } else {
-                    // get the bib info
-                    $bibInfo = $bibInfoList[$itemInfo->bibIds[0]];
-                    $thisItem['title'] = $bibInfo->title;
-                    if( isset($bibInfo->publishYear) ) {
-                        $thisItem['publication_year'] = $bibInfo->publishYear;
+                    // see if it's ILL
+                    if( $itemInfo->location->code == "xzill" ) {
+                        $thisItem['title'] = $itemInfo->callNumber;
+                        $thisItem['author'] = "InterLibrary Loan";
+                        $thisItem['ILL'] = true;
+                    } else {
+                        $thisItem['ILL'] = false;
                     }
-                    $thisItem['author'] = $bibInfo->author;
-                    $thisItem['ILL'] = false;
                 }
 
                 $checkedOutItems[$i + $offset] = $thisItem;
@@ -391,11 +371,11 @@ class Sierra2 extends Sierra implements
      */
     public function getMyFines($patron){
         $fines = [];
-
         $offset = count($fines);
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines?limit=50&offset=" . $offset));
 
-        while( count($fines) < $jsonVals->total ) {
+        while( !isset($jsonVals) || (count($fines) < $jsonVals->total) ) {
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines?limit=50&offset=" . $offset));
+
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
@@ -420,7 +400,6 @@ class Sierra2 extends Sierra implements
             }
 
             $offset = count($fines);
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines?limit=50&offset=" . $offset));
         }
         return $fines;
     }
@@ -437,7 +416,7 @@ class Sierra2 extends Sierra implements
      */
     public function getNumberOfMyHolds($patron){
         $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=1&offset=0"));
-        return $jsonVals->total;
+        return $jsonVals ? $jsonVals->total : 0;
     }
 
     /**
@@ -461,7 +440,7 @@ class Sierra2 extends Sierra implements
             // make the initial items API call to get bib info
             $itemIDList = "";
             $bibIDList = "";
-            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+            for( $i=0; $jsonVals && $i<count($jsonVals->entries); $i++ ) {
                 // get the item id
                 $arr = explode("/", $jsonVals->entries[$i]->record);
                 $id = $arr[count($arr)-1];
@@ -478,40 +457,25 @@ class Sierra2 extends Sierra implements
                 $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields,location,callNumber&limit=50&id=" . substr($itemIDList,1)));
 
                 // parse this response into a dictionary and create the bibID list
-                for( $i=0; $i<count($itemInfoJson->entries); $i++ ) {
-                    // add the bib id to the list
-                    $bibIDList .= "," . $itemInfoJson->entries[$i]->bibIds[0];
-
+                for( $i=0; $itemInfoJson && $i<count($itemInfoJson->entries); $i++ ) {
                     // put this item info into the parsed dictionary
                     $itemInfoList[$itemInfoJson->entries[$i]->id] = $itemInfoJson->entries[$i];
                 }
             }
 
-            // grab the bib info and parse it into a dictionary
-            $bibInfoList = [];
-            if( strlen($bibIDList) > 0 ) {
-                $bibInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=publishYear&limit=50&id=" . substr($bibIDList,1)));
-            } else {
-                $bibInfoJson = json_decode("{'entries':[]}");
-            }
-            for( $i=0; $i<count($bibInfoJson->entries); $i++ ) {
-                // put this bib info into the parsed dictionary
-                $bibInfoList[$bibInfoJson->entries[$i]->id] = $bibInfoJson->entries[$i];
-            }
-
-            for( $i=0; $i<count($jsonVals->entries); $i++ ) {
+            for( $i=0; $jsonVals && $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
 
                 // get the hold id
                 $arr = explode("/", $jsonVals->entries[$i]->id);
                 $thisItem['hold_id'] = $arr[count($arr)-1];
                 $thisItem['source'] = "Solr";
-                $thisItem['location'] = $jsonVals->entries[$i]->pickupLocation->name;
+                $thisItem['location'] = isset($jsonVals->entries[$i]->pickupLocation->name) ? $jsonVals->entries[$i]->pickupLocation->name : null;
                 $thisItem['create'] = $jsonVals->entries[$i]->placed;
-                $thisItem['expire'] = isset($jsonVals->entries[$i]->notNeededAfterDate) ? $jsonVals->entries[$i]->notNeededAfterDate : null;
-                $thisItem['status'] = $jsonVals->entries[$i]->status->code;
+                $thisItem['expire'] = $jsonVals->entries[$i]->notNeededAfterDate;
+                $thisItem['status'] = isset($jsonVals->entries[$i]->status->code) ? $jsonVals->entries[$i]->status->code : null;
                 $thisItem['frozen'] = $jsonVals->entries[$i]->frozen;
-                if( in_array($jsonVals->entries[$i]->status->code, ["i", "b", "j"]) ) {
+                if( isset($jsonVals->entries[$i]->status->code) && in_array($jsonVals->entries[$i]->status->code, ["i", "b", "j"]) ) {
                     $thisItem['available'] = true;
                 } else {
                     $thisItem['position'] = $jsonVals->entries[$i]->priority;
@@ -523,12 +487,14 @@ class Sierra2 extends Sierra implements
                 // it's an item-level hold
                 if( count($arr) >= 2 && ($arr[count($arr)-2] == "items") ) {
                     $thisItem['item_id'] = ".i" . $id . $this->getCheckDigit($id);
-                    $itemInfo = $itemInfoList[$id];
-                    $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
-                    $bibId = $itemInfo->bibIds[0];
-                    foreach( $itemInfo->varFields as $thisVarField ) {
-                        if( $thisVarField->fieldTag == "v" ) {
-                            $thisItem['volumeInfo'] = $thisVarField->content;
+                    if( isset($itemInfoList[$id]) ) {
+                        $itemInfo = $itemInfoList[$id];
+                        $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
+                        $bibId = $itemInfo->bibIds[0];
+                        foreach( $itemInfo->varFields as $thisVarField ) {
+                            if( $thisVarField->fieldTag == "v" ) {
+                                $thisItem['volumeInfo'] = $thisVarField->content;
+                            }
                         }
                     }
                     // see if it's ILL
@@ -540,12 +506,6 @@ class Sierra2 extends Sierra implements
                 // it's bib level
                 } else {
                     $thisItem['id'] = ".b" . $id . $this->getCheckDigit($id);
-                }
-
-                // get the bib info
-                $bibInfo = $bibInfoList[$bibId];
-                if( isset($bibInfo->publishYear) ) {
-                    $thisItem['publication_year'] = $bibInfo->publishYear;
                 }
 
                 $holds[$offset + $i] = $thisItem;
@@ -724,35 +684,7 @@ class Sierra2 extends Sierra implements
                 'defaultRequiredDate' => 'driver:0:2:0',
             ];
         }
-/*
-        if ($function == 'StorageRetrievalRequests'
-            && $this->storageRetrievalRequests
-        ) {
-            return [
-                'HMACKeys' => 'id',
-                'extraFields' => 'comments:pickUpLocation:requiredByDate:item-issue',
-                'helpText' => 'This is a storage retrieval request help text'
-                    . ' with some <span style="color: red">styling</span>.'
-            ];
-        }
-        if ($function == 'ILLRequests' && $this->ILLRequests) {
-            return [
-                'enabled' => true,
-                'HMACKeys' => 'number',
-                'extraFields' =>
-                    'comments:pickUpLibrary:pickUpLibraryLocation:requiredByDate',
-                'defaultRequiredDate' => '0:1:0',
-                'helpText' => 'This is an ILL request help text'
-                    . ' with some <span style="color: red">styling</span>.'
-            ];
-        }
-        if ($function == 'changePassword') {
-            return [
-                'minLength' => 4,
-                'maxLength' => 20
-            ];
-        }
-*/
+
         return [];
     }
 
@@ -835,14 +767,10 @@ class Sierra2 extends Sierra implements
                   }
                   $processed++;
                 }
-                if( $itemIDlist !== null ) {
-                  $apiHoldings = null;
-                  if( $idList ) {
-                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
-                    $apiHoldings = json_decode($this->sendAPIRequest($url));
-                  }
-                } else {
-                  $apiHoldings = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=id,status,location,callNumber,barcode,varFields&suppressed=false&bibIds=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                $apiHoldings = null;
+                if( $idList ) {
+                  $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
+                  $apiHoldings = json_decode($this->sendAPIRequest($url));
                 }
                 if( ($itemIDlist == null) && !isset($apiHoldings->entries) ) {
                     break;
@@ -887,19 +815,21 @@ class Sierra2 extends Sierra implements
                                 }
                             }
                         }
+                        $opacMsg = isset($thisItem->fixedFields) ? json_decode(json_encode($thisItem->fixedFields), true)["108"] : null;
+                        $noRequests = $opacMsg && ($opacMsg["value"] == "n");
                         $itemInfo = [
                             "id" => $id,
                             "itemId" => $thisItem->id,
-                            "availability" => ((trim($thisItem->status->code) == "-") || (trim($thisItem->status->code) == "o") || (trim($thisItem->status->code) == "p")) && !isset($thisItem->status->duedate),
-                            "status" => trim($thisItem->status->code),
-                            "location" => $thisItem->location->name,
+                            "availability" => (isset($thisItem->status->code) && (trim($thisItem->status->code) == "-") || (trim($thisItem->status->code) == "o") || (trim($thisItem->status->code) == "p")) && !isset($thisItem->status->duedate),
+                            "status" => isset($thisItem->status->code) ? trim($thisItem->status->code) : null,
+                            "location" => isset($thisItem->location->name) ? $thisItem->location->name : null,
                             "reserve" => "N",
-                            "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
+                            "callnumber" => isset($thisItem->callNumber) ? (str_replace("|a", " ", $thisItem->callNumber) . ($noRequests ? "<br>NO REQUESTS" : "")) : null,
                             "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
                             "returnDate" => false,
                             "number" => $number,
                             "barcode" => $thisItem->barcode,
-                            "locationCode" => $thisItem->location->code,
+                            "locationCode" => isset($thisItem->location->code) ? $thisItem->location->code : null,
                             "copiesOwned" => 1
                             ];
                         $holdings[] = $itemInfo;
@@ -945,7 +875,7 @@ class Sierra2 extends Sierra implements
                 }
 
                 if( $idList ) {
-                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,bibIds,status,location,callNumber,barcode,varFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
+                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,bibIds,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
                     $apiHoldings = json_decode($this->sendAPIRequest($url));
 
                     foreach($apiHoldings->entries as $thisItem) {
@@ -957,6 +887,8 @@ class Sierra2 extends Sierra implements
                                 }
                             }
                         }
+                        $opacMsg = isset($thisItem->fixedFields) ? json_decode(json_encode($thisItem->fixedFields), true)["108"] : null;
+                        $noRequests = $opacMsg && ($opacMsg["value"] == "n");
                         $itemInfo = [
                           "id" => ".b" . $thisItem->bibIds[0] . $this->getCheckDigit($thisItem->bibIds[0]),
                           "itemId" => $thisItem->id,
@@ -964,7 +896,7 @@ class Sierra2 extends Sierra implements
                           "status" => trim($thisItem->status->code),
                           "location" => $thisItem->location->name,
                           "reserve" => "N",
-                          "callnumber" => isset($thisItem->callNumber) ? str_replace("|a", " ", $thisItem->callNumber) : null,
+                          "callnumber" => isset($thisItem->callNumber) ? (str_replace("|a", " ", $thisItem->callNumber) . ($noRequests ? "<br>NO REQUESTS" : "")) : null,
                           "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
                           "returnDate" => false,
                           "number" => $number,

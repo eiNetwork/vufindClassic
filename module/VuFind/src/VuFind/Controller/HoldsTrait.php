@@ -186,15 +186,31 @@ trait HoldsTrait
             && (empty($gatheredDetails['level'])
                 || $gatheredDetails['level'] != 'copy');
 
+        // make sure these are valid locations
+        $lookForHome = $this->getUser()->home_library;
+        $lookForAlt = $this->getUser()->alternate_library;
+        $lookForPref = $this->getUser()->preferred_library;
+        foreach( $pickup as $thisLocation ) {
+            if( !isset($homeLib) && $thisLocation["locationID"] == $lookForHome ) {
+                $homeLib = $thisLocation["locationID"];
+            }
+            if( !isset($alternateLib) && $thisLocation["locationID"] == $lookForAlt ) {
+                $alternateLib = $thisLocation["locationID"];
+            }
+            if( !isset($preferredLib) && $thisLocation["locationID"] == $lookForPref ) {
+                $preferredLib = $thisLocation["locationID"];
+            }
+        }
+
         $view = $this->createViewModel(
             [
                 'skip' => true, 
                 'gatheredDetails' => $gatheredDetails,
                 'pickup' => $pickup,
                 'defaultPickup' => $defaultPickup,
-                'homeLibrary' => $this->getUser()->home_library,
-                'preferredLibrary' => $this->getUser()->preferred_library,
-                'alternateLibrary' => $this->getUser()->alternate_library,
+                'homeLibrary' => isset($homeLib) ? $homeLib : "",
+                'preferredLibrary' => isset($preferredLib) ? $preferredLib : "",
+                'alternateLibrary' => isset($alternateLib) ? $alternateLib : "",
                 'extraHoldFields' => $extraHoldFields,
                 'defaultRequiredDate' => $defaultRequired,
                 'requestGroups' => $requestGroups,

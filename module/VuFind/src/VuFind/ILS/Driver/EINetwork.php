@@ -201,7 +201,10 @@ class EINetwork extends Sierra2 implements
             $this->memcached->set("locationByCode" . $patron['homelibrarycode'], $this->getDbTable('Location')->getByCode($patron['homelibrarycode']));
         }
         $location = $this->memcached->get("locationByCode" . $patron['homelibrarycode']);
-        $patron['homelibrary'] = $location->displayName;
+        $patron['homelibrary'] = ($location != null && $location->validHoldPickupBranch) ? $location->displayName : null;
+        if( !$patron['homelibrary'] ) {
+            $patron['homelibrarycode'] = null;
+        }
 
         $user = $this->getDbTable('user')->getByUsername($patron['username'], false);
 
@@ -210,13 +213,20 @@ class EINetwork extends Sierra2 implements
             $this->memcached->set("locationByCode" . $patron['preferredlibrarycode'], $this->getDbTable('Location')->getByCode($patron['preferredlibrarycode']));
         }
         $location = $this->memcached->get("locationByCode" . $patron['preferredlibrarycode']);
-        $patron['preferredlibrary'] = ($location != null) ? $location->displayName : null;
+        $patron['preferredlibrary'] = ($location != null && $location->validHoldPickupBranch) ? $location->displayName : null;
+        if( !$patron['preferredlibrary'] ) {
+            $patron['preferredlibrarycode'] = null;
+        }
+
         $patron['alternatelibrarycode'] = $user->alternate_library;
         if( !$this->memcached->get("locationByCode" . $patron['alternatelibrarycode']) ) {
             $this->memcached->set("locationByCode" . $patron['alternatelibrarycode'], $this->getDbTable('Location')->getByCode($patron['alternatelibrarycode']));
         }
         $location = $this->memcached->get("locationByCode" . $patron['alternatelibrarycode'] );
-        $patron['alternatelibrary'] = ($location != null) ? $location->displayName : null;
+        $patron['alternatelibrary'] = ($location != null && $location->validHoldPickupBranch) ? $location->displayName : null;
+        if( !$patron['alternatelibrary'] ) {
+            $patron['alternatelibrarycode'] = null;
+        }
 
         // overdrive info
         $lendingOptions = $this->getOverDriveLendingOptions($patron);

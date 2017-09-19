@@ -343,8 +343,9 @@ i.bwSpinner{background-image: url('../images/icons/ajax_loading_blueWhite.gif')}
 .helpSectionHeader{font-size:24px;font-weight:700;text-align:center}
 .helpSubsectionHeader{font-size:18px;font-weight:700;padding-bottom:5px}
 .helpContent{padding:0px 10px}
+.helpContent .fa{font-size:14px}
 .helpSubsection{border:1px solid #949494;border-radius:4px;padding:5px;margin-top:10px}
-.helpLink.subsection{margin-left:20px}
+.helpLinkSubsection{padding-left:40px; text-indent:-20px}
 .helpQuickJumpSection{margin-top:20px}
 .helpFAQHeader{margin-top:25px;font-size:16px;font-weight:700}
 .helpFAQSection{margin:10px}
@@ -415,6 +416,7 @@ body.modalOpen {overflow:hidden;position:fixed;width:100%}
 a.checkinLocDetail {cursor:pointer}
 
 .privacyTitle {text-align:center;font-weight:700;font-size:24px}
-.privacyHeader {font-weight:700;font-size:20px}
-.privacyText {font-size:18px}
+.privacyHeader {font-weight:700;font-size:18px}
+.privacyText {font-size:16px}
 .privacyOffset {margin-left:40px}
+.privacySubtitle {font-weight:700;font-size:22px}

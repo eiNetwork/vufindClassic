@@ -81,6 +81,7 @@ return array(
     'record/view'                                => APPLICATION_PATH . '/themes/truefit/templates/record/view.phtml',
     'record/overdriveDownload'                   => APPLICATION_PATH . '/themes/truefit/templates/record/overdriveDownload.phtml',
     'record/checkbox'                            => APPLICATION_PATH . '/themes/truefit/templates/record/checkbox.phtml',
+    'record/chooseLink'                          => APPLICATION_PATH . '/themes/truefit/templates/record/chooseLink.phtml',
     'record/selectItem'                          => APPLICATION_PATH . '/themes/truefit/templates/record/selectItem.phtml',
     'record/hold'                                => APPLICATION_PATH . '/themes/truefit/templates/record/hold.phtml',
     'Recommend/SpellingSuggestions'              => APPLICATION_PATH . '/themes/truefit/templates/Recommend/SpellingSuggestions.phtml',

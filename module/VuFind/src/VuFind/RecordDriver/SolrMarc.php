@@ -710,6 +710,11 @@ class SolrMarc extends SolrDefault
             }
         }
 
+        // check Solr if we didn't get the entire MARC record
+        if( !$retVal ) {
+            return parent::getURLs();
+        }
+
         return $retVal;
     }
 

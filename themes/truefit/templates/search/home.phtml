@@ -126,7 +126,7 @@
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($BookResults as $entry): ?>
-            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+            <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
               <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
@@ -149,7 +149,7 @@
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($DVDResults as $entry): ?>
-            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+            <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
               <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
@@ -172,7 +172,7 @@
         <td style="width:76%" class="sliderWindow">
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($ebookResults as $entry): ?>
-            <td class="neTD"><a href="<?=$this->recordLink()->getUrl($entry)?>">
+            <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
               <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>

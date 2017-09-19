@@ -1331,7 +1331,8 @@ class SolrDefault extends AbstractBase
         // otherwise, return empty array:
         if (isset($this->fields['url']) && is_array($this->fields['url'])) {
             $filter = function ($url) {
-                return ['url' => $url];
+                $json = json_decode($url);
+                return ['url' => isset($json->url) ? $json->url : $url, 'desc' => isset($json->desc) ? $json->desc : "Access Online"];
             };
             return array_map($filter, $this->fields['url']);
         }
@@ -1809,5 +1810,10 @@ class SolrDefault extends AbstractBase
         return $this->containerLinking
             && !empty($this->fields['hierarchy_parent_id'])
             ? $this->fields['hierarchy_parent_id'][0] : '';
+    }
+
+    public function hasOnlineAccess()
+    {
+        return in_array("Digital Collection", $this->fields['available_at']);
     }
 }

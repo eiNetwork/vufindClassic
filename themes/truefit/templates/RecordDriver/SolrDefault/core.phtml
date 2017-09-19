@@ -31,6 +31,7 @@
       $isOneClick = true;
     endif;
   endforeach;
+  $accessOnline = $this->driver->hasOnlineAccess();
 ?>
 <div class="row" vocab="http://schema.org/" resource="#record" typeof="<?=$this->driver->getSchemaOrgFormats()?> Product">
   <div class="EIN-col-m-12 EIN-col-3">
@@ -144,45 +145,52 @@
           <? endforeach; ?>
         <? endforeach; ?>
         <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
-        <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
+        <? $green = $isOneClick || $accessOnline || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
         <? if( !isset($this->holdings["CHECKIN_RECORDS"]) || ($totalCopies > 0) ): ?>
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
-              <span class="<?=($green ? "availableTag\" style=\"display:inline-table" : "unavailableTag")?>"><?
-                if( $green ): 
-                  echo '<i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">';
-                  if( $isOverDrive ):
-                    echo 'Available from OverDrive';
-                  elseif( isset($itsHere) ):
-                    echo 'It\'s Here!';
-                  elseif( isset($atPreferred) ):
-                    echo 'Available at your preferred Libraries!';
-                  elseif( $availableCopies > 0 ):
-                    echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
-                  elseif( $onOrder ):
-                    echo 'On Order';
-                  elseif( $isOneClick ):
-                    echo 'Access Online';
-                  else:
-                    echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
-                  endif; 
-                  echo '</span>';
-                else: 
-                  echo 'Unavailable';
-                endif;
-              ?></span>
-              <? if( $alwaysAvailable ): ?>
+              <? if( $accessOnline ): ?>
+                <span class="availableTag" style="display:inline-table"><i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">Access Online</span></span>
                 <span class="availableCopyText">Always Available</span>
-              <? elseif( $isOneClick ): ?>
-                <span class="availableCopyText"></span>
-              <? elseif( $onOrder && ($availableCopies == 0) ): ?>
-                <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
-              <? else: ?>
-                <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
+                <?=(($totalCopies > 0) ? "<br><div style=\"height:5px\"></div>" : "") ?>
               <? endif; ?>
-              <? if( isset($itsHere) ): ?>
-                <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
+              <? if( !$accessOnline || ($totalCopies > 0) ): ?>
+                <span class="<?=($green ? "availableTag\" style=\"display:inline-table" : "unavailableTag")?>"><?
+                  if( $green ): 
+                    echo '<i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">';
+                    if( $isOverDrive ):
+                      echo 'Available from OverDrive';
+                    elseif( isset($itsHere) ):
+                      echo 'It\'s Here!';
+                    elseif( isset($atPreferred) ):
+                      echo 'Available at your preferred Libraries!';
+                    elseif( $availableCopies > 0 ):
+                      echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                    elseif( $onOrder ):
+                      echo 'On Order';
+                    elseif( $isOneClick ):
+                      echo 'Access Online';
+                    else:
+                      echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                    endif; 
+                    echo '</span>';
+                  else: 
+                    echo 'Unavailable';
+                  endif;
+                ?></span>
+                <? if( $alwaysAvailable ): ?>
+                  <span class="availableCopyText">Always Available</span>
+                <? elseif( $isOneClick ): ?>
+                  <span class="availableCopyText"></span>
+                <? elseif( $onOrder && ($availableCopies == 0) ): ?>
+                  <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
+                <? else: ?>
+                  <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
+                <? endif; ?>
+                <? if( isset($itsHere) ): ?>
+                  <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>
+                <? endif; ?>
               <? endif; ?>
             </td>
           </tr>
@@ -215,13 +223,30 @@
           $saveClick = ($user ? " data-toggle=\"dropdown\" data-target=\"#saveButtonDropdown,#saveButtonDropdownMobile\"" : " onClick=\"Lightbox.get('MyResearch','Login',false,{'clearLightbox':true})\"");
         endif;
 
-        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : (($this->libraryOnly || isset($this->holdings["CHECKIN_RECORDS"])) ? "In Library Only" : "Unable to Hold"))))));
+        $checkinRecords = isset($this->holdings["CHECKIN_RECORDS"]);
+        if ($checkinRecords) {
+            $checkinRecords = false;
+            foreach( $this->holdings["CHECKIN_RECORDS"]["items"] as $thisItem ) {
+                foreach( $thisItem["checkinRecords"] as $thisRecord ) {
+                    $checkinRecords |= isset($thisRecord["libHas"]);
+                }
+            }
+        }
+        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : ($accessOnline ? "Access Online" : (($this->libraryOnly || $checkinRecords) ? "In Library Only" : "Unable to Hold")))))));
         if( $this->isTitleCheckedOut && $isOverDrive ):
           $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
         elseif( $isOverDrive && $holdLabel == "Learn More" ):
           $linkURLs = $this->driver->getURLs();
           $holdClick = " onClick=\"window.open('" . $linkURLs[0]["url"] . "', '_blank');\"";
           $holdLink = null;
+        elseif( $accessOnline && $holdLabel == "Access Online" ):
+          if( count($urls) == 1 ) {
+            $holdClick = " onClick=\"window.open('" . $urls[0]["url"] . "', '_blank');\"";
+            $holdLink = null;
+          } else {
+            $holdClick = " onClick=\"Lightbox.get('Record', 'ChooseLink', " . $this->idArgs . ");\"";
+            $holdLink = null;
+          }
         endif;
       ?>
     </div>
@@ -230,7 +255,7 @@
         <? if($holdLink != null): ?>
           <a href="<?=$holdLink?>" target="loginFrame">
         <? endif; ?>
-        <button class="btn-default leftButton"<?=$holdClick?><?=((($this->canHold && (!$holdableCopyHere || $hasVolumes)) || $this->canCheckOut || $isOverDrive)?"":" disabled")?>><?=$holdLabel?></button>
+        <button class="btn-default leftButton"<?=$holdClick?><?=((($this->canHold && (!$holdableCopyHere || $hasVolumes)) || $this->canCheckOut || $isOverDrive || $accessOnline)?"":" disabled")?>><?=$holdLabel?></button>
         <? if($holdLink != null): ?>
           </a>
         <? endif; ?>
@@ -481,6 +506,12 @@
                   </div>
                 <? endforeach; ?>
               <? else: ?>
+                <? if( $accessOnline ): ?>
+                  <h6 class="accordionSubheading">Available Online</h6>
+                  <? if( $totalCopies > 0 ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
+                <? endif; ?>
                 <? if( (($availableCopies - $noncirculatingCopies) > 0) || $isOneClick ): ?>
                   <? if( count($hereIDs) > 0 ): ?>
                     <h6 class="accordionSubheading">Available Here (<?=count($hereIDs)?>)</h6>
@@ -661,7 +692,7 @@
                     <span class="accordionGap">&nbsp;</span>
                   <? endif; ?>
                 <? endif; ?>
-                <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
+                <? if( !$accessOnline && !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
                   <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" from OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
                   <? if( !$isOverDrive ): ?>
                     <table class="EIN-col-m-12">

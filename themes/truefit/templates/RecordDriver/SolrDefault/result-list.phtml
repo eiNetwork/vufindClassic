@@ -14,7 +14,7 @@
   <? endforeach; ?>
   <input type="hidden" value="true" class="hiddenLoadThisStatus">
   <div class="EIN-col-m-3">
-    <div class="text-center" style="padding:10px">
+    <div class="text-center" style="padding:10px" onMouseEnter="ShowDescriptionToolTip('<?=$this->driver->getUniqueID()?>', $(this).parent());" onMouseLeave="HideDescriptionToolTip();">
       <? /* Display thumbnail if appropriate: */ ?>
       <? $largeThumb = $record->getThumbnail('large'); ?>
       <? if ($largeThumb): ?>
@@ -71,10 +71,10 @@
             <span class="status ajax-availability hidden"><i class="fa fa-spinner"></i>&nbsp<?=$this->transEsc('Loading')?>...</span>
           </td>
         </tr>
-        <? $urls = $this->driver->getURLs(); if( !empty($urls) ): ?>
+        <? $urls = $this->driver->getURLs(); if( !empty($urls) ): usort($urls, function($a, $b) { return strcmp($a["desc"], $b["desc"]); } ); ?>
           <tr>
             <td class="EIN-hide-m itemDetailCategory hidden">Links:</td>
-            <td>
+            <td><span class="accordionParagraph">
               <? foreach($urls as $count => $thisURL): ?>
                 <div class="itemURL hidden"><a href="<?=$thisURL["url"]?>" target="_blank"><?=((strpos($thisURL["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false) ? 'Download from OneClick' : (isset($thisURL["desc"]) ? $thisURL["desc"] : ""))?></a>
                   <? if( $count == 2 && count($urls) > 3 ): ?>
@@ -84,7 +84,7 @@
                   <? endif; ?>
                 </div>
               <? endforeach; ?>
-            </td>
+            </span></td>
           </tr>
         <? endif; ?>
         <? if( $showMatch ): ?>

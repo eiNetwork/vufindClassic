@@ -87,11 +87,12 @@
     </div>
     <div class="dropdown" id="searchBoxDropdown">
       <ul role="navigation" class="dropdown-menu standardDropdown searchDropdown">
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="toggleRetainFilters(this)"><span class="greenCheck" style="display:<?=($retainFilters?"initial":"none")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Retain Filters</button></a></li>
-        <li style="display:none"><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)"><span class="greenCheck" style="display:initial"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Limit to Available</button></a></li>
-        <hr class="stretchHR">
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="toggleRetainFilters(this)"><span class="greenCheck retainFiltersCheck" style="display:<?=($retainFilters?"inline":"none")?>"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Retain Filters</button></a></li>
+        <li style="display:none"><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)"><span class="greenCheck" style="display:inline"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Limit to Available</button></a></li>
+        <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown"><span class="greenCheck searchTypeCheck stcAdvanced" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Advanced Search</button></a></li>
         <li><a class="disabled"><button id="saveSearchButton" class="btn-dropdown btn-standardDropdown" disabled>Save Search</button></a></li>
-        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Keyword"><span class="greenCheck searchTypeCheck stcKeyword" style="display:initial"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Keyword</button></a></li>
+        <hr class="stretchHR">
+        <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Keyword"><span class="greenCheck searchTypeCheck stcKeyword" style="display:inline"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Keyword</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_AllFields"><span class="greenCheck searchTypeCheck stcAllFields" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>All Fields</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Title"><span class="greenCheck searchTypeCheck stcTitle" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Title</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Author"><span class="greenCheck searchTypeCheck stcAuthor" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Author</button></a></li>
@@ -102,22 +103,32 @@
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_Series"><span class="greenCheck searchTypeCheck stcSeries" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Series</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_year"><span class="greenCheck searchTypeCheck stcyear" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Year of Publication</button></a></li>
         <li><a><button class="btn-dropdown btn-standardDropdown" onclick="doSearchType(this)" id="searchTypeBtn_toc"><span class="greenCheck searchTypeCheck stctoc" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Table of Contents</button></a></li>
-        <li><a href="<?=$this->url('search-advanced')?>"><button class="btn-dropdown btn-standardDropdown"><span class="greenCheck searchTypeCheck stcAdvanced" style="display:none"><span class="sr-only">Checked</span><i class="fa fa-check"></i></span>Advanced Search</button></a></li>
       </ul>
     </div>
     <script type="text/javascript">
       function doSearchType(searchButton) {
-        $(searchButton).parents("ul").find(".greenCheck").css({"display":"none"});
+        $(searchButton).parents("ul").find(".greenCheck").not(".retainFiltersCheck").css({"display":"none"});
         $('.searchTypeInput').attr("value", $(searchButton).attr("id").substr(14));
-        $(searchButton).find(".greenCheck").css({"display":"initial"});
+        $(searchButton).find(".greenCheck").css({"display":"inline"});
         // undo the advanced search button if needed
         $(".searchboxAdvanced").css({"display":"none"});
         $(".searchboxBasic").css({"display":"initial"});
+        // repopulate the search type label
+        var text = $(searchButton).html();
+        $('#searchBoxTypeLabel').html(text.substr(text.lastIndexOf("</span>") + 7));
+        $('#searchBoxTypeLabel').show();
+        $('#searchBoxTypeLabel').removeClass("hiddenByClip");
       }
       function toggleRetainFilters(searchButton) {
         $('.applied-filter').click();
         $('.searchRetainFilters').attr("value", ($('.searchRetainFilters').attr("value") == "true") ? "false" : "true");
-        $(searchButton).find(".greenCheck").css({"display":(($('.searchRetainFilters').attr("value") == "true") ? "initial" : "none")});
+        $(searchButton).find(".greenCheck").css({"display":(($('.searchRetainFilters').attr("value") == "true") ? "inline" : "none")});
+      }
+      function hideSearchBoxTypeLabel() {
+        if( !$('#searchBoxTypeLabel').hasClass("hiddenByClip") ) {
+          $('#searchBoxTypeLabel').toggle("clip");
+          $('#searchBoxTypeLabel').addClass("hiddenByClip");
+        }
       }
     </script>
   </div>

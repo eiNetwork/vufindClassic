@@ -177,6 +177,56 @@ class AjaxController extends AbstractBase
     }
 
     /**
+     * Get Description
+     *
+     * This is responsible for printing the description for a
+     * record in JSON format.
+     *
+     * @return \Zend\Http\Response
+     * @author Chris Delis <cedelis@uillinois.edu>
+     * @author Tuan Nguyen <tuan@yorku.ca>
+     */
+    protected function getDescriptionAjax()
+    {
+        $this->writeSession();  // avoid session write timing bug
+        $catalog = $this->getILS();
+        $id = $this->params()->fromQuery('id');
+        $driver = $this->getRecordLoader()->load( $id );
+
+        $desc = "";
+
+        $request = $this->getRequest();
+        $tabConfig = $this->getServiceLocator()->get('Config')["vufind"]["recorddriver_tabs"];
+        $allTabs = $this->getServiceLocator()->get('VuFind\RecordTabPluginManager')->getTabsForRecord($driver, $tabConfig, $request);
+        $summarySources = (isset($allTabs['Summaries']) ? $allTabs['Summaries']->getContent($driver->getCleanISBN()) : []);
+        foreach( $summarySources as $thisSource ) {
+            foreach( $thisSource as $thisSummary ) {
+                $summary = $thisSummary["Content"];
+                if( strncasecmp($summary, "<fld520", 7) == 0 ) {
+                    $summary = substr($summary, strpos($summary, ">") + 1);
+                    $summary = substr($summary, 0, strrpos($summary, "<"));
+                }
+                if( strpos($desc, $summary) === false ) {
+                    $desc .= (($desc != "") ? "<br><br>" : "") . $summary;
+                }
+            }
+        }
+
+        // check marc record if no description yet
+        if( $desc == "" ) {
+            foreach( $driver->getSummary() as $i => $thisDesc ) {
+                if( strpos($desc, $thisDesc) === false ) {
+                    $desc .= ($i ? "<br><br>" : "") . $thisDesc;
+                }
+            }
+        }
+
+        // Done
+        return $this->output(["description" => $desc], self::STATUS_OK);
+    }
+
+
+    /**
      * Get Item Statuses
      *
      * This is responsible for printing the holdings information for a
@@ -223,6 +273,7 @@ class AjaxController extends AbstractBase
             'itshere' => $renderer->render('ajax/status-itshere.phtml'),
             'available' => $renderer->render('ajax/status-available.phtml'),
             'oneclick' => $renderer->render('ajax/status-oneclick.phtml'),
+            'online' => $renderer->render('ajax/status-online.phtml'),
             'unavailable' => $renderer->render('ajax/status-unavailable.phtml'),
             'order' => $renderer->render('ajax/status-order.phtml'),
             'unknown' => $renderer->render('ajax/status-unknown.phtml')
@@ -281,11 +332,12 @@ class AjaxController extends AbstractBase
                     unset($urls[$key]);
                 endif;
             }
+            $accessOnline = $driver->hasOnlineAccess();
 
             $statuses[] = [
                 'id'                   => $missingId,
                 'availability'         => 'false',
-                'availability_message' => str_replace("<countText>", "0 copies", $messages[$isOneClick ? 'oneclick' : 'unavailable']),
+                'availability_message' => str_replace("<countText>", "0 copies", $messages[$isOneClick ? 'oneclick' : ($accessOnline ? 'online' : 'unavailable')]),
                 'location'             => $this->translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -300,6 +352,7 @@ class AjaxController extends AbstractBase
                 'itsHere'              => false,
                 'holdableCopyHere'     => false,
                 'holdArgs'             => '',
+                'accessOnline'         => $accessOnline,
                 'libraryOnly'          => false,
                 'heldVolumes'          => '[]',
                 'urls'                 => json_encode($urls)
@@ -567,6 +620,7 @@ class AjaxController extends AbstractBase
         $isHolding = false;
         $isOverDrive = false;
         $isOneClick = false;
+        $accessOnline = $driver->hasOnlineAccess();
         $overDriveInfo = ["canCheckOut" => false];
         $holdArgs = "";
         $hasVolumes = false;
@@ -736,51 +790,54 @@ class AjaxController extends AbstractBase
                 $checkinRecords |= isset($thisRecord["libHas"]);
             }
         }
-        $availability_message = $use_unknown_status
-            ? $messages['unknown']
-            : $messages[isset($itsHere) ? 'itshere' : 
-                        ($libraryonly ? 'inlibrary' : 
-                         ($available ? 'available' : 
-                          ($onOrder ? 'order' : 
-                           ($isOneClick ? 'oneclick' : 'unavailable'))))];
-        $numberOfHolds = $catalog->getNumberOfHoldsOnRecord($bib);
-        $waitlistText = $numberOfHolds ? ("<br>" . (($numberOfHolds > 1) ? ($numberOfHolds . " people") : "1 person") . " on waitlist") : "";
-        if ($checkinRecords) {
-            $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
-            $serialCheckinRecords = false;
-            foreach( $record[0]["checkinRecords"] as $thisRecord ) {
-                if( $currentLocation && in_array($currentLocation["code"], $thisRecord["branchCode"]) ) {
-                    $inLibMessage .= "<div class=\"availableCopyText\">It's here at " . $thisRecord["location"] . "</div>";
-                    break;
+        $availability_message = $accessOnline ? ($messages['online'] . (($totalItems > 0) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
+        if( !$accessOnline || ($totalItems > 0) ) {
+            $availability_message .= $use_unknown_status
+                ? $messages['unknown']
+                : $messages[($itsHere ? 'itshere' :
+                             ($libraryonly ? 'inlibrary' : 
+                              ($available ? 'available' : 
+                               ($onOrder ? 'order' : 
+                                ($isOneClick ? 'oneclick' : 'unavailable')))))];
+            $numberOfHolds = $item["isOverDrive"] ? $item["numberOfHolds"] : $catalog->getNumberOfHoldsOnRecord($bib);
+            $waitlistText = $numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($numberOfHolds > 1) ? ($numberOfHolds . " people") : "1 person") . " on waitlist") : "";
+            if ($checkinRecords) {
+                $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
+                $serialCheckinRecords = false;
+                foreach( $record[0]["checkinRecords"] as $thisRecord ) {
+                    if( $currentLocation && in_array($currentLocation["code"], $thisRecord["branchCode"]) ) {
+                        $inLibMessage .= "<div class=\"availableCopyText\">It's here at " . $thisRecord["location"] . "</div>";
+                        break;
+                    }
+                    $serialCheckinRecords |= isset($thisRecord["libHas"]);
                 }
-                $serialCheckinRecords |= isset($thisRecord["libHas"]);
+                if( $totalItems > 0 ) {
+                    $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message)];
+                }
+                $availability_message = $inLibMessage;
+            } else if (isset($onOrder) && $onOrder && ($availableItems == 0)) {
+                $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) . $waitlistText, $availability_message);
+            } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
+                $availability_message = str_replace("<countText>", "Always Available", $availability_message);
+            } else {
+                $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
+                if( isset($itsHere) ) {
+                    $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
+                }
             }
-            if( $totalItems > 0 ) {
-                $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message)];
-            }
-            $availability_message = $inLibMessage;
-        } else if (isset($onOrder) && $onOrder && ($availableItems == 0)) {
-            $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) . $waitlistText, $availability_message);
-        } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
-            $availability_message = str_replace("<countText>", "Always Available", $availability_message);
-        } else {
-            $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
-            if( isset($itsHere) ) {
-                $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
-            }
-        }
-        if( !isset($itsHere) ) {
-            if( $isOverDrive ) {
-                $availability_message = str_replace("<modifyAvailableText>", " from OverDrive", $availability_message);
-            } else if( isset($atPreferred) ) {
-                $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
-            } else if( $currentLocation ) {
-                $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);
+            if( !isset($itsHere) ) {
+                if( $isOverDrive ) {
+                    $availability_message = str_replace("<modifyAvailableText>", " from OverDrive", $availability_message);
+                } else if( isset($atPreferred) ) {
+                    $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
+                } else if( $currentLocation ) {
+                    $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);
+                } else {
+                    $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+                }
             } else {
                 $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
             }
-        } else {
-            $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
         }
 
         // see if we have any urls we should show
@@ -793,11 +850,6 @@ class AjaxController extends AbstractBase
           elseif( strpos($thisUrl["url"], "http://carnegielbyofpittpa.oneclickdigital.com") !== false ):
             $isOneClick = true;
           endif;
-        }
-
-        // limit to 3 links
-        if( count($urls) > 3 ) {
-          array_splice($urls, 3);
         }
 
         // Collect the details:
@@ -821,6 +873,7 @@ class AjaxController extends AbstractBase
             'holdableCopyHere' => isset($holdableCopyHere),
             'holdArgs' => $holdArgs,
             'libraryOnly' => ($libraryOnly || $checkinRecords),
+            'accessOnline' => $accessOnline,
             'heldVolumes' => json_encode($heldVolumes),
             'urls' => json_encode($urls)
         ];

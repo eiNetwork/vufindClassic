@@ -177,6 +177,10 @@ function handleItemStatusResponse(response) {
         leftButton.empty().append('Learn More');
         leftButton.prop('disabled', false);
         leftButton.attr('onClick', "window.open('" + result.learnMoreURL + "', '_blank');");
+      } else if( result.accessOnline ) {
+        leftButton.empty().append('Access Online');
+        leftButton.prop('disabled', false);
+        leftButton.attr('onClick', ((urls.length > 1) ? ("Lightbox.get('Record', 'ChooseLink', {'id':'" + result.id + "'});") : ("window.open('" + urls[0]["url"] + "', '_blank');")));
       } else if( result.libraryOnly ) {
         leftButton.empty().append('In Library Only');
       } else {

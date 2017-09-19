@@ -238,6 +238,10 @@
         </div>
       </div>
     </div>
+    <div id="descriptionToolTip" class="EIN-col-m-12 EIN-col-t-6 EIN-col-6 btn-alternate" style="position:absolute; text-align:left; display:none; background:#ededed; z-index:200;">
+      <div style="font-weight:700; width:100%; text-align:center; padding-bottom:5px">Description</div>
+      <span id="descriptionToolTipContents"></span>
+    </div>
     <?=$this->googleanalytics()?>
     <?=$this->piwik()?>
     <script type="text/javascript">
@@ -303,7 +307,27 @@
           $('.modalScrollSlider').css({"top":((targetPos * (barHeight - sliderHeight) / maxRange) + "px")});
         }, 20);
       }
-      
+      var descTimeout;
+      function ShowDescriptionToolTip(id,target) {
+        descTimeout = setTimeout(function() {
+          $.ajax({
+            dataType: 'json',
+            url: path + '/AJAX/JSON?method=getDescription',
+            data: {id:id},
+            success: function(response) {
+              if(response.status == 'OK' && response.data.description) {
+                $('#descriptionToolTipContents').html(response.data.description);
+                var left = $(target).offset().left + ($(target).outerWidth() / 2) - ($('#descriptionToolTip').outerWidth() / 2);
+                $('#descriptionToolTip').css({"display":"initial", "left":((left > 0) ? left : 0), "top":($(target).offset().top + $(target).height())});
+              }
+            }
+          });
+        }, 500);
+      }
+      function HideDescriptionToolTip() {
+        clearTimeout( descTimeout );
+        $('#descriptionToolTip').css({"display":"none"});
+      }
     </script>
   </body>
 </html>

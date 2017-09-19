@@ -68,6 +68,9 @@ class Sierra2 extends Sierra implements
         // start memcached
         $this->memcached = new Memcached();
         $this->memcached->addServer('localhost', 11211);
+        if( !$this->memcached->get("globalRefreshTimer") ) {
+            $this->memcached->set("globalRefreshTimer", time());
+        }
     }
 
     /**

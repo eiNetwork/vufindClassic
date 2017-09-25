@@ -103,10 +103,14 @@ class RecordController extends AbstractRecord
         $hasVolumes = false;
 
         // see whether or not this bib has different volumes
+        $overDriveHolds = -1;
         foreach($holdings as $entry) {
           foreach($entry["items"] as $item) {
             if( isset($item["number"]) && $item["number"]) {
               $hasVolumes = true;
+            }
+            if( $item["isOverDrive"] ) {
+              $overDriveHolds = $item["numberOfHolds"];
             }
           }
         }
@@ -203,7 +207,7 @@ class RecordController extends AbstractRecord
 
         $view->canCheckOut = $canCheckOut;
         $view->canHold = $canHold;
-        $view->numberOfHolds = $catalog->getNumberOfHoldsOnRecord($bib);
+        $view->numberOfHolds = ($overDriveHolds == -1) ? $catalog->getNumberOfHoldsOnRecord($bib) : $overDriveHolds;
         $view->idArgs = str_replace("\"", "'", json_encode(["id" => $bib]));
 
         // see whether they have this item in any lists

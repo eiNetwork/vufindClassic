@@ -1814,6 +1814,6 @@ class SolrDefault extends AbstractBase
 
     public function hasOnlineAccess()
     {
-        return in_array("Digital Collection", $this->fields['available_at']);
+        return in_array("Digital Collection", $this->fields['available_at']) && !in_array("OverDrive", $this->fields['econtent_source']);
     }
 }

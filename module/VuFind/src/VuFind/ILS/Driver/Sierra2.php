@@ -156,7 +156,7 @@ class Sierra2 extends Sierra implements
         }
 
         // request a new token
-        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v3/token", \Zend\Http\Request::METHOD_POST, 45);
+        $client = $this->httpService->createClient($this->config['SIERRAAPI']['url'] . "/v4/token", \Zend\Http\Request::METHOD_POST, 45);
         $client->setHeaders(
                 array('Accept' => 'application/json; charset=UTF-8',
                       'Authorization' => ('Basic ' . base64_encode($this->config['SIERRAAPI']['apiKey'] . ':' . $this->config['SIERRAAPI']['apiSecret']))));
@@ -193,12 +193,21 @@ class Sierra2 extends Sierra implements
     public function getMyProfile($patron)
     {
 /** BP => Client Credentials Grant **/
-        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . 
-                                                      "?fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
+        if( isset($patrons['id']) ) {
+            $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . 
+                                                          "?fields=names,addresses,fixedFields,phones,emails,moneyOwed,expirationDate"), true );
+        } else {
+            $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/find?barcode=" . $patron['cat_username'] . 
+                                                          "&fields=names,addresses,fixedFields,phones,emails,moneyOwed,expirationDate"), true );
+        }
 /** BP => Authorization Code Grant **
-        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/find?barcode=" . $patron['barcode'] . 
+        $profile = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/find?barcode=" . $patron['barcode'] . 
                                                       "&fields=names,addresses,fixedFields,phones,emails,moneyOwed"), true );
 /** **/
+        if( isset($profile['id']) ) {
+            $patron['id'] = $profile['id'];
+            $patron['username'] = $profile['id'];
+        }
         if(isset($profile['names'])) {
             $names = explode(',', $profile['names'][0]);
             $patron['firstname'] = $names[1];
@@ -273,7 +282,7 @@ class Sierra2 extends Sierra implements
      * @return int           Count of checked out items.
      */
     public function getNumberOfMyTransactions($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=1&offset=0"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=1&offset=0"));
         return $jsonVals ? $jsonVals->total : 0;
     }
 
@@ -292,7 +301,7 @@ class Sierra2 extends Sierra implements
         $offset = count($checkedOutItems);
 
         while( !isset($jsonVals) || (count($checkedOutItems) < $jsonVals->total) ) {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset));
 
             // make the initial items API call to get base info
             $itemIDList = "";
@@ -304,7 +313,7 @@ class Sierra2 extends Sierra implements
                 $itemIDList .= "," . $itemId;
             }
             if( strlen($itemIDList) > 0 ) {
-                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . substr($itemIDList,1)));
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/items?fields=bibIds,location,varFields,callNumber&limit=50&id=" . substr($itemIDList,1)));
             } else {
                 $itemInfoJson = json_decode("{\"entries\":[]}");
             }
@@ -377,7 +386,7 @@ class Sierra2 extends Sierra implements
         $offset = count($fines);
 
         while( !isset($jsonVals) || (count($fines) < $jsonVals->total) ) {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/fines?limit=50&offset=" . $offset));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/fines?limit=50&offset=" . $offset));
 
             for( $i=0; $i<count($jsonVals->entries); $i++ ) {
                 $thisItem = [];
@@ -386,7 +395,7 @@ class Sierra2 extends Sierra implements
                 $arr = explode("/", $jsonVals->entries[$i]->item);
                 $itemId = $arr[count($arr)-1];
                 if( $itemId != "" ) {
-                    $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items/" . $itemId));
+                    $itemInfo = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/items/" . $itemId));
 
                     $thisItem['id'] = ".b" . $itemInfo->bibIds[0] . $this->getCheckDigit($itemInfo->bibIds[0]);
                     $thisItem['item_id'] = ".i" . $itemId . $this->getCheckDigit($itemId);
@@ -418,7 +427,7 @@ class Sierra2 extends Sierra implements
      * @return int           Number of holds that this patron currently has.
      */
     public function getNumberOfMyHolds($patron){
-        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=1&offset=0"));
+        $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=1&offset=0"));
         return $jsonVals ? $jsonVals->total : 0;
     }
 
@@ -438,7 +447,7 @@ class Sierra2 extends Sierra implements
         $offset = count($holds);
 
         while( !isset($jsonVals) || (count($holds) < $jsonVals->total) ) {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
 
             // make the initial items API call to get bib info
             $itemIDList = "";
@@ -457,7 +466,7 @@ class Sierra2 extends Sierra implements
             }
             $itemInfoList = [];
             if( strlen($itemIDList) > 0 ) {
-                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/items?fields=bibIds,varFields,location,callNumber&limit=50&id=" . substr($itemIDList,1)));
+                $itemInfoJson = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/items?fields=bibIds,varFields,location,callNumber&limit=50&id=" . substr($itemIDList,1)));
 
                 // parse this response into a dictionary and create the bibID list
                 for( $i=0; $itemInfoJson && $i<count($itemInfoJson->entries); $i++ ) {
@@ -533,10 +542,20 @@ class Sierra2 extends Sierra implements
     public function renewMyItems($items){
         $responses = [];
         foreach($items["details"] as $checkoutID) {
-            $reply = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/checkouts/" . $checkoutID . "/renewal", 
+            $reply = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/checkouts/" . $checkoutID . "/renewal", 
                                                        \Zend\Http\Request::METHOD_POST));
             $responses[$checkoutID] = (isset($reply->code) && isset($reply->specificCode)) ? $reply->description : true;
         }
+
+        // clear out these intermediate cached API results
+        $offset = 0;
+        $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $items['patron']['id'] . "/checkouts?limit=50&offset=" . $offset);
+        while( $this->memcached->get($hash) ) {
+            $this->memcached->set($hash, null);
+            $offset += 50;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $items['patron']['id'] . "/checkouts?limit=50&offset=" . $offset);
+        }
+
         return ["details" => $responses];
     }
 
@@ -575,9 +594,19 @@ class Sierra2 extends Sierra implements
                       'recordNumber' => (int)substr($details["id"], 2, -1), 
                       'pickupLocation' => $details['pickUpLocation'], 
                       'neededBy' => (substr($details['requiredBy'],6) . "-" . substr($details['requiredBy'],0,5)));
-        $jsonVals = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $details['patron']['id'] . "/holds/requests", 
+        $jsonVals = json_decode( $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds/requests", 
                                                        \Zend\Http\Request::METHOD_POST, 
                                                        json_encode($body)) );
+
+        // clear out these intermediate cached API results
+        $offset = 0;
+        $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        while( $this->memcached->get($hash) ) {
+            $this->memcached->set($hash, null);
+            $offset += 50;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        }
+
         $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         return ['success' => $success];
     }
@@ -597,10 +626,20 @@ class Sierra2 extends Sierra implements
         $success = true;
         foreach( $holds["details"] as $thisHold )
         {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold,
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/holds/" . $thisHold,
                                                           \Zend\Http\Request::METHOD_DELETE));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
+
+        // clear out these intermediate cached API results
+        $offset = 0;
+        $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        while( $this->memcached->get($hash) ) {
+            $this->memcached->set($hash, null);
+            $offset += 50;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        }
+
         return ['success' => $success];
     }
 
@@ -620,11 +659,21 @@ class Sierra2 extends Sierra implements
         foreach( $holds["details"] as $thisHold )
         {
             $body = json_encode(array('freeze' => $doFreeze));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold, 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/holds/" . $thisHold, 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
+
+        // clear out these intermediate cached API results
+        $offset = 0;
+        $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        while( $this->memcached->get($hash) ) {
+            $this->memcached->set($hash, null);
+            $offset += 50;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        }
+
         return ['success' => $success];
     }
 
@@ -644,11 +693,21 @@ class Sierra2 extends Sierra implements
         foreach( $holds["details"] as $thisHold )
         {
             $body = json_encode(array('pickupLocation' => $holds["newLocation"]));
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/holds/" . $thisHold, 
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/holds/" . $thisHold, 
                                                           \Zend\Http\Request::METHOD_PUT, 
                                                           $body));
             $success &= !(isset($jsonVals->httpStatus) && ($jsonVals->httpStatus != 200));
         }
+
+        // clear out these intermediate cached API results
+        $offset = 0;
+        $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        while( $this->memcached->get($hash) ) {
+            $this->memcached->set($hash, null);
+            $offset += 50;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $details['patron']['id'] . "/holds?limit=50&offset=" . $offset);
+        }
+
         return ['success' => $success];
     }
 
@@ -699,7 +758,7 @@ class Sierra2 extends Sierra implements
      *                            ["emails", "names", "addresses", "phones", "pin"]
      */
     public function updateMyProfile($patron, $updateBody){
-        $result = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'], 
+        $result = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'], 
                                                     \Zend\Http\Request::METHOD_PUT, 
                                                     json_encode($updateBody)));
         return ["success" => (!isset($result->code) && !isset($result->specificCode))];
@@ -772,7 +831,7 @@ class Sierra2 extends Sierra implements
                 }
                 $apiHoldings = null;
                 if( $idList ) {
-                  $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
+                  $url = $this->config['SIERRAAPI']['url'] . "/v4/items/?fields=id,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
                   $apiHoldings = json_decode($this->sendAPIRequest($url));
                 }
                 if( ($itemIDlist == null) && !isset($apiHoldings->entries) ) {
@@ -782,7 +841,7 @@ class Sierra2 extends Sierra implements
               the orders functionality added to the EINetwork driver.  At that point, we also
               need to remove the break above.
                     //If there are no attached items, check to see if it is on order
-                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v3/bibs?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
+                    $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/bibs?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
                     if( !isset($apiOrders->entries) ) {
                         break;
                     }
@@ -878,7 +937,7 @@ class Sierra2 extends Sierra implements
                 }
 
                 if( $idList ) {
-                    $url = $this->config['SIERRAAPI']['url'] . "/v3/items/?fields=id,bibIds,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
+                    $url = $this->config['SIERRAAPI']['url'] . "/v4/items/?fields=id,bibIds,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
                     $apiHoldings = json_decode($this->sendAPIRequest($url));
 
                     foreach($apiHoldings->entries as $thisItem) {

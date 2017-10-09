@@ -40,7 +40,7 @@
     <h1 class="pageTitle EIN-hide-t EIN-hide">Holds</h1>
     <? if( $totalHolds == 0 ): ?>
       <div class="EIN-col-m-12" style="height:50px"></div>
-      <div class="center" style="margin:0px 20px">You don't currently have any holds. If you have recently placed a hold, it may be a few minutes before it appears on this page. You can use the button below to check.</div><br>
+      <div class="center" style="margin:0px 20px">You don't currently have any holds. If you have recently placed/updated/cancelled a hold, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
       <div class="center">
         <form action="<?=$this->url('myresearch-holds')?>" method="post">
           <input type="hidden" name="reloadHolds" value="true">
@@ -74,7 +74,7 @@
                 </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? if( $holdType == "all" ): ?>
-                  <div class="center" style="margin:0px 20px">If you have recently placed a hold, it may be a few minutes before it appears on this page. You can use the button below to check.</div><br>
+                  <div class="center" style="margin:0px 20px">If you have recently placed/updated/cancelled a hold, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
                   <div class="center">
                     <form action="<?=$this->url('myresearch-holds')?>" method="post">
                       <input type="hidden" name="reloadHolds" value="true">

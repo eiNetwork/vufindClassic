@@ -1100,7 +1100,7 @@ class SolrEContent extends SolrDefault
     {
         $id = $this->getUniqueID();
         if( $this->hasILS() && !$this->ils->getMemcachedVar("items" . $id) ) {
-            $this->ils->setMemcachedVar("items" . $id, $this->getItems());
+            $this->ils->setMemcachedVar("items" . $id, $this->getItems(), 900);
         }
         return $this->hasILS() ? $this->holdLogic->getHoldings(
             $id, $this->getConsortialIDs()

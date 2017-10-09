@@ -55,8 +55,12 @@ class EINetwork extends Sierra2 implements
         return $this->memcached->get($name);
     }
 
-    public function setMemcachedVar($name, $value) {
-        $this->memcached->set($name, $value);
+    public function setMemcachedVar($name, $value, $time=null) {
+        if( $time ) {
+            $this->memcached->set($name, $value, $time);
+        } else {
+            $this->memcached->set($name, $value);
+        }
     }
 
     public function getCurrentLocation() {
@@ -89,76 +93,15 @@ class EINetwork extends Sierra2 implements
                 return $cachedInfo;
             }
 
-            // use patronAPI to authenticate customer
-            $url = $this->config['PATRONAPI']['url'];
-            // build patronapi pin test request
-            $result = $this->sendRequest( $url . urlencode($username) . '/' . urlencode($password) . '/pintest' );
-
-            // search for successful response of "RETCOD=0"
-            if (stripos($result, "RETCOD=0") === false) {
-                // pin did not match, can look up specific error to return
-                // more useful info.
+            $results = $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/validate", \Zend\Http\Request::METHOD_POST, json_encode(["barcode" => $username, "pin" => $password]));
+            if( !$results ) {
+                $ret = [];
+                $ret['cat_username'] = urlencode($username);
+                $ret['cat_password'] = urlencode($password);
+                $ret = $this->getMyProfile($ret, true);
+            } else {
                 return null;
             }
-
-            // Pin did match, get patron information
-            $result = $this->sendRequest($url . urlencode($username) . '/dump');
-
-            // The following is taken and modified from patronapi.php by John Blyberg
-            // released under the GPL
-            $api_contents = trim(strip_tags($result));
-            $api_array_lines = explode("\n", $api_contents);
-            $api_data = ['PBARCODE' => false, 'RECORDNUM' => '', 'PATRNNAME' => '', 'EMAILADDR' => '', 'HOMELIBR' => '', 'ADDRESS' => '', 'PTYPE' => '', 'EXPDATE' => '', 'AGENCY' => ''];
-
-            foreach ($api_array_lines as $api_line) {
-                $api_line = str_replace("p=", "peq", $api_line);
-                $api_line_arr = explode("=", $api_line);
-                $regex_match = ["/\[(.*?)\]/","/\s/","/#/"];
-                $regex_replace = ['','','NUM'];
-                $key = trim(
-                    preg_replace($regex_match, $regex_replace, $api_line_arr[0])
-                );
-                if( !isset($api_data[$key]) || ($key != "PATRNNAME") ) {
-                    $api_data[$key] = trim($api_line_arr[1]);
-                }
-            }
-
-            if (!$api_data['PBARCODE']) {
-                // no barcode found, can look up specific error to return more
-                // useful info.  this check needs to be modified to handle using
-                // III patron ids also.
-                return null;
-            }
-
-            // return patron info
-            $ret = [];
-            $ret['id'] = $api_data['RECORDNUM']; 
-            $ret['username'] = $api_data['RECORDNUM'];
-            $ret['cat_username'] = urlencode($username);
-            $ret['cat_password'] = urlencode($password);
-
-            $names = explode(',', $api_data['PATRNNAME']);
-            //$ret['firstname'] = $names[1];
-            //$ret['lastname'] = $names[0];
-            $ret['email'] = $api_data['EMAILADDR'];
-            $ret['major'] = null;
-            $ret['college'] = $api_data['HOMELIBR'];
-            $ret['homelib'] = $api_data['HOMELIBR'];
-            // replace $ separator in III addresses with newline
-            $ret['address1'] = str_replace("$", ", ", $api_data['ADDRESS']);
-            //HIDDEN//$ret['address2'] = str_replace("$", ", ", $api_data['ADDRESS2']);
-            preg_match(
-                "/([0-9]{5}|[0-9]{5}-[0-9]{4})[ ]*$/", $api_data['ADDRESS'],
-                $zipmatch
-            );
-            $ret['zip'] = (isset($zipmatch[1]) ? $zipmatch[1] : ""); //retrieve from address
-            //HIDDEN//$ret['phone'] = $api_data['TELEPHONE'];
-            //HIDDEN//$ret['phone2'] = $api_data['TELEPHONE2'];
-            // Should probably have a translation table for patron type
-            $ret['group'] = $api_data['PTYPE'];
-            $ret['expiration'] = $api_data['EXPDATE'];
-            // Only if agency module is enabled.
-            $ret['region'] = $api_data['AGENCY'];
 
             $this->session->patronLogin = $ret;
             return $ret;
@@ -661,11 +604,11 @@ class EINetwork extends Sierra2 implements
         // clear out these intermediate cached API results
         } else if( $skipCache ) {
             $offset = 0;
-            $hash = md5($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
             while( $this->memcached->get($hash) ) {
                 $this->memcached->set($hash, null);
                 $offset += 50;
-                $hash = md5($this->config['SIERRAAPI']['url'] . "/v3/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+                $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
             }
         }
 
@@ -721,11 +664,20 @@ class EINetwork extends Sierra2 implements
      * @throws ILSException
      * @return array         Associative array of checked out items.
      */
-    public function getMyTransactions($patron){
+    public function getMyTransactions($patron, $skipCache=false){
         $this->testSession();
 
-        if( isset($this->session->checkouts) && !isset($this->session->staleCheckoutsHash) ) {
+        if( isset($this->session->checkouts) && !isset($this->session->staleCheckoutsHash) && !$skipCache ) {
             return $this->session->checkouts;
+        // clear out these intermediate cached API results
+        } else if( $skipCache ) {
+            $offset = 0;
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
+            while( $this->memcached->get($hash) ) {
+                $this->memcached->set($hash, null);
+                $offset += 50;
+                $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
+            }
         }
 
         $sierraTransactions = parent::getMyTransactions($patron);

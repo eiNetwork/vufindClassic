@@ -1307,8 +1307,8 @@ class SolrDefault extends AbstractBase
      */
     public function getUPC()
     {
-        return isset($this->fields['upc_str_mv']) ?
-            $this->fields['upc_str_mv'] : [];
+        return isset($this->fields['upc']) ?
+            $this->fields['upc'] : [];
     }
 
     /**

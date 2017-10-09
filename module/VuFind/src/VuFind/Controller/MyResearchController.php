@@ -1520,7 +1520,7 @@ class MyResearchController extends AbstractBase
         // we processed some renewals
         } else if( count($renewResult) > 0 ) {
             // Get target URL for after deletion:
-            $checkoutType = $this->params()->fromPost('checkoutType');
+            $checkoutType = 'all'; //$this->params()->fromPost('checkoutType');
             $this->session->lastCheckoutType = $checkoutType;
 
             // Process the renews:
@@ -1535,7 +1535,7 @@ class MyResearchController extends AbstractBase
         }
 
         // Get held item details:
-        $result = $catalog->getMyTransactions($patron);
+        $result = $catalog->getMyTransactions($patron, $this->params()->fromPost('reloadCheckouts'));
         $checkoutList = ['overdue' => [], 'due_this_week' => [], 'other' => []];
         foreach ($result as $current) {
             $current["dateDiff"] = date_diff(date_create($current["duedate"]), date_create(date("Y-m-d")));

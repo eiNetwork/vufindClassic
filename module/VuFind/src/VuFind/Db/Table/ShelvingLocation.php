@@ -84,7 +84,7 @@ class ShelvingLocation extends Gateway
                 'shelving_location.locationId = l.locationId',
                 ['branchCode' => 'code']
             );
-            $select->where('sierraName = "' . $sierraName . '"');
+            $select->where('sierraName = "' . str_replace("’", "'", str_replace("–", "-", $sierraName)) . '"');
         };
         return $this->select($callback);
     }

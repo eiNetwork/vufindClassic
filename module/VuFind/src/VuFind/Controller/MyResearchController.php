@@ -1592,6 +1592,30 @@ class MyResearchController extends AbstractBase
             }
             $allList = array_merge($allList, $checkoutList[$key]);
         }
+
+        // if they're splitting econtent, bubble those to the bottom
+        if( $user['splitEcontent'] == "Y" ) {
+            usort($allList, function($co1, $co2) {
+                if(!isset($co1["overDriveId"]) && isset($co2["overDriveId"])) {
+                    return -1;
+                } else if(isset($co1["overDriveId"]) && !isset($co2["overDriveId"])) {
+                    return 1;
+                } else if($co1["duedate"] > $co2["duedate"]) {
+                    return 1;
+                } else if($co1["duedate"] < $co2["duedate"]) {
+                    return -1;
+                } 
+                $t1 = isset($co1["title"]) ? $co1["title"] : $co1["driver"]->getTitle();
+                $t2 = isset($co2["title"]) ? $co2["title"] : $co2["driver"]->getTitle();
+                if($t1 > $t2) {
+                    return 1;
+                } else if($t1 < $t2) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            } );
+        }
         $checkoutList['all'] = $allList;
 
         $view->splitEcontent = ($user['splitEcontent'] == "Y");

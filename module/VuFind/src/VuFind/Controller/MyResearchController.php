@@ -1330,6 +1330,8 @@ class MyResearchController extends AbstractBase
             $holdList[$group][$key] = $current;
         }
         $allList = [];
+        $allPhysical = [];
+        $allEcontent = [];
         $user = $this->getUser();
         foreach($holdList as $name => $grouping) {
             // if they're splitting econtent, bubble those to the bottom
@@ -1345,12 +1347,18 @@ class MyResearchController extends AbstractBase
                 }
                 ksort($physical);
                 ksort($econtent);
-                $holdList[$name] = array_merge($physical, $econtent);
+                $allPhysical = array_merge($allPhysical, $physical);
+                $allEcontent = array_merge($allEcontent, $econtent);
             } else {
                 ksort($grouping);
                 $holdList[$name] = $grouping;
+                $allList = array_merge($allList, $holdList[$name]);
             }
-            $allList = array_merge($allList, $holdList[$name]);
+        }
+
+        // if they're splitting econtent, bubble those to the bottom
+        if( $user['splitEcontent'] == "Y" ) {
+            $allList = array_merge($allPhysical, $allEcontent);
         }
         $holdList['all'] = $allList;
 

@@ -96,7 +96,7 @@
                 </td>
               </tr>
             <? endif; ?>
-            <? if( $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && isset($this->hold["expire"]) ): ?>
+            <? if( false && $this->hold["status"] != "i" && $this->hold["status"] != "b" && $this->hold["status"] != "j" && isset($this->hold["expire"]) ): ?>
               <tr>
                 <td colspan="2">
                   Not wanted after: <span class="bold"><?=strftime("%b %e, %Y", strtotime($this->hold["expire"]))?></span>

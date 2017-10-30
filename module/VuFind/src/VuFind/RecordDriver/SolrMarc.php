@@ -703,8 +703,12 @@ class SolrMarc extends SolrDefault
                         } else {
                             $desc = $address;
                         }
+                        $type = "supplemental";
+                        if( (($url->getIndicator(2) == '0') || ($url->getIndicator(2) == '1')) && !($url->getSubfield('3')) ) {
+                            $type = "accessOnline";
+                        }
 
-                        $retVal[] = ['url' => $address, 'desc' => $desc];
+                        $retVal[] = ['url' => $address, 'desc' => $desc, 'type' => $type];
                     }
                 }
             }

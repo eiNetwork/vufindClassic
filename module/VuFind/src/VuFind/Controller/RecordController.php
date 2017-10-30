@@ -422,9 +422,17 @@ class RecordController extends AbstractRecord
         $driver = $this->loadRecord();
         $urls = $driver->getUrls();
 
+        // peel off unneeded links
+        $onlineVersions = [];
+        foreach( $urls as $thisUrl ) {
+            if( $thisUrl["type"] == "accessOnline" ) {
+                $onlineVersions[] = $thisUrl;
+            }
+        }
+
         $view = $this->createViewModel();
         $view->id = $driver->getUniqueID();
-        $view->urls = $urls;
+        $view->urls = $onlineVersions;
         $view->setTemplate('record/chooseLink');
         return $view;
     }

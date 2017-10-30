@@ -145,7 +145,7 @@
           <? endforeach; ?>
         <? endforeach; ?>
         <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
-        <? $green = $isOneClick || $accessOnline || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
+        <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
         <? if( !isset($this->holdings["CHECKIN_RECORDS"]) || ($totalCopies > 0) ): ?>
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
@@ -240,8 +240,14 @@
           $holdClick = " onClick=\"window.open('" . $linkURLs[0]["url"] . "', '_blank');\"";
           $holdLink = null;
         elseif( $accessOnline && $holdLabel == "Access Online" ):
-          if( count($urls) == 1 ) {
-            $holdClick = " onClick=\"window.open('" . $urls[0]["url"] . "', '_blank');\"";
+          $onlineVersions = [];
+          foreach( $urls as $thisUrl ) {
+            if( $thisUrl["type"] == "accessOnline" ) {
+              $onlineVersions[] = $thisUrl;
+            }
+          }
+          if( count($onlineVersions) == 1 ) {
+            $holdClick = " onClick=\"window.open('" . $onlineVersions[0]["url"] . "', '_blank');\"";
             $holdLink = null;
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record', 'ChooseLink', " . $this->idArgs . ");\"";
@@ -692,7 +698,7 @@
                     <span class="accordionGap">&nbsp;</span>
                   <? endif; ?>
                 <? endif; ?>
-                <? if( !$accessOnline && !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
+                <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != $availableCopies ): ?>
                   <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" from OverDrive":"")?> (<?=($totalCopies - $availableCopies)?>)</h6>
                   <? if( !$isOverDrive ): ?>
                     <table class="EIN-col-m-12">
@@ -846,10 +852,12 @@
                     <td><span class="accordionParagraph">
                       <? foreach($subjects as $thisSubject): ?>
                         <? $subjectSearch = ""; ?>
-                        <? foreach( $thisSubject as $headingIndex => $thisHeading ): ?>
-                          <? $subjectSearch .= ($headingIndex ? "  " : "") . $thisHeading; ?>
-                          <span><?=($headingIndex ? " -- " : "")?><a href="<?=$this->record($this->driver)->getLink('subject', $subjectSearch)?>"><?= $thisHeading ?></a></span>
-                        <? endforeach; ?><br>
+                        <span class="subjectLine">
+                          <? foreach( $thisSubject as $headingIndex => $thisHeading ): ?>
+                            <? $subjectSearch .= ($headingIndex ? "  " : "") . $thisHeading; ?>
+                            <span><?=($headingIndex ? " -- " : "")?><a href="<?=$this->record($this->driver)->getLink('subject', $subjectSearch)?>" class="subjectLevel<?=$headingIndex?>" onMouseOver="HoverSubject(this, true)" onMouseOut="HoverSubject(this, false)"><?= $thisHeading ?></a></span>
+                          <? endforeach; ?>
+                        </span><br>
                       <? endforeach; ?>
                     </span></td>
                   </tr>
@@ -1118,6 +1126,20 @@
           $('#accordionMore' + hashCode).css({"display":(showMore ? "inline" : "none")});
           $('#accordionLess' + hashCode).css({"display":(showMore ? "none" : "inline")});
           moveButtons();
+        }
+
+        function HoverSubject(element, hoverOn) {
+          if(hoverOn) {
+            $(element).addClass('pseudoHover');
+          } else {
+            $(element).removeClass('pseudoHover');
+          }
+          var start = $(element).attr("class").indexOf("subjectLevel") + 12;
+          var end = $(element).attr("class").indexOf(" ", start);
+          var oneLess = ((end != -1) ? $(element).attr("class").substring(start, end) : $(element).attr("class").substring(start)) - 1;
+          if(oneLess >= 0) {
+            HoverSubject($(element).parents(".subjectLine").find(".subjectLevel" + oneLess), hoverOn);
+          }
         }
 
         function hashString(str){

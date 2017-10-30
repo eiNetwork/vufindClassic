@@ -1332,7 +1332,7 @@ class SolrDefault extends AbstractBase
         if (isset($this->fields['url']) && is_array($this->fields['url'])) {
             $filter = function ($url) {
                 $json = json_decode($url);
-                return ['url' => isset($json->url) ? $json->url : $url, 'desc' => isset($json->desc) ? $json->desc : "Access Online"];
+                return ['url' => isset($json->url) ? $json->url : $url, 'desc' => isset($json->desc) ? $json->desc : "Access Online", 'type' => isset($json->type) ? $json->type : "supplemental"];
             };
             return array_map($filter, $this->fields['url']);
         }
@@ -1814,6 +1814,16 @@ class SolrDefault extends AbstractBase
 
     public function hasOnlineAccess()
     {
-        return in_array("Digital Collection", $this->fields['available_at']) && !in_array("OverDrive", $this->fields['econtent_source']);
+        // our OverDrive model doesn't support multi-use
+        if( in_array("OverDrive", $this->fields['econtent_source']) ) {
+            return false;
+        }
+
+        foreach( $this->getUrls() as $thisUrl ) {
+            if( $thisUrl["type"] == "accessOnline" ) {
+                return true;
+            }
+        }
+        return false;
     }
 }

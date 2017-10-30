@@ -882,7 +882,7 @@ class Sierra2 extends Sierra implements
                         $itemInfo = [
                             "id" => $id,
                             "itemId" => $thisItem->id,
-                            "availability" => (isset($thisItem->status->code) && (trim($thisItem->status->code) == "-") || (trim($thisItem->status->code) == "o") || (trim($thisItem->status->code) == "p")) && !isset($thisItem->status->duedate),
+                            "availability" => (isset($thisItem->status->code) && in_array(trim($thisItem->status->code), ["-","o","p","v","y"])) && !isset($thisItem->status->duedate),
                             "status" => isset($thisItem->status->code) ? trim($thisItem->status->code) : null,
                             "location" => isset($thisItem->location->name) ? $thisItem->location->name : null,
                             "reserve" => "N",

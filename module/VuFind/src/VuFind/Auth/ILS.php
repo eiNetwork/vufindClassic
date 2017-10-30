@@ -226,7 +226,7 @@ class ILS extends AbstractBase
         foreach ($fields as $field) {
             $user->$field = isset($info[$field]) ? $info[$field] : ' ';
         }
-        $user->home_library = isset($info['homelib']) ? $info['homelib'] : ' ';
+        $user->home_library = isset($info['homelibrarycode']) ? $info['homelibrarycode'] : ' ';
 
         // Update the user in the database, then return it to the caller:
         $user->saveCredentials(

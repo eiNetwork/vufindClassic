@@ -537,6 +537,11 @@ class EINetwork extends Sierra2 implements
         $sresult = curl_exec($curl_connection);
         $values = explode("\n", $sresult);
 
+        // sometimes OverDrive wants to break our system by stashing bonus \n characters in there. this puts them back together.
+        while( count($values) > 3 ) {
+            array_splice($values, 1, 2, $values[1] . "\n" . $values[2]);
+        }
+
         // is it a Solr item?
         if( count($values) > 2 ) {
             $item = array();
@@ -545,9 +550,10 @@ class EINetwork extends Sierra2 implements
             // we have to do some hocus pocus here since the values can also include the delimiter if they are multi-valued
             $fieldValues = explode(chr(7), $values[1]);
             for($i=0;$i<count($fieldValues);$i++) {
-                while( substr($fieldValues[$i], 0, 1) == chr(21) && substr($fieldValues[$i], -1) != chr(21)) {
+                while( substr($fieldValues[$i], 0, 1) == chr(21) && substr($fieldValues[$i], -1) != chr(21) ) {
                     array_splice($fieldValues, $i, 2, $fieldValues[$i] . "\," . $fieldValues[$i+1]);
                 }
+
                 if( substr($fieldValues[$i], 0, 1) == chr(21) ) {
                     $fieldValues[$i] = substr($fieldValues[$i], 1, -1);
                 }
@@ -850,8 +856,21 @@ class EINetwork extends Sierra2 implements
 
         // process the sierra holds
         if( count($holds["details"]) > 0 ) {
+/** Go back to this whenever we can use API instead of screen scraping
             $sierraResults = parent::freezeHolds($holds, $doFreeze);
             $success &= $sierraResults["success"];
+/**/
+
+            foreach( $holds["details"] as $key => $thisFreezeId ) {
+                foreach( $this->session->holds as $thisHold ) {
+                    if( $thisHold["hold_id"] == $thisFreezeId ) { 
+                        $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "freeze", "title", isset($thisHold["item_id"]) ? $thisHold["item_id"] : $thisHold["id"], null, ($doFreeze ? "on" : "off"));
+                        unset($holds["details"][$key]);
+                    }
+                }
+            }
+
+            parent::freezeHolds([], $doFreeze);
         }
 
         return ["success" => $success];
@@ -1034,7 +1053,7 @@ class EINetwork extends Sierra2 implements
 
         // now fix these if they haven't been set yet
         if( !isset($this->session->memCacheRefreshTimer) ) {
-            $this->session->memCacheRefreshTimer = $this->memcached->get["globalRefreshTimer"];
+            $this->session->memCacheRefreshTimer = $this->memcached->get("globalRefreshTimer");
         }
         if( !isset($this->session->sessionExpiration) ) {
             $this->session->sessionExpiration = time() + 1800;
@@ -1791,7 +1810,7 @@ class EINetwork extends Sierra2 implements
      * Update a hold that was previously placed in the system.
      * Can cancel the hold or update pickup locations.
      */
-    public function updateHoldDetailed($patron, $requestId, $patronId, $type, $title, $cancelId, $locationId)
+    public function updateHoldDetailed($patron, $requestId, $patronId, $type, $title, $cancelId, $locationId, $freeze = null)
     {
         //Login to the patron's account
         $cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -1821,7 +1840,6 @@ class EINetwork extends Sierra2 implements
         $holds = $this->parseHoldsPage($sresult);
         $numHoldsStart = count($holds);
 
-
         // put together the update args
         if (isset($locationId)){
             $paddedLocation = str_pad(trim($locationId), 5, "+");
@@ -1844,6 +1862,9 @@ class EINetwork extends Sierra2 implements
                 } else if ($paddedLocation && !$thisHold['locationUpdateable']){
                     $success = false;
                 }
+                if( $freeze != null ) {
+                    $extraGetInfo['freeze' . $thisHold["itemId"] . "x" . $thisHold["xnum"]] = $freeze;
+                }
             }
         }
 
@@ -1859,16 +1880,18 @@ class EINetwork extends Sierra2 implements
         curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
         curl_setopt($curl_connection, CURLOPT_HTTPPOST, true);
         $sresult = curl_exec($curl_connection);
-        //At this stage, we get messages if there were any errors freezing holds.
-        //$holds = $this->parseHoldsPage($sresult);
-
-        //Go back to the hold page to check make sure our hold was cancelled
-        $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S{$scope}/" . $patron['id'] ."/holds";
-        curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-        curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-        $sresult = curl_exec($curl_connection);
-        $holds = $this->parseHoldsPage($sresult);
-        $numHoldsEnd = count($holds);
+        if( $type == 'freeze' ) {
+            //At this stage, we get messages if there were any errors freezing holds.
+            $holds = $this->parseHoldsPage($sresult);
+        } else {
+            //Go back to the hold page to check make sure our hold was cancelled
+            $curl_url = $this->config['Catalog']['classic_url'] . "/patroninfo~S{$scope}/" . $patron['id'] ."/holds";
+            curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+            curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+            $sresult = curl_exec($curl_connection);
+            $holds = $this->parseHoldsPage($sresult);
+            $numHoldsEnd = count($holds);
+        }
 
         curl_close($curl_connection);
 
@@ -1878,6 +1901,13 @@ class EINetwork extends Sierra2 implements
         if ($type == 'cancel'){
             if ($numHoldsEnd != $numHoldsStart){
                 $success = true;
+            }
+        } else if ($type == 'freeze'){
+            $success = true;
+            foreach( $holds as $thisHold ) {
+                if( $thisHold['freezeError'] ) {
+                    $success = false;
+                }
             }
         }
 

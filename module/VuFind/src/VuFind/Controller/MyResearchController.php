@@ -1326,7 +1326,7 @@ class MyResearchController extends AbstractBase
             // Build record driver:
             $current["driver"] = $this->getDriverForILSRecord($current);
             $group = (($current["status"] == "i") || ($current["status"] == "b") || ($current["status"] == "j")) ? 'ready' : (($current["status"] == "t") ? 'transit' : ($current["frozen"] ? 'frozen' : 'hold'));
-            $key = ($current["ILL"] ? $current["title"] : $current["driver"]->GetTitle()).$current["hold_id"];
+            $key = ((isset($current["ILL"]) && $current["ILL"]) ? $current["title"] : $current["driver"]->GetTitle()).$current["hold_id"];
             $holdList[$group][$key] = $current;
         }
         $allList = [];

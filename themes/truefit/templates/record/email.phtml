@@ -3,7 +3,7 @@
 <div class="hold-form">
   <div style="margin:auto">
     <div class="textBoxContainer">
-      <input type="text" name="email" id="update_email" value="Enter your Email" onfocus="if (this.value=='Enter your Email') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+      <input type="text" name="email" id="update_email" value="Enter your Email" onfocus="if (this.value=='Enter your Email') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Enter your Email';this.style.color='#949494';}" class="form-control textBox"/>
     </div>
   </div>
 </div>

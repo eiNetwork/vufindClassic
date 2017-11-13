@@ -15,7 +15,7 @@
 <form class="form-horizontal edit-list-form" target="loginFrame" method="post" id="editListForm" name="<?=empty($this->list->id) ? 'newList' : 'editListForm'?>" action="">
   <input type="hidden" name="id" value="<?=empty($this->list->id) ? 'NEW' : $this->list->id ?>"/>
   <div class="textBoxContainer">
-    <input type="text" name="title" id="list_title" value="<?=isset($this->list['title']) ? $this->escapeHtml($this->list['title']) : 'New List Name'?>" onfocus="ClearFormError(this); if (this.value=='New List Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+    <input type="text" name="title" id="list_title" value="<?=(isset($this->list['title']) ? $this->escapeHtml($this->list['title']) : 'New List Name')?>" onfocus="ClearFormError(this); if (this.value=='<?=(isset($this->list['title']) ? '' : 'New ')?>List Name') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = '<?=(isset($this->list['title']) ? '' : 'New ')?>List Name';this.style.color='#949494';}" <?=(isset($this->list['title']) ? " style='color:#3d3d3d'" : '')?>class="form-control textBox"/>
     <i class="fa fa-exclamation-circle formErrorIcon"></i>
     <span id="list_titleError" class="formError"></span>
   </div>

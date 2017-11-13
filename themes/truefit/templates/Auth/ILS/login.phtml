@@ -5,7 +5,7 @@
     <div style="margin:auto">
     <div class="textBoxContainer">
       <span class="sr-only">Library Card Number</span>
-      <input type="text" name="username" id="reset_username" value="Enter your Library Card Number" onfocus="ClearFormError(this); if (this.value=='Enter your Library Card Number') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+      <input type="text" name="username" id="reset_username" value="Enter your Library Card Number" onfocus="ClearFormError(this); if (this.value=='Enter your Library Card Number') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Enter your Library Card Number';this.style.color='#949494';}" class="form-control textBox"/>
       <i class="fa fa-exclamation-circle formErrorIcon"></i>
       <span id="reset_usernameError" class="formError"></span>
     </div><br>
@@ -28,13 +28,13 @@
       <div class="EIN-col-m-12 fieldTitle">Name</div>
       <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
         <span class="sr-only">First Name</span>
-        <input type="text" name="firstname" id="register_firstname" value="First Name" onfocus="ClearFormError(this); if (this.value=='First Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="firstname" id="register_firstname" value="First Name" onfocus="ClearFormError(this); if (this.value=='First Name') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'First Name';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_firstnameError" class="formError"></span>
       </div>
       <div class="textBoxContainer EIN-col-m-12 EIN-col-t-6 EIN-col-6">
         <span class="sr-only">Last Name</span>
-        <input type="text" name="lastname" id="register_lastname" value="Last Name" onfocus="ClearFormError(this); if (this.value=='Last Name') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="lastname" id="register_lastname" value="Last Name" onfocus="ClearFormError(this); if (this.value=='Last Name') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Last Name';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_lastnameError" class="formError"></span>
       </div>
@@ -42,7 +42,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-col-m-12 fieldTitle">Email</div>
       <div class="textBoxContainer EIN-col-m-12">
-        <input type="text" name="email" id="register_email" value="Enter your email address" onfocus="ClearFormError(this); if (this.value=='Enter your email address') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="email" id="register_email" value="Enter your email address" onfocus="ClearFormError(this); if (this.value=='Enter your email address') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Enter your email address';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_emailError" class="formError"></span>
       </div>
@@ -50,7 +50,7 @@
     <div class="EIN-col-m-12 EIN-col-t-6 EIN-col-6">
       <div class="EIN-col-m-12 fieldTitle">Phone</div>
       <div class="textBoxContainer EIN-col-m-12">
-        <input type="text" name="phone" id="register_phone" value="123-456-7890" onfocus="ClearFormError(this); if (this.value=='123-456-7890') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="phone" id="register_phone" value="123-456-7890" onfocus="ClearFormError(this); if (this.value=='123-456-7890') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = '123-456-7890';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_phoneError" class="formError"></span>
       </div>
@@ -59,7 +59,7 @@
       <div class="EIN-col-m-12 fieldTitle">Address</div>
       <div class="textBoxContainer EIN-col-m-12">
         <span class="sr-only">Street or PO Box</span>
-        <input type="text" name="address1" id="register_address1" value="Street or PO Box" onfocus="ClearFormError(this); if (this.value=='Street or PO Box') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="address1" id="register_address1" value="Street or PO Box" onfocus="ClearFormError(this); if (this.value=='Street or PO Box') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Street or PO Box';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_address1Error" class="formError"></span>
       </div>
@@ -68,7 +68,7 @@
       <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
       <div class="textBoxContainer EIN-col-m-12">
         <span class="sr-only">Apartment Number or Suite</span>
-        <input type="text" name="address2" id="register_address2" value="Apt # or Suite" onfocus="ClearFormError(this); if (this.value=='Apt # or Suite') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+        <input type="text" name="address2" id="register_address2" value="Apt # or Suite" onfocus="ClearFormError(this); if (this.value=='Apt # or Suite') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Apt # or Suite';this.style.color='#949494';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_address2Error" class="formError"></span>
       </div>
@@ -77,7 +77,7 @@
       <div class="EIN-col-m-6 EIN-col-t-6 EIN-col-6">
         <div class="textBoxContainer EIN-col-m-12">
           <span class="sr-only">City</span>
-          <input type="text" name="city" id="register_city" value="City" onfocus="ClearFormError(this); if (this.value=='City') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <input type="text" name="city" id="register_city" value="City" onfocus="ClearFormError(this); if (this.value=='City') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'City';this.style.color='#949494';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
           <span id="regsister_cityError" class="formError"></span>
         </div>
@@ -85,14 +85,14 @@
       <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
         <div class="textBoxContainer EIN-col-m-12">
           <span class="sr-only">State</span>
-          <input type="text" name="state" id="register_state" value="State" onfocus="ClearFormError(this); if (this.value=='State') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <input type="text" name="state" id="register_state" value="State" onfocus="ClearFormError(this); if (this.value=='State') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'State';this.style.color='#949494';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
         </div>
       </div>
       <div class="EIN-col-m-3 EIN-col-t-3 EIN-col-3">
         <div class="textBoxContainer EIN-col-m-12">
           <span class="sr-only">Zip</span>
-          <input type="text" name="zip" id="register_zip" value="Zip" onfocus="ClearFormError(this); if (this.value=='Zip') {this.value = '';this.style.color='#3d3d3d';}" class="form-control textBox"/>
+          <input type="text" name="zip" id="register_zip" value="Zip" onfocus="ClearFormError(this); if (this.value=='Zip') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = 'Zip';this.style.color='#949494';}" class="form-control textBox"/>
           <i class="fa fa-exclamation-circle formErrorIcon"></i>
         </div>
       </div>
@@ -102,7 +102,7 @@
       <div class="EIN-col-m-12 fieldTitle">Security</div>
       <div class="textBoxContainer EIN-col-m-12">
         <span class="sr-only">4 digit PIN</span>
-        <input type="text" name="pin" id="register_pin" value="4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
+        <input type="text" name="pin" id="register_pin" value="4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" onblur="if (this.value=='') {this.value = '4-digit PIN #';this.style.color='#949494';this.type='text';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_pinError" class="formError"></span>
       </div>
@@ -111,7 +111,7 @@
       <div class="EIN-hide-m EIN-col-t-12 EIN-col-12 fieldTitle">&nbsp;</div>
       <div class="textBoxContainer EIN-col-m-12">
         <span class="sr-only">Confirm 4 digit PIN</span>
-        <input type="text" name="confirmpin" id="register_confirmpin" value="Confirm 4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='Confirm 4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" class="form-control textBox"/>
+        <input type="text" name="confirmpin" id="register_confirmpin" value="Confirm 4-digit PIN #" onfocus="ClearFormError(this); if (this.value=='Confirm 4-digit PIN #') {this.value = '';this.style.color='#3d3d3d';this.type='password';}" onblur="if (this.value=='') {this.value = 'Confirm 4-digit PIN #';this.style.color='#949494';this.type='text';}" class="form-control textBox"/>
         <i class="fa fa-exclamation-circle formErrorIcon"></i>
         <span id="register_confirmpinError" class="formError"></span>
       </div>

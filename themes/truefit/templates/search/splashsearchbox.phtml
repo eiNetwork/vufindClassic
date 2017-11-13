@@ -26,7 +26,7 @@
         <td style="width:100%">
           <div style="padding:0 5px">
             <span class="sr-only">Search for:</span>
-            <input class="form-control splashSearchBox search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?> initialSearch searchBox" type="text" name="lookfor" value="Search For..." onfocus="SearchFocus(this);" onfocusout="SearchFocusOut(this);"/>
+            <input class="form-control splashSearchBox search-query<? if($this->searchbox()->autocompleteEnabled($this->searchClassId)):?> autocomplete searcher:<?=$this->escapeHtmlAttr($this->searchClassId) ?><? endif ?> initialSearch searchBox" type="text" name="lookfor" value="Search For..." onfocus="SearchFocus(this);" onblur="SearchFocusOut(this);"/>
           </div>
         </td>
         <td>
@@ -96,6 +96,10 @@
 
     function SearchFocusOut(elem) {
       $(elem).parent().css({"background-color":"#fff"});
+      if( $(elem).val() == '' ) {
+        $(elem).addClass("initialSearch");
+        $(".initialSearch").typeahead('val', 'Search For...');
+      }
     }
 
     // submit the login on enter press

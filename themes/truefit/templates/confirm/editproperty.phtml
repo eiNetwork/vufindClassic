@@ -10,21 +10,21 @@
   <? if (($this->propertyName) != "pin" && isset($this->currentValue)): ?>
     <div class="EIN-col-m-12 fieldValue"><?=$this->currentValue?></div>
   <? else: ?>
-    <input type="text" class="form-control textBox editProperty" id="current_<?=$this->propertyName?>" onfocus="TestFocus(this)" value="Enter Current <?=$this->transEsc($this->property)?>" />
+    <input type="text" class="form-control textBox editProperty" id="current_<?=$this->propertyName?>" onfocus="TestFocus(this)" onblur="TestBlur(this, 'Enter Current <?=$this->transEsc($this->property)?>')" value="Enter Current <?=$this->transEsc($this->property)?>" />
     <i class="fa fa-exclamation-circle formErrorIcon"></i>
     <span class="formError"></span>
   <? endif; ?>
   <div class="EIN-col-m-12" style="height:10px"></div>
   <div class="EIN-col-m-12 fieldTitle">New <?=$this->transEsc($this->property) ?></div>
   <div class="EIN-col-m-12">
-    <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="new_<?=$this->propertyName?>" name="<?=$this->propertyName?>" value="Enter New <?=$this->transEsc($this->property) ?>" />
+    <input type="text" class="form-control textBox editProperty" autocomplete="off" onfocus="TestFocus(this)" onblur="TestBlur(this, 'Enter New <?=$this->transEsc($this->property)?>')" id="new_<?=$this->propertyName?>" name="<?=$this->propertyName?>" value="Enter New <?=$this->transEsc($this->property) ?>" />
     <i class="fa fa-exclamation-circle formErrorIcon"></i>
     <span class="formError"></span>
   </div>
   <div class="EIN-col-m-12" style="height:10px"></div>
   <div class="EIN-col-m-12 fieldTitle">Confirm New <?=$this->transEsc($this->property) ?></div>
   <div class="EIN-col-m-12">
-    <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" id="confirm_<?=$this->propertyName?>" value="Confirm New <?=$this->transEsc($this->property)?>" />
+    <input type="text" class="form-control textBox editProperty" onfocus="TestFocus(this)" onblur="TestBlur(this, 'Confirm New <?=$this->transEsc($this->property)?>')" id="confirm_<?=$this->propertyName?>" value="Confirm New <?=$this->transEsc($this->property)?>" />
     <i class="fa fa-exclamation-circle formErrorIcon"></i>
     <span class="formError"></span>
   </div>
@@ -42,7 +42,7 @@
 <script type="text/javascript">
   function TestFocus(element) {
     if( !($(element).hasClass("userHasFocused")) ) {
-      $(element).attr("value", "");
+      element.value = "";
       $(element).addClass("userHasFocused");
       <? if($this->propertyName == "pin"): ?>
         $(element).attr("type", "password");
@@ -52,6 +52,16 @@
     $(element).next().css("display","none");
     $(element).next().next().css("display","none");
     $(element).next().next().html("");
+  }
+
+  function TestBlur(element, caption) {
+    if( element.value == "" ) {
+      element.value = caption;
+      $(element).removeClass("userHasFocused");
+      <? if($this->propertyName == "pin"): ?>
+        $(element).attr("type", "text");
+      <? endif; ?>
+    }
   }
 
   function ShowInputError(field, message) {

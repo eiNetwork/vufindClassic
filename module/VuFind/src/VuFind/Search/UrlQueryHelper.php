@@ -348,6 +348,18 @@ class UrlQueryHelper
     }
 
     /**
+     * Remove all facets from the parameters.
+     *
+     * @return string
+     */
+    public function removeAllFacets() {
+        $params = $this->getParamArray();
+        unset($params["filter"]);
+
+        return '?' . $this->buildQueryString($params);
+    }
+
+    /**
      * Remove a filter from the parameters.
      *
      * @param string $filter Filter to add

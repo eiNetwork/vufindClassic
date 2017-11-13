@@ -15,14 +15,14 @@
             </div>
             <div class="EIN-col-m-3">
               <? $minValue = isset($current['values'][0]) ? $this->escapeHtmlAttr($current['values'][0]) : ''; ?>
-              <input type="text" name="<?=$escField?>from" id="<?=$escField?>from" value="<?=($minValue=='')?'????':$minValue?>" class="form-control textBox" <? if($minValue==""): ?>onfocus="if (this.value=='????') {this.value = '';this.style.color='#3d3d3d';}"<?else:?>style="color:#3d3d3d"<?endif;?> <?=$extraInputAttribs?>/>
+              <input type="text" name="<?=$escField?>from" id="<?=$escField?>from" value="<?=($minValue=='')?'????':$minValue?>" class="form-control textBox" onfocus="if (this.value=='????') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = '????';this.style.color='#949494';}"<? if($minValue!=""): ?>style="color:#3d3d3d"<?endif;?> <?=$extraInputAttribs?>/>
             </div>
             <div class="EIN-col-m-2" style="text-align:right">
               <label for="<?=$escField?>to" style="margin-top:2px"><?=$this->transEsc('date_to')?>:&nbsp;</label>
             </div>
             <div class="EIN-col-m-3">
               <? $maxValue = isset($current['values'][1]) ? $this->escapeHtmlAttr($current['values'][1]) : ''; ?>
-              <input type="text" name="<?=$escField?>to" id="<?=$escField?>to" value="<?=($maxValue=='')?'????':$maxValue?>" class="form-control textBox" <? if($maxValue==""): ?>onfocus="if (this.value=='????') {this.value = '';this.style.color='#3d3d3d';}"<?else:?>style="color:#3d3d3d"<?endif;?> <?=$extraInputAttribs?>/>
+              <input type="text" name="<?=$escField?>to" id="<?=$escField?>to" value="<?=($maxValue=='')?'????':$maxValue?>" class="form-control textBox" onfocus="if (this.value=='????') {this.value = '';this.style.color='#3d3d3d';}" onblur="if (this.value=='') {this.value = '????';this.style.color='#949494';}"<? if($maxValue!=""): ?>style="color:#3d3d3d"<?endif;?> <?=$extraInputAttribs?>/>
             </div>
             <div class="EIN-col-m-1">&nbsp;</div>
           </div>

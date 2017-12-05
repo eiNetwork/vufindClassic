@@ -26,7 +26,7 @@
       <div class="panel-heading">
         <h4 class="panel-title">
           <? if(count($this->holdList[$holdType]) > 0): ?>    
-            <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active leftTab"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
+            <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active leftTab" onClick="createCookie('holdsTab','<?=$holdType?>')"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
           <? else: ?>
             <a data-toggle="collapse" class="collapsed disabled leftTab" onclick="return false;"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
           <? endif; ?>
@@ -55,7 +55,7 @@
           <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
               <? if(count($this->holdList[$holdType]) > 0): ?>  
-                <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+                <a data-toggle="collapse" data-parent="#holdAccordion" href="#details_<?=$holdType?>" class="collapsed active" onClick="createCookie('holdsTab','<?=$holdType?>')"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
               <? else: ?>
                 <a data-toggle="collapse" class="collapsed disabled" onclick="return false;"><?=$this->transEsc('holdtype_' . $holdType)?><span class="badge noHide"><?=count($this->holdList[$holdType])?></span></a>
               <? endif; ?>

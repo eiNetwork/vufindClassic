@@ -346,6 +346,11 @@ class MyResearchController extends AbstractBase
         $this->getILS()->clearSessionVar("dismissedAnnouncements");
         setcookie("einStoredBarcode", "", time() - 1209600, '/');
         setcookie("einStoredPIN", "", time() - 1209600, '/');
+        setcookie("checkoutTab", "", time() - 1209600, '/');
+        setcookie("holdsTab", "", time() - 1209600, '/');
+        setcookie("mostRecentList", "", time() - 1209600, '/');
+        setcookie("lastProfileSection", "", time() - 1209600, '/');
+        setcookie("itemDetailsTab", "", time() - 1209600, '/');
 
         return $this->redirect()
             ->toUrl($this->getAuthManager()->logout($logoutTarget));
@@ -424,11 +429,6 @@ class MyResearchController extends AbstractBase
         // User must be logged in at this point, so we can assume this is non-false:
         $user = $this->getUser();
 
-        // see whether we need to keep track of this or not
-        if( $referringSection = $this->params()->fromPost('profileSection', false) ) {
-            $this->session->lastProfileSection = $referringSection;
-        }
-
         // Process update parameters (if present):
         $notification = $this->params()->fromPost('notification', false);
         $splitEcontent = $this->params()->fromPost('splitEcontent', false);
@@ -442,9 +442,6 @@ class MyResearchController extends AbstractBase
         $OD_video = $this->params()->fromPost('OD_video', false);
         if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || !empty($pin) || 
             !empty($email) || !empty($OD_eBook) || !empty($OD_audiobook) || !empty($OD_video) ) {
-            // save the profile section
-            $this->session->lastProfileSection = $referringSection;
-
             // grab this to compare it to what we've got now
             $catalog = $this->getILS();
             $profile = $catalog->getMyProfile($patron);
@@ -501,8 +498,8 @@ class MyResearchController extends AbstractBase
 
         // Begin building view object:
         $view = $this->createViewModel();
-        if( isset($this->session->lastProfileSection) ) {
-            $view->showProfileSection = $this->session->lastProfileSection;
+        if( isset($_COOKIE["lastProfileSection"]) ) {
+            $view->showProfileSection = $_COOKIE["lastProfileSection"];
         }
         if( $suppression = $this->params()->fromPost("suppressFlashMessages", false) ) {
             $view->suppressFlashMessages = $suppression;
@@ -653,7 +650,6 @@ class MyResearchController extends AbstractBase
 
         // Get target URL for after deletion:
         $listID = $this->params()->fromPost('listID');
-        $this->session->lastList = $listID;
 
         // Fail if we have nothing to delete:
         $ids = $this->params()->fromPost('ids');
@@ -703,8 +699,6 @@ class MyResearchController extends AbstractBase
         // Process form within a try..catch so we can handle errors appropriately:
         try {
             // Get target URL for after deletion:
-            $listID = $this->params()->fromPost('listID');
-            $this->session->lastList = $listID;
             $listID = $this->params()->fromPost('addListID');
 
             // Fail if we have nothing to delete:
@@ -931,7 +925,6 @@ class MyResearchController extends AbstractBase
                 'confirm', $this->params()->fromQuery('confirm')
             );
             if ($confirm) {
-                $this->session->lastList = $this->params()->fromRoute('id', $this->params()->fromQuery('id'));
                 return $this->performDeleteFavorite($deleteId, $deleteSource);
             } else {
                 return $this->confirmDeleteFavorite($deleteId, $deleteSource);
@@ -959,6 +952,7 @@ class MyResearchController extends AbstractBase
             }
 
             $results = [];
+            $listFound = !isset($_COOKIE["mostRecentList"]);
             foreach( $lists as $thisList ) {
                 // We want to merge together GET, POST and route parameters to
                 // initialize our search object:
@@ -977,15 +971,16 @@ class MyResearchController extends AbstractBase
                     $listener->attach($runner->getEventManager()->getSharedManager());
                 };
 
+                if( !$listFound && $_COOKIE["mostRecentList"] == $thisList->id ) {
+                    $listFound = true;
+                }
+
                 $results[] = ['list' => $thisList, 'items' => ((!$this->params()->fromRoute('id') && !$this->params()->fromQuery('id')) ? [] : $runner->run($request, 'Favorites', $setupCallback))];
             }
 
             $args = $this->getRequest()->getQuery()->toArray();
-            $listToShow = isset($args["listToShow"]) ? $args["listToShow"] : $this->session->lastList;
+            $listToShow = $listFound ? $_COOKIE["mostRecentList"] : $lists[0]->id;
             $sort = isset($args["sort"]) ? $args["sort"] : "title";
-            if( !isset($args["listToShow"]) ) {
-                unset($this->session->lastList);
-            }
             return $this->createViewModel(
                 ['results' => $results, 'showList' => $listToShow, 'sort' => $sort]
             );
@@ -1097,7 +1092,6 @@ class MyResearchController extends AbstractBase
         // Process form submission:
         if ($this->formWasSubmitted('submit')) {
             if ($redirect = $this->processEditList($user, $list, $newList)) {
-                $this->session->lastList = $list->id;
                 return $redirect;
             }
         }
@@ -1151,7 +1145,7 @@ class MyResearchController extends AbstractBase
                 }
             }
             // Redirect to MyResearch home
-            unset($this->session->lastList);
+            setcookie("mostRecentList", "", time() - 1209600, '/');
             $view = $this->createViewModel();
             $view->setTemplate('blankModal');
             return $view;
@@ -1278,7 +1272,6 @@ class MyResearchController extends AbstractBase
             ? $this->holds()->cancelHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
-            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
@@ -1288,7 +1281,6 @@ class MyResearchController extends AbstractBase
             ? $this->holds()->freezeHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
-            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
@@ -1298,7 +1290,6 @@ class MyResearchController extends AbstractBase
             ? $this->holds()->unfreezeHolds($catalog, $patron) : [];
         // If we need to confirm
         if (!is_array($view->cancelResults)) {
-            $this->session->lastHoldType = $this->params()->fromPost('referrer');
             return $view->cancelResults;
         }
 
@@ -1372,7 +1363,7 @@ class MyResearchController extends AbstractBase
             // locations, they are not supported and we should ignore them.
         }
         $view->holdList = $holdList;
-        $view->showHoldType = $this->session->lastHoldType;
+        $view->showHoldType = isset($_COOKIE["holdsTab"]) ? $_COOKIE["holdsTab"] : "all";
         return $view;
     }
 
@@ -1528,8 +1519,8 @@ class MyResearchController extends AbstractBase
         // we processed some renewals
         } else if( count($renewResult) > 0 ) {
             // Get target URL for after deletion:
-            $checkoutType = 'all'; //$this->params()->fromPost('checkoutType');
-            $this->session->lastCheckoutType = $checkoutType;
+            $checkoutType = 'all';
+            setcookie("checkoutTab", $checkoutType, time() + 3600, '/');
 
             // Process the renews:
             $view = $this->createViewModel(['results' => $renewResult]);
@@ -1628,7 +1619,7 @@ class MyResearchController extends AbstractBase
 
         $view->splitEcontent = ($user['splitEcontent'] == "Y");
         $view->checkoutList = $checkoutList;
-        $view->showCheckoutType = $this->session->lastCheckoutType;
+        $view->showCheckoutType = isset($_COOKIE["checkoutTab"]) ? $_COOKIE["checkoutTab"] : "all";
         return $view;
     }
 

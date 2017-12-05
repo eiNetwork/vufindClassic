@@ -19,31 +19,31 @@
     <div class="facetTitle">Profile</div>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed leftTab"><?=$this->transEsc('profile_aboutMe')?></a>
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed leftTab" onclick="createCookie('lastProfileSection','aboutMe')"><?=$this->transEsc('profile_aboutMe')?></a>
         <div class="openAccordionTab"></div>
       </h4>
     </div>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed leftTab"><?=$this->transEsc('profile_card')?></a>
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed leftTab" onclick="createCookie('lastProfileSection','card')"><?=$this->transEsc('profile_card')?></a>
         <div class="openAccordionTab"></div>
       </h4>
     </div>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed leftTab"><?=$this->transEsc('profile_security')?></a>
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed leftTab" onclick="createCookie('lastProfileSection','security')"><?=$this->transEsc('profile_security')?></a>
         <div class="openAccordionTab"></div>
       </h4>
     </div>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed leftTab"><?=$this->transEsc('profile_libraries')?></a>
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed leftTab" onclick="createCookie('lastProfileSection','libraries')"><?=$this->transEsc('profile_libraries')?></a>
         <div class="openAccordionTab"></div>
       </h4>
     </div>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed leftTab"><?=$this->transEsc('profile_overdrive')?></a>
+        <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed leftTab" onclick="createCookie('lastProfileSection','overdrive')"><?=$this->transEsc('profile_overdrive')?></a>
         <div class="openAccordionTab"></div>
       </h4>
     </div>
@@ -54,7 +54,7 @@
     <div class="panel panel-default listAccordion">
       <div class="panel-heading EIN-hide-t EIN-hide">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed"><?=$this->transEsc('profile_aboutMe')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_aboutMe" class="collapsed" onclick="createCookie('lastProfileSection','aboutMe')"><?=$this->transEsc('profile_aboutMe')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
         </h4>
       </div>
       <div id="profile_aboutMe" class="panel-collapse collapse">
@@ -114,7 +114,7 @@
     <div class="panel panel-default listAccordion">
       <div class="panel-heading EIN-hide-t EIN-hide">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed"><?=$this->transEsc('profile_card')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_card" class="collapsed" onclick="createCookie('lastProfileSection','card')"><?=$this->transEsc('profile_card')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
         </h4>
       </div>
       <div id="profile_card" class="panel-collapse collapse">
@@ -131,7 +131,7 @@
     <div class="panel panel-default listAccordion">
       <div class="panel-heading EIN-hide-t EIN-hide">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed"><?=$this->transEsc('profile_security')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_security" class="collapsed" onclick="createCookie('lastProfileSection','security')"><?=$this->transEsc('profile_security')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
         </h4>
       </div>
       <div id="profile_security" class="panel-collapse collapse">
@@ -169,7 +169,7 @@
     <div class="panel panel-default listAccordion">
       <div class="panel-heading EIN-hide-t EIN-hide">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed"><?=$this->transEsc('profile_libraries')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_libraries" class="collapsed" onclick="createCookie('lastProfileSection','libraries')"><?=$this->transEsc('profile_libraries')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
         </h4>
       </div>
       <div id="profile_libraries" class="panel-collapse collapse">
@@ -230,7 +230,7 @@
     <div class="panel panel-default listAccordion">
       <div class="panel-heading EIN-hide-t EIN-hide">
         <h4 class="panel-title">
-          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed"><?=$this->transEsc('profile_overdrive')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+          <a data-toggle="collapse" data-parent="#profileAccordion" href="#profile_overdrive" class="collapsed" onclick="createCookie('lastProfileSection','overdrive')"><?=$this->transEsc('profile_overdrive')?><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
         </h4>
       </div>
       <div id="profile_overdrive" class="panel-collapse collapse">

@@ -23,7 +23,7 @@
       <div class="panel-heading">
         <h4 class="panel-title">
           <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
-            <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active leftTab"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
+            <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active leftTab" onclick="createCookie('checkoutTab','<?=$checkoutType?>')"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
           <? else: ?>
             <a data-toggle="collapse" class="collapsed disabled leftTab" onclick="return false;"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span></a>
           <? endif; ?>
@@ -53,7 +53,7 @@
           <div class="panel-heading EIN-hide-t EIN-hide">
             <h4 class="panel-title">
               <? if(count($this->checkoutList[$checkoutType]) > 0): ?>    
-                <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
+                <a data-toggle="collapse" data-parent="#checkoutAccordion" href="#details_<?=$checkoutType?>" class="collapsed active" onclick="createCookie('checkoutTab','<?=$checkoutType?>')"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
               <? else: ?>
                 <a data-toggle="collapse" class="collapsed disabled"><?=$this->transEsc('checkedout_' . $checkoutType)?><span class="badge noHide"><?=count($this->checkoutList[$checkoutType])?></span><i class="fa fa-caret-down"></i><i class="fa fa-caret-up"></i></a>
               <? endif; ?>

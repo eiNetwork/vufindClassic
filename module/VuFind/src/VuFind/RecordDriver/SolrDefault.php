@@ -1815,7 +1815,7 @@ class SolrDefault extends AbstractBase
     public function hasOnlineAccess()
     {
         // our OverDrive model doesn't support multi-use
-        if( in_array("OverDrive", $this->fields['econtent_source']) ) {
+        if( isset($this->fields['econtent_source']) && in_array("OverDrive", $this->fields['econtent_source']) ) {
             return false;
         }
 

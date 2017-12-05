@@ -48,6 +48,13 @@ function html_entity_decode(string, quote_style)
   return tmp_str;
 }
 
+// cookies (adapted from https://stackoverflow.com/questions/5045053/set-cookie-wih-js-read-with-php-problem)
+function createCookie(name, value) {
+  var date = new Date();
+  date.setTime(date.getTime() + (24*60*60*1000));
+  document.cookie = name+"="+value+"; expires="+date.toGMTString()+"; path=/";
+}
+
 // Turn GET string into array
 function deparam(url) {
   if(!url.match(/\?|&/)) {

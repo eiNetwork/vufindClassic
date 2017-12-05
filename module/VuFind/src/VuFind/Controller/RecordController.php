@@ -109,7 +109,7 @@ class RecordController extends AbstractRecord
             if( isset($item["number"]) && $item["number"]) {
               $hasVolumes = true;
             }
-            if( $item["isOverDrive"] ) {
+            if( isset($item["isOverDrive"]) && $item["isOverDrive"] ) {
               $overDriveHolds = $item["numberOfHolds"];
             }
           }
@@ -241,6 +241,9 @@ class RecordController extends AbstractRecord
         if( substr($bib, 0, 2) == ".b" ) {
             $view->classicLink = $catalog->getConfigVar("Catalog","classic_url") . "/record=" . substr($bib, 1, -1);
         }
+
+        // change the tab
+        $view->itemDetailsTab = ($overDriveHolds != -1) ? "details3" : (isset($_COOKIE["itemDetailsTab"]) ? $_COOKIE["itemDetailsTab"] : "details1");
 
         return $view;
     }

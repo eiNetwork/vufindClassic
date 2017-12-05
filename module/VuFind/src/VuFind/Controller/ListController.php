@@ -47,7 +47,10 @@ class ListController extends AbstractBase
     public function resultsAction()
     {
         $listID = $this->getRequest()->getQuery()->goToListID;
-        return $this->redirect()->toUrl('/MyResearch/MyList' . ($listID ? ("?listToShow=" . $listID) : ""));
+        if( $listID ) {
+            setcookie("mostRecentList", $listID, time() + 3600, '/');
+        }
+        return $this->redirect()->toUrl('/MyResearch/MyList');
     }
 }
 

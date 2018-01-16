@@ -626,7 +626,10 @@ class SolrMarc extends SolrDefault
             foreach ($subfields as $subfield) {
                 // Break the string into appropriate chunks,  and merge them into
                 // return array:
-                $toc = array_merge($toc, explode('--', $subfield->getData()));
+                $thisLine = $subfield->getData();
+                $thisLine = str_replace(" -- ", "<br>", $thisLine);
+                $thisLine = str_replace(" --", "<br>", $thisLine);
+                $toc = array_merge($toc, [$thisLine]);
             }
         }
         return $toc;

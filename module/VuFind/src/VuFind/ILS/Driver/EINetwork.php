@@ -1620,7 +1620,7 @@ class EINetwork extends Sierra2 implements
                     } elseif  (strpos($responseText,'Sorry, request cannot be accepted. Local copy is available.') > 1) {
                         $hold_result['success'] = false;
                         $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There is a copy available on the shelf at this location';
-                    } elseif  (strpos($responseText,'There is a problem with your library record. Please see a librarian') > 1) {
+                    } elseif  (strpos($responseText,'There is a problem with your library record.  Please see a librarian') > 1) {
                         $hold_result['success'] = false;
                         $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Your patron record is blocked or expired';
                     // generic error message

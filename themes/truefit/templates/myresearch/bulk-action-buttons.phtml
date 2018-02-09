@@ -26,9 +26,17 @@
     target.parents('.panel-body').find('.fa-square-o').parent().removeClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
     target.parents('.panel-body').find('.fa-check-square').parent().addClass(target.prop('checked') ? "checkToggleOn" : "checkToggleOff");
     target.parents('.panel-body').find('.fa-check-square').parent().removeClass(target.prop('checked') ? "checkToggleOff" : "checkToggleOn");
+    target.parents('.panel-body').find('.fa-square-o').parent('.checkToggleOn').each( function(index) { RemoveRecordCheckCookie($(this)); } );
+    target.parents('.panel-body').find('.fa-check-square').parent('.checkToggleOn').each( function(index) { AddRecordCheckCookie($(this)); } );
   }
 
   function ScanBulkButton(form) {
+    // set the checkbox correctly
+    form.find('.checkbox-select-all').prop('checked', true);
+    form.find('.checkbox-select-item').each( function() {
+      form.find('.checkbox-select-all').prop('checked', form.find('.checkbox-select-all').prop('checked') && this.checked);
+    } );
+
     var target = form.find('.bulkButton');
     target.prop('disabled', true);
     var testSet = (form.siblings('.ajaxListContents').length > 0) ? form.siblings('.ajaxListContents').find('.ajaxItem') : form.siblings('.ajaxItem')
@@ -112,7 +120,7 @@
     }
   }
 
-  setTimeout(ScanBulkButton, 10, $('#bulkAction<?=$bulkID?>').parent());
+  setTimeout( ScanBulkButton, 100, $('#bulkAction<?=$bulkID?>').parents('form') );
 </script>
 <div class="checkbox EIN-col-m-12">
   <span class="EIN-col-m-12">

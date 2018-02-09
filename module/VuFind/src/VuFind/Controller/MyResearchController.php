@@ -351,6 +351,7 @@ class MyResearchController extends AbstractBase
         setcookie("mostRecentList", "", time() - 1209600, '/');
         setcookie("lastProfileSection", "", time() - 1209600, '/');
         setcookie("itemDetailsTab", "", time() - 1209600, '/');
+        setcookie("catalogCheckboxes", "", time() - 1209600, '/');
 
         return $this->redirect()
             ->toUrl($this->getAuthManager()->logout($logoutTarget));
@@ -979,7 +980,7 @@ class MyResearchController extends AbstractBase
             }
 
             $args = $this->getRequest()->getQuery()->toArray();
-            $listToShow = $listFound ? $_COOKIE["mostRecentList"] : $lists[0]->id;
+            $listToShow = ($listFound && isset($_COOKIE["mostRecentList"])) ? $_COOKIE["mostRecentList"] : $lists[0]->id;
             $sort = isset($args["sort"]) ? $args["sort"] : "title";
             return $this->createViewModel(
                 ['results' => $results, 'showList' => $listToShow, 'sort' => $sort]

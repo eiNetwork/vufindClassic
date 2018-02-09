@@ -67,7 +67,7 @@
                   <div style="display:none">
                     <? foreach ($this->checkoutList[$checkoutType] as $current): ?>
                       <? if (isset($current["checkout_id"])): ?>
-                        <?=$this->record($current["driver"])->getHoldCheckbox($current["checkout_id"])?>
+                        <?=$this->record($current["driver"])->getHoldCheckbox($current["checkout_id"], "checkout_" . $checkoutType)?>
                       <? endif; ?>
                     <? endforeach; ?>
                   </div>
@@ -103,7 +103,7 @@
                     <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                     <? $showEcontentHeader = false; ?>
                   <? endif; ?>
-                  <?=$this->record($current["driver"])->getCheckoutEntry($current, $user, ($checkoutType == "all"))?>
+                  <?=$this->record($current["driver"])->getCheckoutEntry($current, $user, "checkout_" . $checkoutType)?>
                 <? endforeach; ?>
               </div>
             </div>

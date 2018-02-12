@@ -5,6 +5,7 @@
   $account = $this->auth()->getManager();
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
+  $holdType = (isset($this->holdType) ? $this->holdType : "none");
 
   $showChangeTarget = (!isset($this->hold["available"]) || !$this->hold["available"]) && ($this->hold["status"] != "t");
   $showFreeze = $showChangeTarget && (!isset($this->hold["frozen"]) || !$this->hold["frozen"]);
@@ -13,7 +14,7 @@
 <div class="row result<? if($this->driver->supportsAjaxStatus()): ?> ajaxItem<? endif ?> EIN-col-m-12">
   <table class="EIN-col-m-12"><tr>
     <td class="EIN-col-m-1" style="margin:auto">
-      <span class="pull-left flip"><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"]) ?></span>
+      <span class="pull-left flip"><?=$this->record($this->driver)->getHoldCheckbox($this->hold["hold_id"], $holdType) ?></span>
       <input type="hidden" value="<?=$this->escapeHtmlAttr($id)?>" class="hiddenId" />
       <input type="hidden" value="<?=$this->escapeHtmlAttr($source)?>" class="hiddenSource" />
       <? if( $showChangeTarget ): ?>
@@ -72,7 +73,7 @@
             <? endforeach; ?>
           <? endif; ?>
 
-          <? if( $this->showStatus ): ?>
+          <? if( $holdType == "hold_all" ): ?>
             <tr>
               <td colspan="2">
                 <div class="EIN-col-m-12" style="height:10px"></div>
@@ -83,7 +84,7 @@
           <? if( !isset($this->hold["overDriveId"]) ): ?>
             <tr>
               <td colspan="2">
-                <? if( !$this->showStatus ): ?>
+                <? if( $holdType != "hold_all" ): ?>
                   <div class="EIN-col-m-12" style="height:10px"></div>
                 <? endif; ?>
                 Pick up at: <span class="bold"><?=$this->hold["location"]?></span>
@@ -106,7 +107,7 @@
           <? else: ?>
             <tr>
               <td colspan="2">
-                <? if( !$this->showStatus ): ?>
+                <? if( $holdType != "hold_all" ): ?>
                   <div class="EIN-col-m-12" style="height:10px"></div>
                 <? endif; ?>
                 Notify me at: <span class="bold"><?=$this->hold["notifyEmail"]?></span>

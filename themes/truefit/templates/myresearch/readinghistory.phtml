@@ -31,9 +31,9 @@
         <div style="display:none">
           <? foreach ($this->readingHistory["titles"] as $i=>$current): ?>
             <? if( isset($current["driver"]) ): ?>
-              <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"])?>
+              <?=$this->record($current["driver"])->getHoldCheckbox($current["rsh"], "readinghistory")?>
             <? else: ?>
-              <?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $current["rsh"], 'count' => $i])?>
+              <?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $current["rsh"], 'count' => $i, 'page' => 'readinghistory'])?>
             <? endif; ?>
           <? endforeach; ?>
         </div>
@@ -53,7 +53,7 @@
             <? $lastIndex = (isset($item["itemindex"]) && ($item["itemindex"] > $lastIndex)) ? $item["itemindex"] : $lastIndex; ?>
             <tr class="historyItem">
               <td style="margin:auto">
-                <span class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"]) ?></span>
+                <span class="pull-left flip checkBoxLabel"><?=$record->getHoldCheckbox($item["rsh"], "readinghistory") ?></span>
                 <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getUniqueId())?>" class="hiddenId" />
                 <input type="hidden" value="<?=$this->escapeHtmlAttr($item["driver"]->getResourceSource())?>" class="hiddenSource" />
               </td>
@@ -78,7 +78,7 @@
           <? else: ?>
             <tr class="historyItem">
               <td style="margin:auto">
-                <span class="pull-left flip checkBoxLabel"><?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $item["rsh"], 'count' => $i])?></span>
+                <span class="pull-left flip checkBoxLabel"><?=$this->context()->renderInContext('record/checkbox.phtml', ['overruleId' => $item["rsh"], 'count' => $i, 'page' => 'readinghistory'])?></span>
               </td>
               <td style="padding:15px 5px" class="itemTitle">
                 <span class="unlinkedTitle"><?=$this->escapeHtml($item["title"])?></span>
@@ -124,6 +124,7 @@
       $('.historyShowMore').prop("disabled", false).html("<i class='fa fa-repeat'></i>&nbsp;<?=$this->transEsc("reading_history_load_more")?>");
       $('.historyShowMore').css('display', ($(this).contents().find('.historyShowMore').length > 0) ? 'inline-block' : 'none');
       $('#historyCount').html($('.historyItem').length);
+      setTimeout( ScanBulkButton, 100, $(".ajaxReadingHistory").parents('form') );
     } );
     pageNum++;
   }

@@ -46,7 +46,7 @@ class Record extends \VuFind\View\Helper\Root\Record
      *
      * @return string
      */
-    public function getCheckoutEntry($checkout, $user = false, $onAllTab = false)
+    public function getCheckoutEntry($checkout, $user = false, $checkoutType = null)
     {
         return $this->renderTemplate(
             'checkout-entry.phtml',
@@ -54,7 +54,7 @@ class Record extends \VuFind\View\Helper\Root\Record
                 'driver' => $this->driver,
                 'checkout' => $checkout,
                 'user' => $user,
-                'addAllID' => $onAllTab
+                'checkoutType' => $checkoutType
             ]
         );
     }
@@ -67,14 +67,14 @@ class Record extends \VuFind\View\Helper\Root\Record
      *
      * @return string
      */
-    public function getHoldEntry($hold, $showStatus = false)
+    public function getHoldEntry($hold, $holdType = null)
     {
         return $this->renderTemplate(
             'hold-entry.phtml',
             [
                 'driver' => $this->driver,
                 'hold' => $hold,
-                'showStatus' => $showStatus
+                'holdType' => $holdType
             ]
         );
     }
@@ -86,11 +86,11 @@ class Record extends \VuFind\View\Helper\Root\Record
      *
      * @return string
      */
-    public function getHoldCheckbox($holdId)
+    public function getHoldCheckbox($holdId, $page = '')
     {
         static $checkboxCount = 0;
         $context
-            = ['overruleId' => $holdId, 'count' => $checkboxCount++];
+            = ['overruleId' => $holdId, 'count' => $checkboxCount++, 'page' => $page];
         return $this->contextHelper->renderInContext(
             'record/checkbox.phtml', $context
         );

@@ -68,7 +68,7 @@
                   <?=$this->context($this)->renderInContext('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'hold' => $holdType, 'account' => $this->account))?>
                   <div style="display:none">
                     <? foreach ($this->holdList[$holdType] as $current): ?>
-                      <?=$this->record($current["driver"])->getHoldCheckbox($current["hold_id"])?>
+                      <?=$this->record($current["driver"])->getHoldCheckbox($current["hold_id"], "hold_" . $holdType)?>
                     <? endforeach; ?>
                   </div>
                 </form>
@@ -103,7 +103,7 @@
                     <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                     <? $showEcontentHeader = false; ?>
                   <? endif; ?>
-                  <?=$this->record($current["driver"])->getHoldEntry($current, ($holdType == 'all'))?>
+                  <?=$this->record($current["driver"])->getHoldEntry($current, "hold_" . $holdType)?>
                 <? endforeach; ?>
               </div>
             </div>

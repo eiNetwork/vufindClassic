@@ -63,6 +63,10 @@ class EINetwork extends Sierra2 implements
         }
     }
 
+    public function clearMemcachedVar($name) {
+        return $this->memcached->delete($name);
+    }
+
     public function getCurrentLocation() {
         $myIP = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
         if( !$this->memcached->get("locationByIP" . $myIP) ) {
@@ -401,7 +405,6 @@ class EINetwork extends Sierra2 implements
 
                 array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "availability" => false, "status" => "?", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
             }
-
             $this->memcached->set("holdingID" . $id, $results2, 900);
         }
         return $this->memcached->get("holdingID" . $id);

@@ -14,6 +14,7 @@
       <div class="EIN-col-m-12" style="font-size:16px;font-weight:700">Your request for the following titles could not be completed because there is an available copy at your location. Please check the shelf for this item or see a librarian for assistance:</div>
       <? foreach( $this->localCopyTitles as $thisTitle ): ?>
         <div class="EIN-col-m-12" style="padding-left:20px"><?=urldecode(explode("|", $thisTitle, 4)[1])?></div>
+        <div class="EIN-col-m-12" style="padding-left:40px;margin:5px 0px"><span class="availableTag"><i class="fa fa-check"></i>It's Here!</span></div>
         <div class="EIN-col-m-12" style="padding-left:40px"><span class="availableCopyText"><?=urldecode(explode("|", $thisTitle, 4)[2])?></span></div>
         <div class="EIN-col-m-12" style="padding-left:40px"><span class="availableCopyText"><?=urldecode(explode("|", $thisTitle, 4)[3])?></span></div>
       <? endforeach; ?>      

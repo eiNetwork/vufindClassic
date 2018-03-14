@@ -122,7 +122,9 @@ class Location extends Gateway
                 ['ip' => 'ip_lookup'], 'ip.locationid = location.locationId',
                 []
             );
-            $select->where('ip="' . substr($myIP, 0, strrpos($myIP, ".") + 1) . '0/24"');
+            $threeOctet = substr($myIP, 0, strrpos($myIP, "."));
+            $twoOctet = substr($threeOctet, 0, strrpos($threeOctet, "."));
+            $select->where('ip="' . $threeOctet . '.0/24" or ip="' . $twoOctet . '.0.0/16"' );
         };
         $location = $this->select($callback);
         return $location->current() ? $location->current()->toArray() : false;

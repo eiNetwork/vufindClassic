@@ -75,14 +75,32 @@
     form.attr('target','_self');
     form.find('.temporaryInput').remove();
     $('#bulkAction' + id).attr('name','bulkHold');
+    var temporaryUncheck = [];
     form.find('.checkbox-select-item').each(function() {
       if( $(this).prop('checked') ) {
         var twin = form.siblings('.ajaxListContents').find('.checkbox-select-item[value="' + $(this).attr("value") + '"]');
         var title = twin.parents('table').find('.itemTitle').children('a').html();
-        $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
+        if( twin.parents('table').find('.hasVolumesTag').length ) {
+          temporaryUncheck.push(this);
+          $(this).append('<input type="hidden" class="temporaryInput" name="hasVolumesTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
+          $(this).prop("checked", false);
+        } else if( twin.parents('table').find('.availableTag').html().includes("It\'s Here!") ) {
+          temporaryUncheck.push(this);
+          $(this).append('<input type="hidden" class="temporaryInput" name="localCopyTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
+          $(this).prop("checked", false);
+        } else {
+          $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
+        }
       }
     } );
+
     bulkActionSubmit(form);
+
+    if( temporaryUncheck.length > 0 ) {
+      for(var i=0; i<temporaryUncheck.length; i++ ) {
+        $(temporaryUncheck[i]).prop("checked", true);
+      }    
+    }
   }
 
   function ConfirmSelected(form, id, action) {
@@ -116,7 +134,7 @@
       form.find('#bulkAction2' + id).attr('name','addListID');
       form.find('#bulkAction2' + id).attr('value',listID);
       form.find('.bulkButton').html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...');
-      form.submit();
+      bulkActionSubmit(form);
     }
   }
 

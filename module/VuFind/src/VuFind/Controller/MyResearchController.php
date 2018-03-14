@@ -1263,6 +1263,18 @@ class MyResearchController extends AbstractBase
                     $titles[] = explode("|", $title, 2)[1];
                 }
                 $view->titles = $titles;
+                $rawHasVolumesTitles = $this->params()->fromPost('hasVolumesTitles');
+                $hasVolumesTitles = [];
+                foreach($rawHasVolumesTitles as $title) {
+                    $hasVolumesTitles[] = explode("|", $title, 2)[1];
+                }
+                $view->hasVolumesTitles = $hasVolumesTitles;
+                $rawLocalCopyTitles = $this->params()->fromPost('localCopyTitles');
+                $localCopyTitles = [];
+                foreach($rawLocalCopyTitles as $title) {
+                    $localCopyTitles[] = explode("|", $title, 2)[1];
+                }
+                $view->localCopyTitles = $localCopyTitles;
                 return $view;
             }
         }

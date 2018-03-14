@@ -86,7 +86,8 @@
           $(this).prop("checked", false);
         } else if( twin.parents('table').find('.availableTag').html().includes("It\'s Here!") ) {
           temporaryUncheck.push(this);
-          $(this).append('<input type="hidden" class="temporaryInput" name="localCopyTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');
+          var callNoShelf = twin.parents('table').find('.availableCopyText').filter(":last").html().split('<br>');
+          $(this).append('<input type="hidden" class="temporaryInput" name="localCopyTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '|' + encodeURI(callNoShelf[0]) + '|' + encodeURI(callNoShelf[1]) + '">');
           $(this).prop("checked", false);
         } else {
           $(this).append('<input type="hidden" class="temporaryInput" name="holdTitles[]" value="' + $(this).attr('value') + '|' + encodeURI(title) + '">');

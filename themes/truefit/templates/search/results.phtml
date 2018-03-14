@@ -126,7 +126,7 @@
           <tr>
             <td style="padding-left:10px" class="EIN-hide"><button class="btn-default" onClick="Lightbox.get('MyResearch', 'Facets')">Filter Results</button></td>
             <td style="padding-left:10px;text-align:right" id="resultsCount"><span><strong><?=$this->localizedNumber($recordTotal)?></strong> titles sorted by </span></td>
-            <td style="padding-left:5px;text-align:left"><?=$this->render('search/controls/sort.phtml')?></td>
+            <td style="padding-left:5px;text-align:left"><?=$this->render('search/controls/sort.phtml', ['sortList' => $this->params->getSortList(), 'results' => $this->results])?></td>
           </tr>
         </table>
         <script type="text/javascript">

@@ -659,6 +659,9 @@ class MyResearchController extends AbstractBase
             return $this->redirect()->toUrl($newUrl);
         }
 
+        // clear the cached contents
+        $this->getILS()->clearMemcachedVar("cachedList" . $listID);
+
         // Process the deletes if necessary:
         if ($this->formWasSubmitted('submit')) {
             $this->favorites()->delete($ids, $listID, $user);
@@ -708,6 +711,9 @@ class MyResearchController extends AbstractBase
                 $this->flashMessenger()->addMessage('bulk_noitems_advice', 'error');
                 return $this->redirect()->toUrl($newUrl);
             }
+
+            // clear the cached contents
+            $this->getILS()->clearMemcachedVar("cachedList" . $listID);
 
             // Process the adds:
             $this->favorites()->saveBulk(['ids' => $ids, 'list' => $listID], $user);
@@ -759,6 +765,9 @@ class MyResearchController extends AbstractBase
             $list = $table->getExisting($listID);
             $list->removeResourcesById($user, [$id], $source);
             $this->flashMessenger()->addMessage('single_delete_success', 'info');
+
+            // clear the cached contents
+            $this->getILS()->clearMemcachedVar("cachedList" . $listID);
         } else {
             // ...My Favorites
             $user->removeResourcesById([$id], $source);

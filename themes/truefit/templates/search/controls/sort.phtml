@@ -1,6 +1,6 @@
-<? $list = $this->params->getSortList(); if (!empty($list)): ?>
+<? if (!empty($this->sortList)): ?>
   <? $caption = ""; 
-     foreach ($list as $sortType => $sortData): 
+     foreach ($this->sortList as $sortType => $sortData): 
        if($sortData['selected']):
          $caption = $this->transEsc($sortData['desc']);
        endif;
@@ -9,7 +9,7 @@
     <button class="btn-alternate" id="sortButton<?=$this->id?>" data-toggle="dropdown" data-target="#sortButtonDropdown<?=$this->id?>"><?=$caption?><i class="fa fa-caret-down"></i></button>
     <div class="dropdown" id="sortButtonDropdown<?=$this->id?>" style="position:absolute">
       <ul role="navigation" class="dropdown-menu standardDropdown">
-        <? foreach ($list as $sortType => $sortData): ?>
+        <? foreach ($this->sortList as $sortType => $sortData): ?>
           <li><button class="btn-dropdown btn-standardDropdown manageListDropdown" onclick="submitSortForm('<?=$this->escapeHtmlAttr($sortType)?>', '<?=$this->id?>')"><?=$this->transEsc($sortData['desc'])?></button></li>
         <? endforeach; ?>
       </ul>

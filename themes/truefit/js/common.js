@@ -532,6 +532,10 @@ $(document).ready(function() {
     }
     return false;
   });
+  Lightbox.addFormHandler('creditForm', function(evt) {
+    $('#modalClose').click();
+    return true;
+  });
 
   // Feedback
   $('#feedbackLink').click(function() {

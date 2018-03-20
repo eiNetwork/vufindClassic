@@ -62,12 +62,16 @@ function checkItemStatuses() {
     }
   }
 
-  $.ajax({
-    dataType: 'json',
-    url: path + '/AJAX/JSON?method=preloadItemStatuses',
-    data: {itemID:itemPreloadIDs},
-    success: handleItemPreloadResponse
-  });
+  if( itemPreloadIDs.length ) {
+    $.ajax({
+      dataType: 'json',
+      url: path + '/AJAX/JSON?method=preloadItemStatuses',
+      data: {itemID:itemPreloadIDs},
+      success: handleItemPreloadResponse
+    });
+  } else {
+    handleItemPreloadResponse({status:"OK", data:{itemIDs:[]}});
+  }
 }
 
 function handleItemPreloadResponse(response) {  
@@ -93,7 +97,7 @@ function handleItemPreloadResponse(response) {
   }
 }
 
-function handleItemStatusResponse(response) {  
+function handleItemStatusResponse(response) { 
   if(response.status == 'OK') {
     $.each(response.data, function(i, result) {
       var item = $('.hiddenId[value="' + result.id + '"]').parents('.ajaxItem');
@@ -232,6 +236,9 @@ function handleItemStatusResponse(response) {
           ? result.reserve_message
           : result.location
         );
+      }
+      if( result.hasVolumes ) {
+        item.find(".ajax-availability").append('<input type="hidden" class="hasVolumesTag" value="true">');
       }
       item.find(".ajax-availability").removeClass('ajax-availability');
     });

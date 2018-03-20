@@ -3,7 +3,7 @@
 <div class="hold-form">
   <table class="pickupLocationTable">
     <? if( count($this->availableHoldings) > 0): ?>
-      <tr><td colspan="3" class="modalSubheading center">Available Items</td></tr>
+      <tr><td colspan="3" class="modalSubheading center">Holdable</td></tr>
       <tr>
         <td class="modalSubheading">Location</td>
         <td class="modalSubheading">Volume</td>
@@ -21,7 +21,7 @@
       <tr><td colspan="3"><div class="modal-break"></div></td></tr>
     <? endif; ?>
     <? if( count($this->unavailableHoldings) > 0): ?>
-      <tr><td colspan="3" class="modalSubheading center">Unavailable Items</td></tr>
+      <tr><td colspan="3" class="modalSubheading center">Not Holdable</td></tr>
       <tr>
         <td class="modalSubheading">Location</td>
         <td class="modalSubheading">Volume</td>

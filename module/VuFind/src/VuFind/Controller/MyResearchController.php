@@ -1217,7 +1217,7 @@ class MyResearchController extends AbstractBase
                 $view->referrer = $this->params()->fromPost('referrer');
                 $view->changePickup = true;
                 $view->skip = true;
-                $view->pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
+                $view->pickup = $catalog->getPickUpLocations($patron);
                 $view->homeLibrary = $this->getUser()->home_library;
                 $view->preferredLibrary = $this->getUser()->preferred_library;
                 $view->alternateLibrary = $this->getUser()->alternate_library;
@@ -1256,7 +1256,7 @@ class MyResearchController extends AbstractBase
                 $view->referrer = $this->params()->fromPost('referrer');
                 $view->bulkHold = true;
                 $view->skip = true;
-                $view->pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
+                $view->pickup = $catalog->getPickUpLocations($patron);
                 $view->homeLibrary = $this->getUser()->home_library;
                 $view->preferredLibrary = $this->getUser()->preferred_library;
                 $view->alternateLibrary = $this->getUser()->alternate_library;

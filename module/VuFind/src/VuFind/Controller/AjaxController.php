@@ -358,6 +358,7 @@ class AjaxController extends AbstractBase
                 'id'                   => $missingId,
                 'availability'         => 'false',
                 'availability_message' => str_replace("<countText>", "0 copies", $messages[$isOneClick ? 'oneclick' : ($accessOnline ? 'online' : 'unavailable')]),
+                'availability_details' => false,
                 'location'             => $this->translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -762,6 +763,8 @@ class AjaxController extends AbstractBase
         $totalItems = 0;
         $availableItems = 0;
         $libraryOnly = false;
+        $availableLocations = [];
+        $unavailableLocations = [];
         foreach ($record as $info) {
             if( $info['location'] == "CHECKIN_RECORDS" ) {
                 continue;
@@ -771,6 +774,17 @@ class AjaxController extends AbstractBase
             if ($info['availability']) {
                 $available = true;
                 $availableItems += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
+                if( !$isOverDrive ) {
+                    if( !isset($availableLocations[$info['branchName']]) ) {
+                        $availableLocations[$info['branchName']] = 0;
+                    }
+                    $availableLocations[$info['branchName']] += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
+                }
+            } else if( !$isOverDrive ) {
+                if( !isset($unavailableLocations[$info['branchName']]) ) {
+                    $unavailableLocations[$info['branchName']] = 0;
+                }
+                $unavailableLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
             }
             if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
                 $onOrder = true;
@@ -862,12 +876,12 @@ class AjaxController extends AbstractBase
                 } else if( isset($atPreferred) ) {
                     $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
                 } else if( $currentLocation ) {
-                    $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);
+                    $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " other Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
                 } else {
-                    $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+                    $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
                 }
             } else {
-                $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+                $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
             }
         }
 
@@ -888,6 +902,7 @@ class AjaxController extends AbstractBase
             'id' => $record[0]['id'],
             'availability' => ($available ? 'true' : 'false'),
             'availability_message' => $availability_message,
+            'availability_details' => ($availableLocations || $unavailableLocations) ? json_encode(["available" => $availableLocations, "unavailable" => $unavailableLocations]) : null,
             'location' => htmlentities($location, ENT_COMPAT, 'UTF-8'),
             'locationList' => false,
             'reserve' =>

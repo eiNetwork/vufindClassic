@@ -633,8 +633,15 @@ class SolrDefault extends AbstractBase
      */
     public function getItems()
     {
-        return isset($this->fields['items'])
-            ? $this->fields['items'] : [];
+        $items = [];
+        $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
+        $json = json_decode($json, true);
+        if( isset($json["holding"]) ) {
+            foreach( $json["holding"] as $thisJson ) {
+                $items[] = "i" . $thisJson["itemId"];
+            }
+        }
+        return $items;
     }
 
     /**
@@ -1845,5 +1852,46 @@ class SolrDefault extends AbstractBase
             }
         }
         return false;
+    }
+
+    public function getCachedItems()
+    {
+        $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
+        $json = json_decode($json, true);
+        foreach( $json["holding"] as $key => $thisJson ) {
+            $json["holding"][$key]["location"] = ($this->getDbTable('ShelvingLocation')->getByCode($thisJson["locationCode"]))->sierraName;
+        }
+        foreach( $json["orderRecords"] as $key => $thisJson ) {
+            // find this location in the database
+            $row = $this->getDBTable('shelvinglocation')->getBySierraName($thisJson["location"])->toArray();
+
+            // test to see if it's a branch name instead of shelving location
+            if( count($row) == 0 ) {
+                // find this location in the database
+                $row = $this->getDBTable('location')->getByName($thisJson["location"])->toArray();
+            }
+
+            // if we got results, send them back
+            if( count($row) > 0 ) {
+                $json["orderRecords"][$key] = [
+                    "id" => $this->getUniqueID(),
+                    "itemId" => null,
+                    "availability" => false,
+                    "status" => "order",
+                    "location" => $thisJson["location"],
+                    "reserve" => "N",
+                    "callnumber" => null,
+                    "duedate" => null,
+                    "returnDate" => false,
+                    "number" => null,
+                    "barcode" => null,
+                    "locationCode" => $row[0]["code"],
+                    "copiesOwned" => $thisJson["count"]
+                ];
+            } else {
+                unset($json["orderRecords"][$key]);
+            }
+        }
+        return $json;
     }
 }

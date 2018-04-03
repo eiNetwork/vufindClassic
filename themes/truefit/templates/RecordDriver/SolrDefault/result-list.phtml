@@ -9,9 +9,6 @@
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>EIN-col-m-12">
   <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
   <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getResourceSource())?>" class="hiddenSource" />
-  <? foreach( $this->driver->getItems() as $item): ?>
-    <input type="hidden" value="<?=$item?>" class="hiddenItemId">
-  <? endforeach; ?>
   <input type="hidden" value="true" class="hiddenLoadThisStatus">
   <div class="EIN-col-m-3">
     <div class="text-center" style="padding:10px" onMouseEnter="ShowDescriptionToolTip('<?=$this->driver->getUniqueID()?>', $(this).parent());" onMouseLeave="HideDescriptionToolTip();">

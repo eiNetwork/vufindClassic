@@ -89,11 +89,13 @@ class RecordController extends AbstractRecord
         $catalog = $this->getILS();
         $driver = $this->loadRecord();
         $bib = $this->driver->getUniqueID();
+        if( $cache = $catalog->getMemcachedVar("holdingID" . $bib) ) {
+            $cache["CACHED_INFO"]["doUpdate"] = true;
+            $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+            $catalog->setMemcachedVar("holdingID" . $bib, $cache, $time);
+        }
         $holdings = $this->driver->getRealTimeHoldings();
         $view->holdings = $holdings;
-
-        // see whether there is anything in the checkin record
-        $checkinRecord = [];
 
         // see whether the driver can hold
         $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
@@ -243,6 +245,16 @@ class RecordController extends AbstractRecord
 
         // change the tab
         $view->itemDetailsTab = ($overDriveHolds != -1) ? "details3" : (isset($_COOKIE["itemDetailsTab"]) ? $_COOKIE["itemDetailsTab"] : "details1");
+
+        $cache = $catalog->getMemcachedVar("holdingID" . $bib);
+        if( !$cache ) {
+            $cache = ["CACHED_INFO" => []];
+        }
+        $cache["CACHED_INFO"]["doUpdate"] = false;
+        $cache["CACHED_INFO"]["numberOfHolds"] = $view->numberOfHolds;
+        $cache["CACHED_INFO"]["processedHoldings"] = $holdings;
+        $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+        $catalog->setMemcachedVar("holdingID" . $bib, $cache, $time);
 
         return $view;
     }

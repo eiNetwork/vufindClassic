@@ -5,6 +5,7 @@
 
   // grab the start time for our circ_trans query
   $circTransTime = $memcached->get("lastCircTransTime");
+  // if it's not there, go back to the time the last extract ran (8:00PM yesterday)
   if( !$circTransTime ) {
     $circTransTime = strtotime("today 20:00:00");
     if( $circTransTime > time() ) {
@@ -61,6 +62,8 @@
 
   // get postgres connection
   $db = pg_connect("host=sierra-db.einetwork.net port=1032 dbname=iii user=xxbp password=" . chr(48) . chr(88) . chr(51) . chr(78) . chr(117) . chr(103) . chr(108) . chr(121));
+
+  // this query gets all item status changes since the last time we ran this script
   $results = pg_query("select patron_view.barcode as pbar, " . 
                              "item_view.barcode as ibar, " . 
                              "item_view.location_code as iloc, " . 
@@ -80,20 +83,18 @@
                            "left join sierra_view.statistic_group on (circ_trans.stat_group_code_num=statistic_group.code_num) " . 
                       "where transaction_gmt >= '" . $circTransTime . "' " . 
                       "order by transaction_gmt asc"); 
-  $counts = [];
-  $actions = [];
   while($thisRow = pg_fetch_array($results)) {
-    $counts[$thisRow["op_code"]] = isset($counts[$thisRow["op_code"]]) ? ($counts[$thisRow["op_code"]] + 1) : 1;
-
     // item is checked out, change it to unavailable
     if( $thisRow["op_code"] == "o" ) {
       $cache = getCache($thisRow);
       $cache["value"]["CACHED_INFO"]["CHANGES_TO_MAKE"][$thisRow["inum"]] = ["status" => $thisRow["istatus"], "duedate" => $thisRow["due_date_gmt"]];
       $memcached->set($cache["key"], $cache["value"]);
+    // this item has been returned, change it to in transit or available
     } else if( $thisRow["op_code"] == "i" ) {
       $cache = getCache($thisRow);
       $cache["value"]["CACHED_INFO"]["CHANGES_TO_MAKE"][$thisRow["inum"]] = ["status" => $thisRow["istatus"], "duedate" => "NULL"];
       $memcached->set($cache["key"], $cache["value"]);
+    // this item has been assigned to an item-level hold, add it to the poll table
     } else if( $thisRow["op_code"] == "ni" ) {
       mysqli_query($sqlDB, "insert into pollItems values (" . $thisRow["patron_record_id"] . "," . $thisRow["item_record_id"] . "," . $thisRow["bnum"] . ",\"" . $thisRow["istatus"] . "\") on duplicate key update patron_record_id=" . $thisRow["patron_record_id"]);
     }
@@ -103,7 +104,7 @@
   $results2 = mysqli_query($sqlDB, "select *, bib_record_num as bnum from pollItems");
   $thisMysqlRow = mysqli_fetch_assoc($results2);
   while( $thisMysqlRow ) {
-    // start building the postgres query
+    // start building the postgres query (we're checking these items to see what their status is. eventually they're going to change from available to in transit to on holdshelf)
     $queryString = "select item_view.item_status_code as istatus, item_view.record_num as inum, concat('p', patron_record_id, 'i', record_id) as key " .
                    "from sierra_view.item_view join sierra_view.hold on (item_view.id=hold.record_id) where ";
     $statuses = [];
@@ -136,7 +137,7 @@
       }
     }
 
-    // anything that wasn't found needs to be deleted
+    // anything that wasn't found needs to be deleted, either because it's been checked out or the hold has been cancelled and the item is available again
     if( count($statuses) ) {
       $sqlQueryString = "delete from pollItems ";
       $firstTime = true;

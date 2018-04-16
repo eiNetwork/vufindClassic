@@ -73,11 +73,33 @@
     return $issueStr;
   }
 
+  // find connection details
+  $configFile = fopen("/usr/local/vufind2/local/config/vufind/config.ini", "r");
+  $section = null;
+  $postgresProperties = [];
+  $mysqlProperties = [];
+  while( $line = fgets($configFile) ) {
+    if( substr($line, 0, 1) == "[" ) {
+      $section = substr($line, 1, strpos($line, "]") - 1);
+    } else if( $section == "ScriptPostgres" ) {
+      $chunks = explode("=", $line, 2);
+      if( count($chunks) == 2 ) {
+        $postgresProperties[trim($chunks[0])] = trim($chunks[1]);
+      }
+    } else if( $section == "ScriptMysql" ) {
+      $chunks = explode("=", $line, 2);
+      if( count($chunks) == 2 ) {
+        $mysqlProperties[trim($chunks[0])] = trim($chunks[1]);
+      }
+    }
+  }
+  fclose( $configFile );
+
   // get postgres connection
-  $db = pg_connect("host=sierra-db.einetwork.net port=1032 dbname=iii user=xxbp password=" . chr(48) . chr(88) . chr(51) . chr(78) . chr(117) . chr(103) . chr(108) . chr(121));
+  $db = pg_connect("host=" . $postgresProperties["host"] . " port=" . $postgresProperties["port"] . " dbname=" . $postgresProperties["dbname"] . " user=" . $postgresProperties["user"] . " password=" . $postgresProperties["password"]);
 
   // get sql connection
-  $sqlDB = mysqli_connect("localhost", "root", "vufind", "vufind");
+  $sqlDB = mysqli_connect($mysqlProperties["host"], $mysqlProperties["user"], $mysqlProperties["password"], $mysqlProperties["postgresScannerDbname"]);
 
   // query for identity and lib has records
   $checkinRecords = [];
@@ -130,7 +152,7 @@
             $str = substr($str, 0, $index) . substr($str, $index + 2);
           }
           $str = str_replace(".  ", ".\n", trim($str));
-          if( strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"], $str) === false ) {
+          if( $str && strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"], $str) === false ) {
               $checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"] .= ($addComma ? "," : "") . $str;
           }
       }
@@ -147,7 +169,7 @@
             $str = substr($str, 0, $index) . substr($str, $index + 2);
           }
           $str = str_replace(".  ", ".\n", trim($str));
-          if( strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"], $str) === false ) {
+          if( $str && strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"], $str) === false ) {
               $checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"] .= ($addComma ? "," : "") . $str;
           }
       }
@@ -228,7 +250,7 @@
             $str = substr($str, 0, $index) . substr($str, $index + 2);
           }
           $str = str_replace(".  ", ".\n", trim($str));
-          if( strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"], $str) === false ) {
+          if( $str && strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"], $str) === false ) {
               $checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["identity"] .= ($addComma ? "," : "") . $str;
           }
       }
@@ -245,7 +267,7 @@
             $str = substr($str, 0, $index) . substr($str, $index + 2);
           }
           $str = str_replace(".  ", ".\n", trim($str));
-          if( strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"], $str) === false ) {
+          if( $str && strpos($checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"], $str) === false ) {
               $checkinRecords[$thisRow["bnum"]][$thisRow["location_code"]]["libHas"] .= ($addComma ? "," : "") . $str;
           }
       }

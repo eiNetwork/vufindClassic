@@ -57,11 +57,33 @@
     return ["key" => $cacheKey, "value" => $cachedStatus];
   }
 
+  // find connection details
+  $configFile = fopen("/usr/local/vufind2/local/config/vufind/config.ini", "r");
+  $section = null;
+  $postgresProperties = [];
+  $mysqlProperties = [];
+  while( $line = fgets($configFile) ) {
+    if( substr($line, 0, 1) == "[" ) {
+      $section = substr($line, 1, strpos($line, "]") - 1);
+    } else if( $section == "ScriptPostgres" ) {
+      $chunks = explode("=", $line, 2);
+      if( count($chunks) == 2 ) {
+        $postgresProperties[trim($chunks[0])] = trim($chunks[1]);
+      }
+    } else if( $section == "ScriptMysql" ) {
+      $chunks = explode("=", $line, 2);
+      if( count($chunks) == 2 ) {
+        $mysqlProperties[trim($chunks[0])] = trim($chunks[1]);
+      }
+    }
+  }
+  fclose( $configFile );
+
   // get mysql connection
-  $sqlDB = mysqli_connect("localhost", "root", "vufind", "reindexer");
+  $sqlDB = mysqli_connect($mysqlProperties["host"], $mysqlProperties["user"], $mysqlProperties["password"], $mysqlProperties["circTransDbname"]);
 
   // get postgres connection
-  $db = pg_connect("host=sierra-db.einetwork.net port=1032 dbname=iii user=xxbp password=" . chr(48) . chr(88) . chr(51) . chr(78) . chr(117) . chr(103) . chr(108) . chr(121));
+  $db = pg_connect("host=" . $postgresProperties["host"] . " port=" . $postgresProperties["port"] . " dbname=" . $postgresProperties["dbname"] . " user=" . $postgresProperties["user"] . " password=" . $postgresProperties["password"]);
 
   // this query gets all item status changes since the last time we ran this script
   $results = pg_query("select patron_view.barcode as pbar, " . 

@@ -9,7 +9,6 @@ namespace VuFind\ILS\Driver;
 use VuFind\Exception\ILS as ILSException;
 use Zend\Session\Container as SessionContainer;
 use DateTime;
-use SoapClient;
 
 class EINetwork extends Sierra2 implements
     \VuFind\Db\Table\DbTableAwareInterface
@@ -948,97 +947,10 @@ class EINetwork extends Sierra2 implements
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $sc = new SoapClient("https://iiisy1.einetwork.net/iii/wspatroninfo/patroninfo.wsdl", array("trace" => 1, "exception" => 0));
-            $sc->__setLocation("https://iiisy1.einetwork.net/iii/wspatroninfo/");
-            // Call wsdl function 
-            $result = $sc->patronInfo(array("request" => array( 
-                "index"    => 'barcode', 
-                "query"    => $profile["cat_username"],
-                "username" => "milwspin",
-                "password" => "milwspin"
-            )));
-
-            // build the message
-            $msg = "<form name=\"creditForm\" method=\"post\" onsubmit=\"return checkFees()\" target=\"_blank\" action=\"https://payflowlink.paypal.com\">" . 
-                   "<input type=\"hidden\" name=\"action\" value=\"confirmInfo\">" . 
-                   "<input type=\"hidden\" name=\"key\" value=\"-3994241445885651921\">" . 
-                   "<input type=\"hidden\" name=\"linkMode\" value=\"true\">" . 
-                   "<input type=\"hidden\" name=\"payAmount\" value=\"200\">" . 
-                   "<input type=\"hidden\" name=\"minFeeMsg\" value=\"Please visit the library to pay this amount\">" . 
-                   "<input type=\"hidden\" name=\"partner\" value=\"PayPal\">" . 
-                   "<input type=\"hidden\" name=\"type\" value=\"S\">" . 
-                   "<input type=\"hidden\" name=\"orderForm\" value=\"TRUE\">" . 
-                   "<input type=\"hidden\" name=\"echoData\" value=\"TRUE\">" . 
-                   "<input type=\"hidden\" name=\"showConfirm\" value=\"TRUE\">" . 
-                   "<input type=\"hidden\" name=\"method\" value=\"CC\">" . 
-                   "<input type=\"hidden\" name=\"login\" value=\"einetworklink\">" . 
-                   "<input type=\"hidden\" name=\"custId\" value=\"" . substr($result->response->recordNumber, 1) . "\">" . 
-                   "<input type=\"hidden\" name=\"description\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"emailCustomer\" value=\"TRUE\">" . 
-                   "<input type=\"hidden\" name=\"address\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"city\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"state\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"zip\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"phone\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"email\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"name\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user2\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user3\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user4\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user5\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user6\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user7\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user8\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user9\" value=\"\">" . 
-                   "<input type=\"hidden\" name=\"user10\" value=\"ecom\">" . 
-                   "<input type=\"hidden\" name=\"comment1\" value=\"f\">" . 
-                   "<input type=\"hidden\" name=\"comment2\" value=\"" . $result->response->recordNumber . "\">" . 
-                   "<input type=\"hidden\" name=\"parsedMoneyfmt\" value=\",.2\" id=\"moneyfmt\">" . 
-                   "<input type=\"hidden\" name=\"currencySymbol\" value=\"$\" id=\"currencySymbol\">" . 
-                   "<input type=\"hidden\" name=\"serviceCharge\" value=\"0\" id=\"serviceCharge\"><table style=\"border-collapse:separate;border-spacing:0 1em\">";
-            $user1 = "";
-            $total = 0;
-
-            $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
-            foreach($fines as $i => $thisFine) {
-                $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $thisFine->invoice . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->itemCharge . "\">" . 
-                        "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $thisFine->itemCharge * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";
-                if( $thisFine->itemTitle && $thisFine->chargeType == "Overdue" ) {
-                    $msg .= "<div class=\"bold\">Overdue Item Returned</div><div style=\"margin-left:20px;text-indent:-20px\">" . str_replace("'", "\'", $thisFine->itemTitle) . "</div>" .
-                            "<div><span class=\"bold\">Date Due:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDueDate, 0, 10))) . "</div>" .
-                            "<div><span class=\"bold\">Date Returned:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDateReturned, 0, 10))) . "</div>";
-                } else if( $thisFine->itemTitle && $thisFine->chargeType == "OverdueRenewal" ) {
-                    $msg .= "<div class=\"bold\">Overdue Item Renewed</div><div style=\"margin-left:20px;text-indent:-20px\">" . str_replace("'", "\'", $thisFine->itemTitle) . "</div>" .
-                            "<div><span class=\"bold\">Date Due:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDueDate, 0, 10))) . "</div>" . 
-                            "<div><span class=\"bold\">Date Renewed:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDateReturned, 0, 10))) . "</div>";
-                } else if( $thisFine->description && $thisFine->chargeType == "Manual" ) {
-                    $msg .= "<div class=\"bold\">Manually added fine</div><div style=\"margin-left:20px;text-indent:-20px\">" . str_replace("'", "\'", $thisFine->description) . "</div>";
-                } else {
-                    $msg .= "<div class=\"bold\">" . $thisFine->chargeType . "</div><div style=\"margin-left:20px;text-indent:-20px\">" . 
-                            ($thisFine->itemTitle ? str_replace("'", "\'", $thisFine->itemTitle) : str_replace("'", "\'", $thisFine->description)) . "</div>";
-                }
-                $msg .= "</td></tr>";
-                $user1 .= $thisFine->invoice . ":";
-                $total += $thisFine->itemCharge;
-            }
-
-            $msg .= "</table><input type=\"hidden\" name=\"amount\" value=\"" . sprintf("%.2f", $total * 0.01) . "\">" . 
-                    "<input type=\"hidden\" name=\"user1\" value=\"" . $user1 . "\"><div class=\"center\"><div id=\"minimumPayment\" style=\"color:#f00;font-weight:700\">For payments less than $2.00, please see library staff.</div><br><span class=\"bold\">Total Selected:</span><span id=\"finesTotal\">" . sprintf("%.2f", $total * 0.01) . "</span>" . 
-                    "<button class=\"btn-default btn-wide\" id=\"paypalButton\" style=\"margin:15px;cursor:default\">Pay Online</button></div><div>Clicking this button will take you to Paypal\'s secure server to enter your payment info.</div>" . 
-                    "</form><script type=\"text/javascript\">function checkFees() { var total = 0; var user1 = \"\";" . 
-                    " $(\'input[name=selectedFees]\').each( function() { total += $(this).is(\":checked\") ? parseInt($(this).attr(\"id\")) : 0; user1 += $(this).is(\":checked\") ? ($(this).attr(\"value\") + \":\") : \"\" } ); " . 
-                    "$(\"input[name=amount]\").attr(\"value\", total * 0.01); $(\"#finesTotal\").html(\"$\" + (total * 0.01).toFixed(2)); $(\"input[name=user1]\").attr(\"value\", user1); if( total >= parseInt($(\'input[name=payAmount]\').attr(\"value\")) ) { " . 
-                    "$(\'#paypalButton\').prop(\"disabled\", false); $(\'#minimumPayment\').css(\"display\", \"none\"); } else " . 
-                    "{ $(\'#paypalButton\').prop(\"disabled\", true); $(\'#minimumPayment\').css(\"display\", \"initial\"); } } setTimeout(checkFees, 10)</script>";
-
-            // Echo the result 
-            if( $total > 0 ) {
-                $notifications[] = ["subject" => "<span class=\"messageWarning\">You have fines.</span>", 
-                                    "message" => $msg, 
-                                    "extra" => " (Total: $" . number_format($profile["moneyOwed"],2) . ") Click here for details and to pay."];
-            } else {
-                $profile["moneyOwed"] = 0;
-            }
+            $notifications[] = ["subject" => "<span class=\"messageWarning\">You have fines.</span>", 
+                                "message" => "You currently have $" . number_format($profile["moneyOwed"],2) . " in fines.<br><br><a target=\"_blank\" href=\"https://catalog.einetwork.net/patroninfo~S1/" . $profile["id"] . 
+                                             "/overdues\"><button class=\"btn-default btn-wide\">Pay Online</button></a><br><br>(You will be sent to the old version of the Catalog and will need to login into your account again.)", 
+                                "extra" => " (Total: $" . number_format($profile["moneyOwed"],2) . ") Click here for details."];
         }
         if( $profile["preferredlibrarycode"] == null || $profile["preferredlibrarycode"] == "none" ) {
             $notifications[] = ["attnSubject" => "<span class=\"messageWarning\">Please choose a preferred library.</span> Click here to learn how.", 

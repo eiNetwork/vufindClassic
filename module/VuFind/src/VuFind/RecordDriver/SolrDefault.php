@@ -466,26 +466,6 @@ class SolrDefault extends AbstractBase
     }
 
     /**
-     * Get the format category associated with the record.
-     *
-     * @return string
-     */
-    public function getFormatCategory()
-    {
-        if( isset($this->fields['format']) ) {
-            $formats = $this->fields['format'];
-            // weed out categories
-            foreach($formats as $key => $value) {
-                if( strpos($value, "Category:") !== false ) {
-                    return substr($value, 10);
-                }
-            }
-        } else {
-            return "";
-        }
-    }
-
-    /**
      * Get general notes on the record.
      *
      * @return array

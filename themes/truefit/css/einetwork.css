@@ -257,6 +257,7 @@ input:-webkit-autofill {-webkit-box-shadow: 0 0 0 1000px white inset;}
 .authorLink{color:#757575}.authorLink:hover,.authorLink:active,.authorLink:focus{text-decoration:underline}
 .padded{padding:0px 7px}
 .formatTag,.filterTag{border-radius:2px;background-color:#ededed;color:#3d3d3d;font-size:14px;font-weight:700;padding:3px 6px;white-space:nowrap}
+.languageTag{border-radius:2px;background-color:#777;color:#fff;font-size:14px;font-weight:700;padding:3px 6px}
 .availableTag{border-radius:2px;background-color:rgba(29, 163, 56, 0.2);color:#007517;font-size:14px;font-weight:700;padding:3px 6px}
 .unavailableTag{border-radius:2px;background-color:rgba(240, 105, 105, 0.2);color:#d90000;font-size:14px;font-weight:700;padding:3px 6px}
 .publishDate{color:#3d3d3d;font-size:14px}

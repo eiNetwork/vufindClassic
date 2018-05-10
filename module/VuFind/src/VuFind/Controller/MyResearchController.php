@@ -1217,7 +1217,7 @@ class MyResearchController extends AbstractBase
                 $view->referrer = $this->params()->fromPost('referrer');
                 $view->changePickup = true;
                 $view->skip = true;
-                $view->pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
+                $view->pickup = $catalog->getPickUpLocations($patron);
                 $view->homeLibrary = $this->getUser()->home_library;
                 $view->preferredLibrary = $this->getUser()->preferred_library;
                 $view->alternateLibrary = $this->getUser()->alternate_library;
@@ -1256,7 +1256,7 @@ class MyResearchController extends AbstractBase
                 $view->referrer = $this->params()->fromPost('referrer');
                 $view->bulkHold = true;
                 $view->skip = true;
-                $view->pickup = $catalog->getPickUpLocations($patron, $gatheredDetails);
+                $view->pickup = $catalog->getPickUpLocations($patron);
                 $view->homeLibrary = $this->getUser()->home_library;
                 $view->preferredLibrary = $this->getUser()->preferred_library;
                 $view->alternateLibrary = $this->getUser()->alternate_library;
@@ -1272,6 +1272,18 @@ class MyResearchController extends AbstractBase
                     $titles[] = explode("|", $title, 2)[1];
                 }
                 $view->titles = $titles;
+                $rawHasVolumesTitles = $this->params()->fromPost('hasVolumesTitles');
+                $hasVolumesTitles = [];
+                foreach($rawHasVolumesTitles as $title) {
+                    $hasVolumesTitles[] = explode("|", $title, 2)[1];
+                }
+                $view->hasVolumesTitles = $hasVolumesTitles;
+                $rawLocalCopyTitles = $this->params()->fromPost('localCopyTitles');
+                $localCopyTitles = [];
+                foreach($rawLocalCopyTitles as $title) {
+                    $localCopyTitles[] = explode("|", $title, 2)[1];
+                }
+                $view->localCopyTitles = $localCopyTitles;
                 return $view;
             }
         }

@@ -115,9 +115,12 @@
             </tr>
           <? endif; ?>
         <? endif; ?>
-        <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; $hereIDs = array(); $preferredIDs = array(); ?>
+        <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; $hereIDs = array(); $preferredIDs = array(); $availableLocations = []; ?>
         <? foreach($this->holdings as $entry): ?>
           <? foreach($entry["items"] as $item): ?>
+            <? if( $item["availability"] && !isset($availableLocations[$item["branchName"]]) ): ?>
+              <? $availableLocations[$item["branchName"]] = true; ?>
+            <? endif; ?>
             <? if( isset($item["copiesOwned"])) : ?>
               <? $totalCopies += ($item["copiesOwned"]); ?>
             <? else: ?>
@@ -166,13 +169,13 @@
                     elseif( isset($atPreferred) ):
                       echo 'Available at your preferred Libraries!';
                     elseif( $availableCopies > 0 ):
-                      echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                      echo 'Available at ' . count($availableLocations) . ($this->currentLocation ? ' other' : '') . ' Librar' . ((count($availableLocations) == 1) ? 'y' : 'ies');
                     elseif( $onOrder ):
                       echo 'On Order';
                     elseif( $isOneClick ):
                       echo 'Access Online';
                     else:
-                      echo 'Available' . ($this->currentLocation ? ' at other Libraries' : '');
+                      echo 'Available at ' . count($availableLocations) . ($this->currentLocation ? ' other' : '') . ' Librar' . ((count($availableLocations) == 1) ? 'y' : 'ies');
                     endif; 
                     echo '</span>';
                   else: 

@@ -114,6 +114,12 @@ function handleItemStatusResponse(response) {
       } else {
         item.find('.status').empty().append(result.availability_message);
       }
+      if( result.availability_details ) {
+        item.find('.status').parent().append("<span class='availabilityDetailsJSON hidden'>" + result.availability_details + "</span>");
+        item.find('.status').parent().attr("onmouseenter","ShowLocationsToolTip($(this).parent());");
+        item.find('.status').parent().attr("onmouseleave","HideLocationsToolTip();");
+        item.find('.status').parent().attr("ontouchstart","ToggleLocationsToolTip($(this).parent());");
+      }
       item.each( function() {
         var heldItemID = $(this).find('.volumeInfo.hidden').html();
         var heldVolumes = jQuery.parseJSON(result.heldVolumes);

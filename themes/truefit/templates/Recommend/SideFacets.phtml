@@ -119,7 +119,8 @@
         $('#facetSubmitLink').prop("href", url);
       // if we are on the desktop, refresh the page
       } else {
-        window.location.href = url;
+        $('#facetSubmitLink2').prop("href", url);
+        $('#facetSubmitLink2 button').prop("disabled", false);
       }
     }
   }
@@ -146,7 +147,28 @@
     } );
   } );
 </script>
-<? $sideFacetSet = $this->recommend->getFacetSet(); $rangeFacets = $this->recommend->getAllRangeFacets(); ?>
+<?
+  $sideFacetSet = $this->recommend->getFacetSet(); $rangeFacets = $this->recommend->getAllRangeFacets();
+  $anyApplied = false;
+  foreach ($sideFacetSet as $title => $cluster) {
+    foreach ($cluster['list'] as $i => $value) {
+      if (!empty($value['isApplied']) && $value['isApplied']) {
+        $anyApplied = true;
+      }
+    }
+  }
+?>
+  <div class="panel panel-facetAccordion EIN-hide-m EIN-hide-t">
+    <div class="panel-heading">
+      <table style="width:100%">
+        <tr><td style="width:50%">
+          <a href="" id="facetSubmitLink2" style="padding:10px 0px 10px 10px"><button style="width:100%;border-radius:5px 0px 0px 5px" disabled class="btn-default">Apply Filters</button></a>
+        </td><td style="width:50%">
+          <a href="<?=($this->currentPath() . $this->results->getUrlQuery()->removeAllFacets())?>" style="padding:10px 10px 10px 0px"><button style="width:100%;border-radius:0px 5px 5px 0px" <?=($anyApplied ? "" : "disabled ")?>class="btn-alternate">Clear Filters</button></a>
+        </td></tr>
+      </table>
+    </div>
+  </div>
 <? if (!empty($sideFacetSet) && $results->getResultTotal() > 0): ?>
   <? $facetCount = 0; foreach ($sideFacetSet as $title => $cluster): ?>
     <? if( $title != "format_category"): ?>

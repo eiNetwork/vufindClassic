@@ -886,7 +886,7 @@ class Sierra2 extends Sierra implements
                             "status" => isset($thisItem->status->code) ? trim($thisItem->status->code) : null,
                             "location" => isset($thisItem->location->name) ? $thisItem->location->name : null,
                             "reserve" => "N",
-                            "callnumber" => isset($thisItem->callNumber) ? (str_replace("|a", " ", $thisItem->callNumber) . ($noRequests ? "<br>NO REQUESTS" : "")) : null,
+                            "callnumber" => (isset($thisItem->status->code) && ($thisItem->status->code == "p")) ? "Display - Please ask librarian" : (isset($thisItem->callNumber) ? (str_replace("|a", " ", $thisItem->callNumber) . ($noRequests ? "<br>NO REQUESTS" : "")) : null),
                             "duedate" => isset($thisItem->status->duedate) ? $thisItem->status->duedate : null,
                             "returnDate" => false,
                             "number" => $number,

@@ -86,15 +86,14 @@ class RecordController extends AbstractRecord
         }
 
         // load this up so we can check some things
-        $driver = $this->loadRecord();
-        $holdings = $this->driver->getRealTimeHoldings();
-        $bib = $this->loadRecord()->getUniqueID();
-        $view->holdings = $holdings;
         $catalog = $this->getILS();
+        $driver = $this->loadRecord();
+        $bib = $this->driver->getUniqueID();
+        $holdings = $this->driver->getRealTimeHoldings();
+        $view->holdings = $holdings;
 
         // see whether there is anything in the checkin record
         $checkinRecord = [];
-        
 
         // see whether the driver can hold
         $holdingTitleHold = $driver->tryMethod('getRealTimeTitleHold');
@@ -360,6 +359,10 @@ class RecordController extends AbstractRecord
             } else {
                 $this->clearFollowupUrl();
             }
+
+            // clear the cached contents
+            $post = $this->getRequest()->getPost()->toArray();
+            $this->getILS()->clearMemcachedVar("cachedList" . $post['list']);
 
             return parent::saveAction();
         } catch (\Exception $e) {

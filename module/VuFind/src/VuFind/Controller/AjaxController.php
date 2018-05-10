@@ -238,10 +238,13 @@ class AjaxController extends AbstractBase
      */
     protected function getItemStatusesAjax()
     {
+        $statuses = [];
+
         $this->writeSession();  // avoid session write timing bug
         $catalog = $this->getILS();
         $ids = $this->params()->fromQuery('id');
         $results = [];
+
         foreach($ids as $thisID) {
             $driver = $this->getRecordLoader()->load( $thisID );
             $holdings = $driver->getRealTimeHoldings();
@@ -251,7 +254,9 @@ class AjaxController extends AbstractBase
             }
             $results[] = $items;
         }
+
         $holds = [];
+        $checkedOutItems = [];
         if($user = $this->getUser()) {
             $patron = $this->catalogLogin();
             $holds = $catalog->getMyHolds($patron);
@@ -289,8 +294,6 @@ class AjaxController extends AbstractBase
             ? $config->Item_Status->show_full_status : false;
 
         // Loop through all the status information that came back
-        $statuses = [];
-
         foreach ($results as $recordNumber => $record) {
             // Filter out suppressed locations:
             $record = $this->filterSuppressedLocations($record);
@@ -501,39 +504,69 @@ class AjaxController extends AbstractBase
             $path = $this->params()->fromQuery('path')[0];
             $sort = $this->params()->fromQuery('sort')[0];
 
+            $continue = true;
+            $items = [];
             $results = [];
-            $limit = 20;
-            $request = ['id' => $id, 'limit' => $limit, 'page' => $page, 'listContents' => true, 'sort' => $sort];
+            $cachedListContents = $catalog->getMemcachedVar("cachedList" . $id);
+            $sortHtml = "";
+            $bulkHtml = "";
+            if( !$cachedListContents ) {
+                $cachedListContents = [];
+            }
+            if( !isset($cachedListContents[$sort]) ) {
+                $cachedListContents[$sort] = ["done" => false, "items" => [], "sortList" => []];
+            }
+            if( !$cachedListContents[$sort]["done"] ) {
+                $limit = 20;
+                $request = ['id' => $id, 'limit' => $limit, 'page' => $page, 'listContents' => true, 'sort' => $sort];
 
-            // limit to only needed fields
-            $request["fl"] = $this->getConfig()->LimitedSearchFields->shortList;
+                // limit to only needed fields
+                $request["fl"] = $this->getConfig()->LimitedSearchFields->shortList;
 
-            // Set up listener for recommendations:
-            $runner = $this->getServiceLocator()->get('VuFind\SearchRunner');
-            $rManager = $this->getServiceLocator()->get('VuFind\RecommendPluginManager');
-            $setupCallback = function ($runner, $params, $searchId) use ($rManager) {
-                $listener = new RecommendListener($rManager, $searchId);
-                $listener->setConfig(
-                    $params->getOptions()->getRecommendationSettings()
-                );
-                $listener->attach($runner->getEventManager()->getSharedManager());
-            };
+                // Set up listener for recommendations:
+                $runner = $this->getServiceLocator()->get('VuFind\SearchRunner');
+                $rManager = $this->getServiceLocator()->get('VuFind\RecommendPluginManager');
+                $setupCallback = function ($runner, $params, $searchId) use ($rManager) {
+                    $listener = new RecommendListener($rManager, $searchId);
+                    $listener->setConfig(
+                        $params->getOptions()->getRecommendationSettings()
+                    );
+                    $listener->attach($runner->getEventManager()->getSharedManager());
+                };
 
-            $items = $runner->run($request, 'Favorites', $setupCallback);
-            foreach($items->getResults() as $i => $thisResult) {
-                $record = $this->getRecordLoader()->load($thisResult->getUniqueID(), $thisResult->getResourceSource(), true);
+                $runnerItems = $runner->run($request, 'Favorites', $setupCallback);
+                foreach($runnerItems->getResults() as $i => $thisResult) {
+                    $newItem = ["ID" => $thisResult->getUniqueID(), "source" => $thisResult->getResourceSource()];
+                    $items[] = $newItem;
+                    $cachedListContents[$sort]["items"][(($page - 1) * $limit) + $i] = $newItem;
+                }
+
+                $continue = (($page * $limit) < $runnerItems->getResultTotal());
+                $cachedListContents[$sort]["done"] = !$continue;
+                $cachedListContents[$sort]["sortArgs"] = ['sortList' => $runnerItems->getParams()->getSortList(), 'id' => $id, 'list' => $id, 'path' => $path];
+                $cachedListContents[$sort]["bulkArgs"] = ['idPrefix' => '', 'list' => $id];
+
+                $catalog->setMemcachedVar("cachedList" . $id, $cachedListContents, 300);
+            } else {
+                $items = $cachedListContents[$sort]["items"];
+
+                $continue = false;
+            }
+
+            $sortHtml = $this->getViewRenderer()->render('search/controls/sort.phtml', $cachedListContents[$sort]["sortArgs"]);
+            $bulkArgs = $cachedListContents[$sort]["bulkArgs"];
+            $bulkArgs["list"] = $this->getTable('UserList')->getExisting($bulkArgs["list"]);
+            $bulkHtml = $this->getViewRenderer()->render('myresearch/bulk-action-buttons.phtml', $bulkArgs);
+
+            foreach($items as $i => $thisResult) {
+                $record = $this->getRecordLoader()->load($thisResult["ID"], $thisResult["source"], true);
                 if( !($record instanceof \VuFind\RecordDriver\Missing) ) {
                     $results[] = $record;
                 }
             }
 
-            $html = $this->getViewRenderer()->render('myresearch/listContents.phtml', ['results' => $results, 'list' => $this->getTable('UserList')->getExisting($id)]);
-            $continue = (($page * $limit) < $items->getResultTotal());
-            $sortHtml = $continue ? "" : $this->getViewRenderer()->render('search/controls/sort.phtml', ['params' => $items->getParams(), 'id' => $id, 'list' => $id, 'path' => $path]);
-            $bulkHtml = "";
-            if( !$continue ) {
-                $bulkHtml = $this->getViewRenderer()->render('myresearch/bulk-action-buttons.phtml', array('idPrefix' => '', 'list' => $this->getTable('UserList')->getExisting($id)));
-            }
+            $html = $this->getViewRenderer()->render('myresearch/listContents.phtml', ['results' => $results, 'list' => $this->getTable('UserList')->getExisting($id), 'cachedResults' => $cachedResults]);
+
             return $this->output(['html' => $html, 'id' => $id, 'page' => $page, 'continue' => $continue, 'sortHtml' => $sortHtml, 'bulkHtml' => $bulkHtml], self::STATUS_OK);
         } else {
             return $this->output($this->translate('You must be logged in first'), self::STATUS_NEED_AUTH);

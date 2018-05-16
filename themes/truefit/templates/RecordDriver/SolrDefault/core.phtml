@@ -115,16 +115,20 @@
             </tr>
           <? endif; ?>
         <? endif; ?>
-        <? $totalCopies = 0; $availableCopies = 0; $noncirculatingCopies = 0; $hereIDs = array(); $preferredIDs = array(); $availableLocations = []; ?>
+        <? $availableCopies = 0; $ownedCopies = 0; $orderedCopies = 0; $noncirculatingCopies = 0; $hereIDs = array(); $preferredIDs = array(); $availableLocations = []; ?>
         <? foreach($this->holdings as $entry): ?>
           <? foreach($entry["items"] as $item): ?>
             <? if( $item["availability"] && !isset($availableLocations[$item["branchName"]]) ): ?>
               <? $availableLocations[$item["branchName"]] = true; ?>
             <? endif; ?>
             <? if( isset($item["copiesOwned"])) : ?>
-              <? $totalCopies += ($item["copiesOwned"]); ?>
+              <? if( isset($item["status"]) && (($item["status"]=="order") || ($item["status"]=="i")) ): ?>
+                <? $orderedCopies += ($item["copiesOwned"]); ?>
+              <? else: ?>
+                <? $ownedCopies += ($item["copiesOwned"]); ?>
+              <? endif; ?>
             <? else: ?>
-              <? $totalCopies++; ?>
+              <? $ownedCopies++; ?>
             <? endif; ?>
             <? if( isset($item["isOverDrive"]) && $item["isOverDrive"] ): ?>
               <? $availableCopies += ($item["copiesAvailable"]); ?>
@@ -147,18 +151,24 @@
             <? endif; ?>
           <? endforeach; ?>
         <? endforeach; ?>
-        <? $alwaysAvailable = $isOverDrive && ($totalCopies == 999999); ?>
-        <? $green = $isOneClick || (($totalCopies > 0) && (($availableCopies > 0) || ($onOrder))); ?>
+        <? $totalCopies = $ownedCopies + $orderedCopies; ?>
+        <? $alwaysAvailable = $isOverDrive && ($ownedCopies == 999999); ?>
+        <? $green = $isOneClick || (($ownedCopies > 0) && (($availableCopies > 0))); ?>
         <? if( !isset($this->holdings["CHECKIN_RECORDS"]) || ($totalCopies > 0) ): ?>
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
+              <? if( $onOrder ): ?>
+                <span class="availableTag" style="display:inline-table"><i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">On Order</span></span>
+                <span class="availableCopyText"> <?=($orderedCopies . " cop" . (($orderedCopies == 1) ? "y" : "ies"))?></span>
+                <?=((($ownedCopies > 0) || $accessOnline) ? "<br><div style=\"height:5px\"></div>" : "") ?>
+              <? endif; ?>
               <? if( $accessOnline ): ?>
                 <span class="availableTag" style="display:inline-table"><i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">Access Online</span></span>
                 <span class="availableCopyText">Always Available</span>
-                <?=(($totalCopies > 0) ? "<br><div style=\"height:5px\"></div>" : "") ?>
+                <?=(($ownedCopies > 0) ? "<br><div style=\"height:5px\"></div>" : "") ?>
               <? endif; ?>
-              <? if( !$accessOnline || ($totalCopies > 0) ): ?>
+              <? if( (!$accessOnline && !$onOrder) || ($ownedCopies > 0) ): ?>
                 <span class="<?=($green ? "availableTag\" style=\"display:inline-table" : "unavailableTag")?>"><?
                   if( $green ): 
                     echo '<i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">';
@@ -170,8 +180,6 @@
                       echo 'Available at your preferred Libraries!';
                     elseif( $availableCopies > 0 ):
                       echo 'Available at ' . count($availableLocations) . ($this->currentLocation ? ' other' : '') . ' Librar' . ((count($availableLocations) == 1) ? 'y' : 'ies');
-                    elseif( $onOrder ):
-                      echo 'On Order';
                     elseif( $isOneClick ):
                       echo 'Access Online';
                     else:
@@ -186,10 +194,8 @@
                   <span class="availableCopyText">Always Available</span>
                 <? elseif( $isOneClick ): ?>
                   <span class="availableCopyText"></span>
-                <? elseif( $onOrder && ($availableCopies == 0) ): ?>
-                  <span class="availableCopyText"> <?=($totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
                 <? else: ?>
-                  <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($totalCopies > 0) ? ($availableCopies . " of ") : "") . $totalCopies . " cop" . (($totalCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
+                  <span class="<?=($green ? "availableCopyText" : "unavailableCopyText")?>"><?=((($ownedCopies > 0) ? ($availableCopies . " of ") : "") . $ownedCopies . " cop" . (($ownedCopies == 1) ? "y" : "ies")) . ($this->numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($this->numberOfHolds > 1) ? ($this->numberOfHolds . " people") : "1 person") . " on waitlist") : "")?></span>
                 <? endif; ?>
                 <? if( isset($itsHere) ): ?>
                   <div class="availableCopyText"><?=$itsHere['shelvingLocation'] . ((isset($itsHere['shelvingLocation']) && isset($itsHere['callnumber'])) ? "<br>" : "") . $itsHere["callnumber"] . (($itsHere["number"] != null) ? (" " . $itsHere["number"]) : "")?></div>

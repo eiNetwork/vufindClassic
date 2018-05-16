@@ -264,6 +264,29 @@ class EINetwork extends Sierra2 implements
 
         if( $cachedInfo && !$cachedInfo["doUpdate"] && isset($cachedInfo["holding"]) ) {
             $results = $cachedInfo["holding"];
+
+            // if we haven't processed these holdings yet, run through the order records
+            if( !isset($cachedInfo["processedHoldings"]) && ($cachedInfo = $this->memcached->get("cachedJson" . $id)) !== null ) {
+                if( isset($cachedInfo["orderRecords"]) ) {
+                    foreach( $cachedInfo["orderRecords"] as $locationCode => $details ) {
+                        $results[] = [
+                                         "id" => $id,
+                                         "itemId" => null,
+                                         "availability" => false,
+                                         "status" => "order",
+                                         "location" => $details["location"],
+                                         "reserve" => "N",
+                                         "callnumber" => null,
+                                         "duedate" => null,
+                                         "returnDate" => false,
+                                         "number" => null,
+                                         "barcode" => null,
+                                         "locationCode" => $locationCode,
+                                         "copiesOwned" => $details["copies"]
+                                     ];
+                    }
+                }
+            }
         } else {
             $results = parent::getHolding($id, $patron);
         }

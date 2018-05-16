@@ -834,6 +834,7 @@ class Sierra2 extends Sierra implements
                   $url = $this->config['SIERRAAPI']['url'] . "/v5/items/?fields=id,status,location,callNumber,barcode,varFields,fixedFields&suppressed=false&id=" . $idList . "&limit=" . $pageSize;
                   $apiHoldings = json_decode($this->sendAPIRequest($url));
                 }
+/*** Removing this query because it can give us different info than what appears in Classic ***
                 if( ($itemIDlist == null) && !isset($apiHoldings->entries) ) {
                     //If there are no attached items, check to see if it is on order
                     $apiOrders = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v5/bibs?fields=id,orders&suppressed=false&id=" . substr($id,2,-1) . "&limit=" . $pageSize . "&offset=" . $currentOffset));
@@ -862,6 +863,31 @@ class Sierra2 extends Sierra implements
                         }
                     }
                 } else if( $apiHoldings ) {
+/*** ***/
+                // add the cached order records
+                if( ($cachedInfo = $this->memcached->get("cachedJson" . $id)) !== null ) {
+                    if( isset($cachedInfo["orderRecords"]) ) {
+                        foreach( $cachedInfo["orderRecords"] as $locationCode => $details ) {
+                            $holdings[] = [
+                                              "id" => $id,
+                                              "itemId" => null,
+                                              "availability" => false,
+                                              "status" => "order",
+                                              "location" => $details["location"],
+                                              "reserve" => "N",
+                                              "callnumber" => null,
+                                              "duedate" => null,
+                                              "returnDate" => false,
+                                              "number" => null,
+                                              "barcode" => null,
+                                              "locationCode" => $locationCode,
+                                              "copiesOwned" => $details["copies"]
+                                          ];
+                        }
+                    }
+                }
+
+                if( $apiHoldings ) {
                     foreach($apiHoldings->entries as $thisItem) {
                         $number = null;
                         if( isset($thisItem->varFields) ) {

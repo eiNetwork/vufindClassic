@@ -1059,6 +1059,11 @@ class SolrMarc extends SolrDefault
         if( $this->hasILS() && !$this->ils->getMemcachedVar("items" . $id) ) {
             $this->ils->setMemcachedVar("items" . $id, $this->getItems(), 900);
         }
+        if( $this->hasILS() && !$this->ils->getMemcachedVar("cachedJson" . $id) ) {
+            $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
+            $json = json_decode($json, true);
+            $this->ils->setMemcachedVar("cachedJson" . $id, $json, 900);
+        }
         return $this->hasILS() ? $this->holdLogic->getHoldings(
             $id, $this->getConsortialIDs()
         ) : [];

@@ -363,7 +363,7 @@
             unavailableHTML += "<span class='EIN-col-m-12'>" + locationName + ":&nbsp;<span style='float:right'>" + copies + ((copies == 1) ? " copy" : " copies") + "</span></span><br>";
           }
           $('#locationsToolTipAvailableContents').html(availableHTML);
-          $('#locationsToolTipOnOrderContents').html(availableHTML);
+          $('#locationsToolTipOnOrderContents').html(onOrderHTML);
           $('#locationsToolTipUnavailableContents').html(unavailableHTML);
           $('.locationsToolTipAvailable').css("display", (availableHTML == "") ? "none" : "block");
           $('.locationsToolTipOnOrder').css("display", (onOrderHTML == "") ? "none" : "block");

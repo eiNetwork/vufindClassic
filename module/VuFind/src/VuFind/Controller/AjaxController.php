@@ -771,6 +771,7 @@ class AjaxController extends AbstractBase
         $availableItems = 0;
         $libraryOnly = false;
         $availableLocations = [];
+        $onOrderLocations = [];
         $unavailableLocations = [];
         foreach ($record as $info) {
             // Find an available copy
@@ -783,14 +784,17 @@ class AjaxController extends AbstractBase
                     }
                     $availableLocations[$info['branchName']] += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
                 }
+            } else if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
+                $onOrder = true;
+                if( !isset($onOrderLocations[$info['branchName']]) ) {
+                    $onOrderLocations[$info['branchName']] = 0;
+                }
+                $onOrderLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
             } else if( !$isOverDrive ) {
                 if( !isset($unavailableLocations[$info['branchName']]) ) {
                     $unavailableLocations[$info['branchName']] = 0;
                 }
                 $unavailableLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
-            }
-            if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
-                $onOrder = true;
             }
             //$totalItems += ((isset($item["isOverDrive"]) && $item["isOverDrive"]) | ($onOrder)) ? $item["copiesOwned"] : 1;
             $totalItems += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
@@ -904,7 +908,7 @@ class AjaxController extends AbstractBase
             'id' => $record[0]['id'],
             'availability' => ($available ? 'true' : 'false'),
             'availability_message' => $availability_message,
-            'availability_details' => ($availableLocations || $unavailableLocations) ? json_encode(["available" => $availableLocations, "unavailable" => $unavailableLocations]) : null,
+            'availability_details' => ($availableLocations || $onOrderLocations || $unavailableLocations) ? json_encode(["available" => $availableLocations, "onOrder" => $onOrderLocations, "unavailable" => $unavailableLocations]) : null,
             'location' => htmlentities($location, ENT_COMPAT, 'UTF-8'),
             'locationList' => false,
             'reserve' =>

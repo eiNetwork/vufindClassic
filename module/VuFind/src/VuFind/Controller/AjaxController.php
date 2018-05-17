@@ -785,7 +785,7 @@ class AjaxController extends AbstractBase
                     $onOrderLocations[$info['branchName']] = 0;
                 }
                 $onOrderLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
-            } else if( !$isOverDrive && $item['location'] != "CHECKIN_RECORDS" ) {
+            } else if( !$isOverDrive && $info['location'] != "CHECKIN_RECORDS" ) {
                 if( !isset($unavailableLocations[$info['branchName']]) ) {
                     $unavailableLocations[$info['branchName']] = 0;
                 }

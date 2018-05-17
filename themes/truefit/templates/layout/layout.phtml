@@ -246,6 +246,9 @@
       <div class="locationsToolTipAvailable" style="font-weight:700; width:100%; text-align:center; padding-bottom:5px">Available at:</div>
       <span class="locationsToolTipAvailable" id="locationsToolTipAvailableContents"></span>
       <div class="locationsToolTipSplit"><br></div>
+      <div class="locationsToolTipOnOrder" style="font-weight:700; width:100%; text-align:center; padding-bottom:5px">On Order at:</div>
+      <span class="locationsToolTipOnOrder" id="locationsToolTipOnOrderContents"></span>
+      <div class="locationsToolTipSplit2"><br></div>
       <div class="locationsToolTipUnavailable" style="font-weight:700; width:100%; text-align:center; padding-bottom:5px">Unavailable at:</div>
       <span class="locationsToolTipUnavailable" id="locationsToolTipUnavailableContents"></span>
     </div>
@@ -349,16 +352,24 @@
             var copies = availability["available"][locationName];
             availableHTML += "<span class='EIN-col-m-12'>" + locationName + ":&nbsp;<span style='float:right'>" + copies + ((copies == 1) ? " copy" : " copies") + "</span></span><br>";
           }
+          var onOrderHTML = "";
+          for( locationName in availability["onOrder"] ) {
+            var copies = availability["onOrder"][locationName];
+            onOrderHTML += "<span class='EIN-col-m-12'>" + locationName + ":&nbsp;<span style='float:right'>" + copies + ((copies == 1) ? " copy" : " copies") + "</span></span><br>";
+          }
           var unavailableHTML = "";
           for( locationName in availability["unavailable"] ) {
             var copies = availability["unavailable"][locationName];
             unavailableHTML += "<span class='EIN-col-m-12'>" + locationName + ":&nbsp;<span style='float:right'>" + copies + ((copies == 1) ? " copy" : " copies") + "</span></span><br>";
           }
           $('#locationsToolTipAvailableContents').html(availableHTML);
+          $('#locationsToolTipOnOrderContents').html(availableHTML);
           $('#locationsToolTipUnavailableContents').html(unavailableHTML);
           $('.locationsToolTipAvailable').css("display", (availableHTML == "") ? "none" : "block");
+          $('.locationsToolTipOnOrder').css("display", (onOrderHTML == "") ? "none" : "block");
           $('.locationsToolTipUnavailable').css("display", (unavailableHTML == "") ? "none" : "block");
-          $('.locationsToolTipSplit').css("display", ((availableHTML == "") || (unavailableHTML == "")) ? "none" : "block");
+          $('.locationsToolTipSplit').css("display", ((availableHTML != "") && ((onOrderHTML != "") || (unavailableHTML != ""))) ? "block" : "none");
+          $('.locationsToolTipSplit2').css("display", ((unavailableHTML != "") && ((onOrderHTML != "") || (availableHTML != ""))) ? "block" : "none");
           var left = target2.offset().left + (target2.outerWidth() / 2) - ($('#locationsToolTip').outerWidth() / 2);
           $('#locationsToolTip').css({"display":"initial", "left":((left > 0) ? left : 0), "top":($(target).offset().top + $(target).height())});
           setTimeout(function() {

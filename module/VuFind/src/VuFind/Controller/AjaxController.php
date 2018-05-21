@@ -828,16 +828,15 @@ class AjaxController extends AbstractBase
                 $checkinRecords |= isset($thisRecord["libHas"]);
             }
         }
-        $availability_message = $onOrder ? ($messages['order'] . ((($ownedItems > 0) || $accessOnline) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
-        $availability_message = str_replace("<countText>", ($orderedItems . " cop" . (($orderedItems == 1) ? "y" : "ies")), $availability_message);
-        $availability_message .= $accessOnline ? ($messages['online'] . (($ownedItems > 0) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
-        if( (!$accessOnline && !$onOrder) || ($ownedItems > 0) ) {
+        $availability_message = $accessOnline ? ($messages['online'] . ((($ownedItems + $orderedItems) > 0) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
+        if( !$accessOnline || (($ownedItems + $orderedItems) > 0) ) {
             $availability_message .= $use_unknown_status
                 ? $messages['unknown']
-                : $messages[($itsHere ? 'itshere' :
-                             ($libraryonly ? 'inlibrary' : 
-                              ($available ? 'available' : 
-                               ($isOneClick ? 'oneclick' : 'unavailable'))))];
+                : $messages[(($onOrder && ($ownedItems == 0)) ? 'order' : 
+                             ($itsHere ? 'itshere' :
+                              ($libraryonly ? 'inlibrary' : 
+                               ($available ? 'available' : 
+                                ($isOneClick ? 'oneclick' : 'unavailable')))))];
             $cache = $catalog->getMemcachedVar("holdingID" . $bib)["CACHED_INFO"];
             $numberOfHolds = ($cache && !$cache["doUpdate"]) ? $cache["numberOfHolds"] : ($item["isOverDrive"] ? $item["numberOfHolds"] : 0);
             $waitlistText = $numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($numberOfHolds > 1) ? ($numberOfHolds . " people") : "1 person") . " on waitlist") : "";
@@ -857,6 +856,8 @@ class AjaxController extends AbstractBase
                 $availability_message = $inLibMessage;
             } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
                 $availability_message = str_replace("<countText>", "Always Available", $availability_message);
+            } else if( $ownedItems == 0 && $orderedItems > 0 ) {
+                $availability_message = str_replace("<countText>", $orderedItems . " cop" . (($orderedItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
             } else {
                 $availability_message = str_replace("<countText>", (($ownedItems > 0) ? ($availableItems . " of ") : "") . $ownedItems . " cop" . (($ownedItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
                 if( isset($itsHere) ) {

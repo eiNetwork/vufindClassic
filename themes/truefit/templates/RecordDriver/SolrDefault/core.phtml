@@ -158,7 +158,7 @@
           <tr>
             <td class="EIN-hide-m itemDetailCategory"><?=((isset($this->holdings["CHECKIN_RECORDS"]) && $serialCheckinRecord) ? "" : "Availability:")?></td>
             <td style="padding-bottom:5px">
-              <? if( $onOrder ): ?>
+              <? if( $onOrder && ($ownedCopies == 0) ): ?>
                 <span class="availableTag" style="display:inline-table"><i class="fa fa-check" style="display:table-cell;padding-left:6px"></i><span style="display:table-cell;padding:3px 4px 3px 6px">On Order</span></span>
                 <span class="availableCopyText"> <?=($orderedCopies . " cop" . (($orderedCopies == 1) ? "y" : "ies"))?></span>
                 <?=((($ownedCopies > 0) || $accessOnline) ? "<br><div style=\"height:5px\"></div>" : "") ?>
@@ -521,13 +521,15 @@
                   </div>
                 <? endforeach; ?>
               <? else: ?>
+                <? $showGap = false; ?>
                 <? if( $accessOnline ): ?>
                   <h6 class="accordionSubheading">Available Online</h6>
-                  <? if( $totalCopies > 0 ): ?>
-                    <span class="accordionGap">&nbsp;</span>
-                  <? endif; ?>
+                  <? $showGap = true; ?>
                 <? endif; ?>
                 <? if( (($availableCopies - $noncirculatingCopies) > 0) || $isOneClick ): ?>
+                  <? if( $showGap ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
                   <? if( count($hereIDs) > 0 ): ?>
                     <h6 class="accordionSubheading">Available Here (<?=count($hereIDs)?>)</h6>
                     <? if( !$isOverDrive && !$isOneClick ): ?>
@@ -569,11 +571,12 @@
                         <? endforeach; ?>
                       </table>
                     <? endif; ?>
-                    <? if( $totalCopies > 0 && $totalCopies != count($hereIDs) ): ?>
-                      <span class="accordionGap">&nbsp;</span>
-                    <? endif; ?>
+                    <? $showGap = true; ?>
                   <? endif; ?>
                   <? if( count($preferredIDs) > 0 ): ?>
+                    <? if( $showGap ): ?>
+                      <span class="accordionGap">&nbsp;</span>
+                    <? endif; ?>
                     <h6 class="accordionSubheading">Available at your preferred Libraries (<?=count($preferredIDs)?>)</h6>
                     <? if( !$isOverDrive && !$isOneClick ): ?>
                       <table class="EIN-col-m-12">
@@ -614,11 +617,12 @@
                         <? endforeach; ?>
                       </table>
                     <? endif; ?>
-                    <? if( $totalCopies > 0 && $totalCopies != (count($preferredIDs) + count($hereIDs)) ): ?>
-                      <span class="accordionGap">&nbsp;</span>
-                    <? endif; ?>
+                    <? $showGap = true; ?>
                   <? endif; ?>
                   <? if( ($availableCopies - (count($preferredIDs) + count($hereIDs))) > 0 ): ?>
+                    <? if( $showGap ): ?>
+                      <span class="accordionGap">&nbsp;</span>
+                    <? endif; ?>
                     <h6 class="accordionSubheading">Available<?=($isOverDrive?" from OverDrive":($isOneClick?" from OneClick":(($this->currentLocation || (count($preferredIDs) > 0))?" at other Libraries":"")))?> (<?=($alwaysAvailable || $isOneClick) ? "Always Available" : ($availableCopies - $noncirculatingCopies - count($hereIDs) - count($preferredIDs))?>)</h6>
                     <? if( !$isOverDrive && !$isOneClick ): ?>
                       <table class="EIN-col-m-12">
@@ -659,12 +663,13 @@
                         <? endforeach; ?>
                       </table>
                     <? endif; ?>
-                    <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != ($availableCopies - $noncirculatingCopies) ): ?>
-                      <span class="accordionGap">&nbsp;</span>
-                    <? endif; ?>
+                    <? $showGap = true; ?>
                   <? endif; ?>
                 <? endif; ?>
                 <? if( $noncirculatingCopies > 0 ): ?>
+                  <? if( $showGap ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
                   <h6 class="accordionSubheading">Noncirculating (<?=$noncirculatingCopies?>)</h6>
                   <table class="EIN-col-m-12">
                     <? /* tablet/desktop UI (three columns) */ ?>
@@ -703,56 +708,12 @@
                       <? endforeach; ?>
                     <? endforeach; ?>
                   </table>
-                  <? if( $noncirculatingCopies != $totalCopies ): ?>
-                    <span class="accordionGap">&nbsp;</span>
-                  <? endif; ?>
-                <? endif; ?>
-                <? if( !$alwaysAvailable && $orderedCopies > 0 ): ?>
-                  <h6 class="accordionSubheading">On Order (<?=($orderedCopies)?>)</h6>
-                  <table class="EIN-col-m-12">
-                    <? /* tablet/desktop UI (three columns) */ ?>
-                    <tr class="availabilityHeaderRow EIN-hide-m">
-                      <td class="EIN-col-m-4">Location</td>
-                      <td class="EIN-col-m-4">Collection</td>
-                      <td class="EIN-col-m-4">Status</td>
-                    </tr>
-                    <? foreach($this->holdings as $thisHolding): ?>
-                      <? foreach($thisHolding['items'] as $item): ?>
-                        <? if(($item['status'] == "order") || ($item['status'] == "i")): ?>
-                          <? for( $j=0; $j<(($item['status'] == "order") ? $item['copiesOwned'] : 1); $j++ ): ?>
-                            <? /* tablet/desktop UI (three columns) */ ?>
-                            <tr class="availabilityRow EIN-hide-m">
-                              <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                              <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                              <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                            </tr>
-                            <? /* mobile UI (three rows) */ ?>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Location&nbsp;</td>
-                              <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
-                            </tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Collection&nbsp;</td>
-                              <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
-                            </tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide">
-                              <td class="availabilityRowFieldName">Status&nbsp;</td>
-                              <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
-                            </tr>
-                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
-                          <? endfor; ?>
-                        <? endif; ?>
-                      <? endforeach; ?>
-                    <? endforeach; ?>
-                  </table>
-                  <? if( $totalCopies != ($availableCopies + $orderedCopies) ): ?>
-                    <span class="accordionGap">&nbsp;</span>
-                  <? endif; ?>
+                  <? $showGap = true; ?>
                 <? endif; ?>
                 <? if( !$alwaysAvailable && $totalCopies > 0 && $totalCopies != ($availableCopies + $orderedCopies) ): ?>
+                  <? if( $showGap ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
                   <h6 class="accordionSubheading">Unavailable<?=($isOverDrive?" from OverDrive":"")?> (<?=($totalCopies - $availableCopies - $orderedCopies)?>)</h6>
                   <? if( !$isOverDrive ): ?>
                     <table class="EIN-col-m-12">
@@ -793,6 +754,53 @@
                       <? endforeach; ?>
                     </table>
                   <? endif; ?>
+                  <? $showGap = true; ?>
+                <? endif; ?>
+                <? if( !$alwaysAvailable && $orderedCopies > 0 ): ?>
+                  <? if( $showGap ): ?>
+                    <span class="accordionGap">&nbsp;</span>
+                  <? endif; ?>
+                  <h6 class="accordionSubheading">On Order (<?=($orderedCopies)?>)</h6>
+                  <table class="EIN-col-m-12">
+                    <? /* tablet/desktop UI (three columns) */ ?>
+                    <tr class="availabilityHeaderRow EIN-hide-m">
+                      <td class="EIN-col-m-4">Location</td>
+                      <td class="EIN-col-m-4">Collection</td>
+                      <td class="EIN-col-m-4">Status</td>
+                    </tr>
+                    <? foreach($this->holdings as $thisHolding): ?>
+                      <? foreach($thisHolding['items'] as $item): ?>
+                        <? if(($item['status'] == "order") || ($item['status'] == "i")): ?>
+                          <? for( $j=0; $j<(($item['status'] == "order") ? $item['copiesOwned'] : 1); $j++ ): ?>
+                            <? /* tablet/desktop UI (three columns) */ ?>
+                            <tr class="availabilityRow EIN-hide-m">
+                              <td class="EIN-col-m-4"><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                              <td class="EIN-col-m-4"><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                            </tr>
+                            <? /* mobile UI (three rows) */ ?>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Location&nbsp;</td>
+                              <td><?=(isset($item['branchName']) ? $item['branchName'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Collection&nbsp;</td>
+                              <td><?=(isset($item['shelvingLocation']) ? $item['shelvingLocation'] : "UNKNOWN")?></td>
+                            </tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:3px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide">
+                              <td class="availabilityRowFieldName">Status&nbsp;</td>
+                              <td><?=((isset($item['displayStatus']) ? $item['displayStatus'] : "UNKNOWN") . (($item["number"] != null) ? (" (" . $item["number"] . ")") : ""))?></td>
+                            </tr>
+                            <tr class="availabilityRowEnd EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                            <tr class=" EIN-hide-t EIN-hide"><td colspan="2" style="font-size:8px">&nbsp;</td></tr>
+                          <? endfor; ?>
+                        <? endif; ?>
+                      <? endforeach; ?>
+                    <? endforeach; ?>
+                  </table>
+                  <? $showGap = true; ?>
                 <? endif; ?>
               <? endif; ?>
             </div>

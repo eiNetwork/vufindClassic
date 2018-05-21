@@ -369,7 +369,7 @@
           $('.locationsToolTipUnavailable').css("display", (unavailableHTML == "") ? "none" : "block");
           $('.locationsToolTipOnOrder').css("display", (onOrderHTML == "") ? "none" : "block");
           $('.locationsToolTipSplit').css("display", ((availableHTML != "") && ((onOrderHTML != "") || (unavailableHTML != ""))) ? "block" : "none");
-          $('.locationsToolTipSplit2').css("display", ((onOrderHTML != "") && ((unavailableHTML != "") || (availableHTML != ""))) ? "block" : "none");
+          $('.locationsToolTipSplit2').css("display", ((onOrderHTML != "") && (unavailableHTML != "")) ? "block" : "none");
           var left = target2.offset().left + (target2.outerWidth() / 2) - ($('#locationsToolTip').outerWidth() / 2);
           $('#locationsToolTip').css({"display":"initial", "left":((left > 0) ? left : 0), "top":($(target).offset().top + $(target).height())});
           setTimeout(function() {

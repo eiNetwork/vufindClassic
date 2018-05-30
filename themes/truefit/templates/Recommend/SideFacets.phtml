@@ -192,12 +192,12 @@
         <ul class="facetAccordionList">
           <li class="facetOffset0">
             <span class="sr-only">
-              <? $this->escapeHtml('Limit to Available' . ($currentLocation ? " Somewhere" : "")) ?>
+              <? $this->escapeHtml('Limit to Available Somewhere') ?>
               <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=($limitToAvailable?" checked":"")?> />
             </span>
             <span aria-hidden="true" class="facetToggle<?=($limitToAvailable?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7Eavailable_at%3A%22*%22"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
             <span aria-hidden="true" class="facetToggle<?=($limitToAvailable?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
-            <span aria-hidden="true"><?=$this->escapeHtml('Limit to Available' . ($currentLocation ? " Somewhere" : ""))?></span>
+            <span aria-hidden="true"><?=$this->escapeHtml('Limit to Available Somewhere')?></span>
           </li>
           <? if( $currentLocation ): ?>
             <li class="facetOffset0">

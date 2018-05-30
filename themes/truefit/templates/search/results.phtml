@@ -156,7 +156,7 @@
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
               <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
-              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available" . (($bits[1] != "*") ? " Here" : ($currentLocation ? " Somewhere" : ""))) : $bits[1])?>
+              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available " . (($bits[1] != "*") ? "Here" : "Somewhere")) : $bits[1])?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
                   <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>
@@ -210,7 +210,7 @@
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
               <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
-              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available" . (($bits[1] != "*") ? " Here" : ($currentLocation ? " Somewhere" : ""))) : $bits[1])?>
+              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available " . (($bits[1] != "*") ? "Here" : "Somewhere")) : $bits[1])?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
                   <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>

@@ -157,6 +157,18 @@
       }
     }
   }
+  $limitToAvailable = false;
+  $limitToAvailableHere = false;
+  if( isset($_REQUEST['filter']) ) {
+    foreach( $_REQUEST['filter'] as $thisFilter ) {
+      $bits = explode(":", substr($thisFilter, 1), 2);
+      if( ($bits[0] == "available_at") && ($bits[1] == '"*"') ) {
+        $limitToAvailable = true;
+      } else if( ($bits[0] == "available_at") && ($bits[1] != '"*"') ) {
+        $limitToAvailableHere = true;
+      }
+    }
+  }
 ?>
   <div class="panel panel-facetAccordion EIN-hide-m EIN-hide-t">
     <div class="panel-heading">
@@ -167,6 +179,39 @@
           <a href="<?=($this->currentPath() . $this->results->getUrlQuery()->removeAllFacets())?>" style="padding:10px 10px 10px 0px"><button style="width:100%;border-radius:0px 5px 5px 0px" <?=($anyApplied ? "" : "disabled ")?>class="btn-alternate">Clear Filters</button></a>
         </td></tr>
       </table>
+    </div>
+  </div>
+  <div class="panel panel-facetAccordion">
+    <div class="facetAccordionContent panel-collapse">
+      <div class="panel-heading EIN-hide">
+        <h4 class="panel-title">
+          <a class="facetAccordionTitle"><?=$this->transEsc('Availability')?></a>
+        </h4>
+      </div>
+      <div class="panel-body">
+        <ul class="facetAccordionList">
+          <li class="facetOffset0">
+            <span class="sr-only">
+              <? $this->escapeHtml('Limit to Available' . ($currentLocation ? " Somewhere" : "")) ?>
+              <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=($limitToAvailable?" checked":"")?> />
+            </span>
+            <span aria-hidden="true" class="facetToggle<?=($limitToAvailable?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7Eavailable_at%3A%22*%22"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+            <span aria-hidden="true" class="facetToggle<?=($limitToAvailable?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
+            <span aria-hidden="true"><?=$this->escapeHtml('Limit to Available' . ($currentLocation ? " Somewhere" : ""))?></span>
+          </li>
+          <? if( $currentLocation ): ?>
+            <li class="facetOffset0">
+              <span class="sr-only">
+                <? $this->escapeHtml('Limit to Available Here') ?>
+                <input type="checkbox" onClick="$(this).parent().siblings('.facetToggleOn').click()"<?=($limitToAvailable?" checked":"")?> />
+              </span>
+              <span aria-hidden="true" class="facetToggle<?=($limitToAvailableHere?"On":"Off")?>" onClick="ToggleFacet($(this).next());ToggleFacet($(this));CleanChecks(false);" value="&filter%5B%5D=%7Eavailable_at%3A%22<?=$this->escapeHtml(urlencode($currentLocation['facetLabel']))?>%22"><i class="fa fa-check-square" style="margin-left:-1px"></i></span>
+              <span aria-hidden="true" class="facetToggle<?=($limitToAvailableHere?"Off":"On")?>" onClick="ToggleFacet($(this).prev());ToggleFacet($(this));CleanChecks(false);"><i class="fa fa-square-o"></i></span>
+              <span aria-hidden="true"><?=$this->escapeHtml('Limit to Available Here')?></span>
+            </li>
+          <? endif; ?>
+        </ul>
+      </div>
     </div>
   </div>
 <? if (!empty($sideFacetSet) && $results->getResultTotal() > 0): ?>

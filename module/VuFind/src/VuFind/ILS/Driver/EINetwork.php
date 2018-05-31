@@ -266,9 +266,9 @@ class EINetwork extends Sierra2 implements
             $results = $cachedInfo["holding"];
 
             // if we haven't processed these holdings yet, run through the order records
-            if( !isset($cachedInfo["processedHoldings"]) && ($cachedInfo = $this->memcached->get("cachedJson" . $id)) !== null ) {
-                if( isset($cachedInfo["orderRecords"]) ) {
-                    foreach( $cachedInfo["orderRecords"] as $locationCode => $details ) {
+            if( !isset($cachedInfo["processedHoldings"]) && ($cachedJson = $this->memcached->get("cachedJson" . $id)) !== null ) {
+                if( isset($cachedJson["orderRecords"]) ) {
+                    foreach( $cachedJson["orderRecords"] as $locationCode => $details ) {
                         $results[] = [
                                          "id" => $id,
                                          "itemId" => null,
@@ -300,8 +300,8 @@ class EINetwork extends Sierra2 implements
                             $thisHolding["status"] = $thisChange["status"];
                         }
                         if( isset($thisChange["duedate"]) ) {
-                            $thisHolding["duedate"] = null;
-                            $thisHolding["availability"] = (($thisChange["status"] == "-") ? "true" : "false");
+                            $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
+                            $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
                         }
                         $results[$hKey] = $thisHolding;
                     }
@@ -314,7 +314,9 @@ class EINetwork extends Sierra2 implements
             } else {
                 unset($cache["CACHED_INFO"]["CHANGES_TO_MAKE"]);
             }
-            $this->memcached->set("holdingID" . $id, $cache);
+            $cache["CACHED_INFO"]["holding"] = $results;
+            $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+            $this->memcached->set("holdingID" . $id, $cache, $time);
         }
 
         // add in the extra details we need

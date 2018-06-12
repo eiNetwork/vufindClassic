@@ -586,8 +586,8 @@ class SearchController extends AbstractSearch
     {
         // Special case -- redirect tag searches.
         $tag = $this->params()->fromQuery('tag');
+        $query = $this->getRequest()->getQuery();
         if (!empty($tag)) {
-            $query = $this->getRequest()->getQuery();
             $query->set('lookfor', $tag);
             $query->set('type', 'tag');
         }

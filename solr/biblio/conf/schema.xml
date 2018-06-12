@@ -217,6 +217,7 @@
    <field name="target_audience" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="num_holdings" type="long" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
+   <field name="num_holding_locations" type="long" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
    <field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="items" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>

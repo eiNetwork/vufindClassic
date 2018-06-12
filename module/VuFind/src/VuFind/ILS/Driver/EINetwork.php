@@ -819,10 +819,25 @@ class EINetwork extends Sierra2 implements
         // item level holds via the API don't work yet
         // BJP - neither do local copy overriding the hold
         if( true || substr($details["id"], 1, 1) == "i" ) {
-            return $this->placeItemLevelHold($details);
+            $holdsInfo = $this->placeItemLevelHold($details);
+        } else {
+            $holdsInfo = parent::placeHold($details);
         }
 
-        return parent::placeHold($details);
+        // if they successfully placed the hold, check to see whether this item is in their book cart. If so, remove it.
+        if( $holdsInfo['success'] ) {
+            // get the bookcart
+            $user = $this->getDbTable('User')->getByCatUsername($details['patron']['cat_username']);
+            $bookCart = $user->getBookCart();
+
+            // remove this item from it
+            $bookCart->removeResourcesById($user, [isset($details['bibId']) ? $details['bibId'] : $details['id']]);
+
+            // clear the cached contents of the list
+            $this->clearMemcachedVar("cachedList" . $bookCart->id);
+        }
+
+        return $holdsInfo;
     }
 
     /**

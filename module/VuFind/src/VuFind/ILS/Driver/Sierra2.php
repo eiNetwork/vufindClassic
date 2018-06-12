@@ -333,7 +333,7 @@ class Sierra2 extends Sierra implements
                 $thisItem['source'] = "Solr";
                 $thisItem['renewable'] = true;
                 $thisItem['numberOfRenewals'] = $jsonVals->entries[$i]->numberOfRenewals;
-                $thisItem['duedate'] = $jsonVals->entries[$i]->dueDate;
+                $thisItem['duedate'] = substr($jsonVals->entries[$i]->dueDate, 0, 10);
                 $arr = explode("/", $jsonVals->entries[$i]->id);
                 $thisItem['checkout_id'] = $arr[count($arr)-1];
 

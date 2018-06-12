@@ -362,10 +362,16 @@ class SearchController extends AbstractSearch
             $hiddenFilters[] = 'date_added:["' . strftime("%Y-%m-%dT00:00:00Z", time() - $range * 86400) . '" TO *]';
         }
 
+        // only keep ones with 10 or more attached items
+        $hiddenFilters[] = 'num_holdings:[10 TO *]';
+
         // If we found hidden filters above, apply them now:
         if (!empty($hiddenFilters)) {
             $this->getRequest()->getQuery()->set('hiddenFilters', $hiddenFilters);
         }
+
+        // get extra bibs
+        $this->getRequest()->getQuery()->set('overrideLimit', '40');
 
         // sort by newest first
         $this->getRequest()->getQuery()->set('sort', 'date_added desc');
@@ -580,8 +586,8 @@ class SearchController extends AbstractSearch
     {
         // Special case -- redirect tag searches.
         $tag = $this->params()->fromQuery('tag');
-        $query = $this->getRequest()->getQuery();
         if (!empty($tag)) {
+            $query = $this->getRequest()->getQuery();
             $query->set('lookfor', $tag);
             $query->set('type', 'tag');
         }

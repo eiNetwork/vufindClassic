@@ -113,6 +113,30 @@
         }
       } ); 
     } );
+
+    // scan through the covers and throw out any that don't show up
+    $(".sliderWindow").each( function() {
+      var validImagesSeen = 0;
+      $(this).find(".neImg").each( function() {
+        var thisSize = 0;
+        var iTime = null;
+        var url = this.src;
+        if (url && url.length > 0 && (iTime = performance.getEntriesByName(url)[0]))
+        {
+          thisSize = iTime.decodedBodySize;
+        }
+        if( validImagesSeen >= 20 ) {
+          //alert($(this).parent().attr("href") + " => hide, already got 20 good");
+          $(this).parents(".neTD").css("display","none");
+        } else if( thisSize == 5382 ) {
+          //alert($(this).parent().attr("href") + " => hide, no good cover");
+          $(this).parents(".neTD").css("display","none");
+        } else {
+          //alert($(this).parent().attr("href") + " => show, cover is " + thisSize);
+          validImagesSeen++;
+        }
+      } );
+    } );
   } );
 </script>
 <div class="splashNewest">
@@ -127,7 +151,7 @@
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($BookResults as $entry): ?>
             <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail('large')) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>
@@ -150,7 +174,7 @@
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($DVDResults as $entry): ?>
             <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail('large')) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>
@@ -173,7 +197,7 @@
           <table style="width:400%; position:relative; left:0px"><tr>
           <? foreach ($ebookResults as $entry): ?>
             <td class="neTD" onMouseEnter="ShowDescriptionToolTip('<?=$entry->getUniqueID()?>', this);" onMouseLeave="HideDescriptionToolTip();"><a href="<?=$this->recordLink()->getUrl($entry)?>">
-              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail()) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
+              <img class="neImg" src="<?= $this->escapeHtmlAttr($this->record($entry)->getThumbnail('large')) ?>" alt="<?=$this->escapeHtmlAttr($this->record($entry)->getTitle())?>" />
             </a></td>
           <? endforeach ?>
           </tr></table>

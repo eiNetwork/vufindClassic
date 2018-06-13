@@ -362,8 +362,8 @@ class SearchController extends AbstractSearch
             $hiddenFilters[] = 'date_added:["' . strftime("%Y-%m-%dT00:00:00Z", time() - $range * 86400) . '" TO *]';
         }
 
-        // only keep ones with 10 or more attached items
-        $hiddenFilters[] = 'num_holdings:[10 TO *]';
+        // only keep ones with 5 or more holding locations
+        $hiddenFilters[] = 'num_holding_locations:[5 TO *]';
 
         // If we found hidden filters above, apply them now:
         if (!empty($hiddenFilters)) {

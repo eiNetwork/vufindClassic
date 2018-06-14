@@ -708,6 +708,8 @@ class SearchController extends AbstractSearch
             $this->getRequest()->getQuery()->set('fl', $this->getConfig()->LimitedSearchFields->shortList);
         }
 
+        $this->getRequest()->getQuery()->set('hl.snippets', '10');
+
         // Default case -- standard behavior.
         $view = parent::resultsAction();
 

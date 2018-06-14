@@ -124,12 +124,6 @@
         $('.searchRetainFilters').attr("value", ($('.searchRetainFilters').attr("value") == "true") ? "false" : "true");
         $(searchButton).find(".greenCheck").css({"display":(($('.searchRetainFilters').attr("value") == "true") ? "inline" : "none")});
       }
-      function hideSearchBoxTypeLabel() {
-        if( !$('#searchBoxTypeLabel').hasClass("hiddenByClip") ) {
-          $('#searchBoxTypeLabel').toggle("clip");
-          $('#searchBoxTypeLabel').addClass("hiddenByClip");
-        }
-      }
     </script>
   </div>
 <? if ($this->layout()->searchbox !== false): ?>

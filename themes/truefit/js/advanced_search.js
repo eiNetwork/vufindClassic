@@ -171,7 +171,32 @@ function ResetAdvSearchForm() {
   $('.advSearchRange input.rangeFrom[type="text"]').val('Enter minimum').css('color','#949494');
   $('.advSearchRange input.rangeTo[type="text"]').val('Enter maximum').css('color','#949494');
   $("option:selected").removeAttr("selected");
+
+  // reset the checkboxes
+  $(".facetToggleOn:not(.categoryCheck) .fa-check-square").each( function() { $(this).parent().click() } );
+  $("checkbox:selected").removeAttr("selected");
   $("#illustrated_-1").click();
+
+  // reset dropdowns
+  $(".advSearchTypeButton,.advSearchMatchButton,.advSearchJoinButton").each( function() { 
+    $(this).next().find("button:first").click();
+  } );
+  $(".advSearchGroup:not(:first)").find("button:first").click();
+  while( $(".EIN-col-m-12:not(.hidden) .advSearchSearch").length < 3 ) {
+    $(".add_search_link").click();
+  }
+  while( $(".EIN-col-m-12:not(.hidden) .advSearchSearch").length > 3 ) {
+    $(".EIN-col-m-12:not(.hidden) .advSearchSearch:last").find("button:first").css("display", "none");
+    $(".EIN-col-m-12:not(.hidden) .advSearchSearch:last").find("button:first").click();
+  }
+
+  // reset slider
+  $('.advSearchRange').find('.textBox').each( function() {
+    $(this).val("????");
+  } );
+  var min = $('#publishDatedateSlider').data('slider').options.value[0];
+  var max = $('#publishDatedateSlider').data('slider').options.value[1];
+  $('#publishDatedateSlider').slider('setValue', [min, max]);
 }
 
 function adjustAdvSearchTypeButtons() {

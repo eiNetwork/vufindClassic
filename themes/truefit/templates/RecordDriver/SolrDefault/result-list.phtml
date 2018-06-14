@@ -4,7 +4,26 @@
   $user = $account->isLoggedIn();
   $record = $this->record($this->driver);
   $deets = $this->driver->getHighlightDetails();
-  $showMatch = !(isset($deets["title"][0]) || isset($deets["author"][0]) || isset($deets["short_title"][0]) );
+  $lookfor = explode(" ", $this->params->getDisplayQuery());
+  foreach( $lookfor as $index => $value ) {
+    if( $value == "OR" || $value == "AND" ) {
+      unset($lookfor[$index]);
+    } else {
+      $lookfor[$index] = strtolower($value);
+    }
+  }
+  $sources = ["title","author","short_title"];
+  foreach( $sources as $thisSource ) {
+    if( isset($deets[$thisSource][0]) ) {
+      $haystack = strtolower($deets[$thisSource][0]);
+      foreach( $lookfor as $index => $value ) {
+        if( strpos($haystack, "{{{{start_hilite}}}}" . $value . "{{{{end_hilite}}}}") !== false ) {
+          unset($lookfor[$index]);
+        }
+      }
+    }
+  }
+  $showMatch = count($lookfor) > 0;
 ?>
 <div class="<?=$this->driver->supportsAjaxStatus()?'ajaxItem ':''?>EIN-col-m-12">
   <input type="hidden" value="<?=$this->escapeHtmlAttr($this->driver->getUniqueID())?>" class="hiddenId" />
@@ -124,15 +143,16 @@
           </tr>
         <? endif; ?>
         <? if( $showMatch ): ?>
-          <? if( $snippet = $this->driver->getHighlightedSnippet() ): ?>
-            <tr>
-              <td class="EIN-hide-m itemDetailCategory"><?=($snippet["caption"] ? $snippet["caption"] : "Other")?>:</td>
-              <td>... <?=$this->highlight($snippet["snippet"])?> ...</td>
-            </tr>
+          <? if( $snippets = $this->driver->getHighlightedSnippet($lookfor) ): ?>
+            <? foreach( $snippets as $thisSnippet ): ?>
+              <tr>
+                <td class="EIN-hide-m itemDetailCategory"><?=($thisSnippet["caption"] ? $thisSnippet["caption"] : "Other")?>:</td>
+                <td>... <?=$this->highlight($thisSnippet["snippet"])?> ...</td>
+              </tr>
+            <? endforeach; ?>
           <? elseif( $summary = $this->driver->getSummary() ): ?>
             <? $cleanSummary = ""; ?>
             <? $summary = $summary[0]; ?>
-            <? $lookfor = explode(" ", $this->params->getDisplayQuery()); ?>
             <? foreach( $lookfor as $key ): ?>
               <? if( ($colon = strpos($key, ":")) !== false ): ?>
                 <? $key = substr($key, $colon + 1) ?>

@@ -1859,16 +1859,21 @@ class SolrDefault extends AbstractBase
         $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
         $json = json_decode($json, true);
         foreach( $json["holding"] as $key => $thisJson ) {
-            $json["holding"][$key]["location"] = ($this->getDbTable('ShelvingLocation')->getByCode($thisJson["locationCode"]))->sierraName;
+            $locCodeRow = $this->getDbTable('ShelvingLocation')->getByCode($thisJson["locationCode"]);
+            if( $locCodeRow ) {
+                $json["holding"][$key]["location"] = $locCodeRow->sierraName;
+            }
         }
         foreach( $json["orderRecords"] as $key => $thisJson ) {
             // find this location in the database
-            $row = $this->getDBTable('shelvinglocation')->getBySierraName($thisJson["location"])->toArray();
+            $row = $this->getDBTable('shelvinglocation')->getBySierraName($thisJson["location"]);
+            $row = $row ? $row->toArray() : [];
 
             // test to see if it's a branch name instead of shelving location
             if( count($row) == 0 ) {
                 // find this location in the database
-                $row = $this->getDBTable('location')->getByName($thisJson["location"])->toArray();
+                $row = $this->getDBTable('location')->getByName($thisJson["location"]);
+                $row = $row ? $row->toArray() : [];
             }
 
             // if we got results, send them back

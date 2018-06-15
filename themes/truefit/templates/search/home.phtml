@@ -113,7 +113,9 @@
         }
       } ); 
     } );
+  } );
 
+  $(window).on("load", function() { 
     // scan through the covers and throw out any that don't show up
     $(".sliderWindow").each( function() {
       var validImagesSeen = 0;
@@ -126,13 +128,10 @@
           thisSize = iTime.decodedBodySize;
         }
         if( validImagesSeen >= 20 ) {
-          //alert($(this).parent().attr("href") + " => hide, already got 20 good");
           $(this).parents(".neTD").css("display","none");
         } else if( thisSize == 5382 ) {
-          //alert($(this).parent().attr("href") + " => hide, no good cover");
           $(this).parents(".neTD").css("display","none");
         } else {
-          //alert($(this).parent().attr("href") + " => show, cover is " + thisSize);
           validImagesSeen++;
         }
       } );

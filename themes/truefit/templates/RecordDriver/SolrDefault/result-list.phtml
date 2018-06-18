@@ -19,6 +19,19 @@
       foreach( $lookfor as $index => $value ) {
         if( strpos($haystack, "{{{{start_hilite}}}}" . $value . "{{{{end_hilite}}}}") !== false ) {
           unset($lookfor[$index]);
+        } else {
+          $bits = explode("{{{{start_hilite}}}}", $haystack);
+          foreach( $bits as $bitIndex => $thisBit ) {
+            if( $bitIndex == 0 ) {
+              continue;
+            }
+            $highlight = strtolower(explode("{{{{end_hilite}}}}", $thisBit, 2)[0]);
+            $count = similar_text($value, $highlight, $percent);
+            if( $percent > 60 ) {
+              unset($lookfor[$index]);
+              continue 2;
+            }
+          }
         }
       }
     }

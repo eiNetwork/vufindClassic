@@ -186,6 +186,7 @@
             // change the search type label to be the display text, not the search type
             <? if( $this->searchType != "Advanced" ): ?>
               $('#searchTypeLabel').html(document.getElementById('searchTypeBtn_' + $('#searchTypeLabel').html()).childNodes[1].nodeValue);
+              $('#searchBoxTypeLabel').html($('#searchTypeLabel').html());
               $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
             <? else: ?>
               $('#searchTypeLabel').html("Advanced");

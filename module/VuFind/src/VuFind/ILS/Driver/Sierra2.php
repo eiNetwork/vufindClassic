@@ -234,11 +234,8 @@ class Sierra2 extends Sierra implements
             }
         }
         if(isset($profile['phones'])) {
-            if(count($profile['phones']) > 0) {
-                $patron['phone'] = $profile['phones'][0]['number'];
-            }
-            if(count($profile['phones']) > 1) {
-                $patron['phone2'] = $profile['phones'][0]['number'];
+            foreach( $profile['phones'] as $thisNumber ) {
+                $patron[($thisNumber['type'] == "t") ? 'phone' : 'phone2'] = $thisNumber['number'];
             }
         }
         if(isset($profile['emails'])) {

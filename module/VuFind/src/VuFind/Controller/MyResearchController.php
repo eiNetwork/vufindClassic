@@ -436,12 +436,13 @@ class MyResearchController extends AbstractBase
         $preferredLibrary = $this->params()->fromPost('preferred_library', false);
         $alternateLibrary = $this->params()->fromPost('alternate_library', false);
         $phone = $this->params()->fromPost('phone', false);
+        $phone2 = $this->params()->fromPost('phone2', false);
         $email = $this->params()->fromPost('email', false);
         $pin = $this->params()->fromPost('pin', false);
         $OD_eBook = $this->params()->fromPost('OD_eBook', false);
         $OD_audiobook = $this->params()->fromPost('OD_audiobook', false);
         $OD_video = $this->params()->fromPost('OD_video', false);
-        if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || !empty($pin) || 
+        if( !empty($notification) || !empty($preferredLibrary) || !empty($alternateLibrary) || !empty($phone) || !empty($phone2) || !empty($pin) || 
             !empty($email) || !empty($OD_eBook) || !empty($OD_audiobook) || !empty($OD_video) ) {
             // grab this to compare it to what we've got now
             $catalog = $this->getILS();
@@ -449,7 +450,7 @@ class MyResearchController extends AbstractBase
 
             // load this up, but only if they've changed those properties
             $updatedInfo = [];
-            if( !empty($notification) && $profile["notificationCode"] != $notification ) {
+            if( !empty($notification) && (!isset($profile["notificationCode"]) || ($profile["notificationCode"] != $notification)) ) {
                 $updatedInfo["notices"] = $notification;
             }
             if( !empty($splitEcontent) && $profile["splitEcontent"] != $splitEcontent ) {
@@ -461,10 +462,19 @@ class MyResearchController extends AbstractBase
             if( !empty($alternateLibrary) && $profile["alternatelibrarycode"] != $alternateLibrary) {
                 $updatedInfo["alternate_library"] = $alternateLibrary;
             }
-            if( !empty($phone) && $profile["phone"] != $phone ) {
+            if( !empty($phone) && (!isset($profile["phone"]) || ($profile["phone"] != $phone)) ) {
                 $updatedInfo["phones"] = [["number" => $phone, "type" => "t"]];
+                if( isset($profile["phone2"]) ) {
+                    $updatedInfo["phones"][] = ["number" => $profile["phone2"], "type" => "p"];
+                }
             }
-            if( !empty($email) && $profile["email"] != $email ) {
+            if( !empty($phone2) && (!isset($profile["phone2"]) || ($profile["phone2"] != $phone2)) ) {
+                $updatedInfo["phones"] = [["number" => $phone2, "type" => "p"]];
+                if( isset($profile["phone"]) ) {
+                    $updatedInfo["phones"][] = ["number" => $profile["phone"], "type" => "t"];
+                }
+            }
+            if( !empty($email) && (!isset($profile["email"]) || ($profile["email"] != $email)) ) {
                 $updatedInfo["emails"] = [$email];
             }
             if( !empty($pin) ) {
@@ -515,7 +525,10 @@ class MyResearchController extends AbstractBase
         $profile['home_library'] = $user->home_library;
 
         // show extra messages
-        if( strlen($profile["phone"]) != 12 || preg_match('/\d{3}-\d{3}-\d{4}/', $profile["phone"]) != 1 ) {
+        if( isset($profile["phone"]) && (strlen($profile["phone"]) != 12 || preg_match('/\d{3}-\d{3}-\d{4}/', $profile["phone"]) != 1) ) {
+            $this->flashMessenger()->addMessage('correct_phone_format', 'info');
+        }
+        if( isset($profile["phone2"]) && (strlen($profile["phone2"]) != 12 || preg_match('/\d{3}-\d{3}-\d{4}/', $profile["phone2"]) != 1) ) {
             $this->flashMessenger()->addMessage('correct_phone_format', 'info');
         }
         if( !isset($profile["preferredlibrarycode"]) || !$profile["preferredlibrarycode"] ) {

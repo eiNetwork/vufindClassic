@@ -162,6 +162,27 @@ class SearchHandler
             $endIndex = strpos($query, ")", $startIndex);
             $query = substr($query, 0, $startIndex) . $exactMatch . substr($query, $endIndex);
         }
+        while( ($startIndex = strpos($query, "title_exact_substring:(", $startIndex)) !== false ) {
+            // generate the exact match if we havent yet
+            if( !isset($exactMatch) ) {
+                $exactMatch = trim(strtolower($search));
+                $allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789 ";
+                for($i=0; $i<strlen($exactMatch); $i++) {
+                    if(strpos($allowedChars, substr($exactMatch, $i, 1)) === false) {
+                        $exactMatch = substr($exactMatch, 0, $i) . " " . substr($exactMatch, ($i + 1));
+                        $i--;
+                    }
+                }
+                while( strpos($exactMatch, "  ") !== false ) {
+                    $exactMatch = str_replace("  ", " ", $exactMatch);
+                }
+                $exactMatch = "EXACTSTART" . str_replace(" ", "SPACE", $exactMatch) . "EXACTEND";
+            }
+
+            $startIndex += 23;
+            $endIndex = strpos($query, ")", $startIndex);
+            $query = substr($query, 0, $startIndex) . $exactMatch . substr($query, $endIndex);
+        }
         //return "{!boost b=sum(language_boost,product(num_holdings,15,div(format_boost,50)),product(sum(abs(1),-2.5),10),1)} ($query)";
         return "{!boost b=sum(language_boost,product(num_holdings,15,div(format_boost,50)),15)} ($query)";
     }

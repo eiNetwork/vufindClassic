@@ -298,6 +298,8 @@ Title:
   QueryFields:
     title_exact:
       - [onephrase, 20000]
+    title_exact_substring:
+      - [onephrase, 10000]
     title_unstemmed:
       - [onephrase, 600]
     title_full:

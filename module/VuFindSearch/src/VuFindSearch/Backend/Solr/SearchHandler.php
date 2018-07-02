@@ -179,9 +179,11 @@ class SearchHandler
                 $exactMatch = "EXACTSTART" . str_replace(" ", "SPACE", $exactMatch) . "EXACTEND";
             }
 
+            $exactMatchSubstring = str_replace("EXACTSTART", "EXACTSTART*", $exactMatch);
+            $exactMatchSubstring = str_replace("EXACTEND", "*EXACTEND", $exactMatchSubstring);
             $startIndex += 23;
             $endIndex = strpos($query, ")", $startIndex);
-            $query = substr($query, 0, $startIndex) . $exactMatch . substr($query, $endIndex);
+            $query = substr($query, 0, $startIndex) . $exactMatchSubstring . substr($query, $endIndex);
         }
         //return "{!boost b=sum(language_boost,product(num_holdings,15,div(format_boost,50)),product(sum(abs(1),-2.5),10),1)} ($query)";
         return "{!boost b=sum(language_boost,product(num_holdings,15,div(format_boost,50)),15)} ($query)";

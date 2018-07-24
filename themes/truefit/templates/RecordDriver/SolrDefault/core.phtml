@@ -157,7 +157,7 @@
         <? $availableCopies = 0; $ownedCopies = 0; $orderedCopies = 0; $noncirculatingCopies = 0; $hereIDs = array(); $preferredIDs = array(); $availableLocations = []; ?>
         <? foreach($this->holdings as $entry): ?>
           <? foreach($entry["items"] as $item): ?>
-            <? if( $item["availability"] && !isset($availableLocations[$item["branchName"]]) ): ?>
+            <? if( $item["availability"] && isset($item["branchName"]) && !isset($availableLocations[$item["branchName"]]) ): ?>
               <? $availableLocations[$item["branchName"]] = true; ?>
             <? endif; ?>
             <? if( isset($item["copiesOwned"])) : ?>

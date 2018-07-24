@@ -553,6 +553,10 @@ class SolrDefault extends AbstractBase
                     foreach( $this->highlightDetails[$current] as $thisHighlight ) {
                         $haystack = strtolower($thisHighlight);
                         foreach( $lookfor as $index => $value ) {
+                            if( empty($value) ) {
+                                continue;
+                            }
+
                             // make sure it wasnt included in any of the other snippets we already added
                             foreach( $highlights as $greenLitHighlight ) {
                                 $haystack2 = strtolower($greenLitHighlight["snippet"]);
@@ -586,6 +590,10 @@ class SolrDefault extends AbstractBase
                     $haystack = strtolower($value[0]);
                     if (!in_array($key, $this->forbiddenSnippetFields)) {
                         foreach( $lookfor as $index => $value2 ) {
+                            if( empty($value2) ) {
+                                continue;
+                            }
+
                             // make sure it wasnt included in any of the other snippets we already added
                             foreach( $highlights as $greenLitHighlight ) {
                                 $haystack2 = strtolower($greenLitHighlight["snippet"]);

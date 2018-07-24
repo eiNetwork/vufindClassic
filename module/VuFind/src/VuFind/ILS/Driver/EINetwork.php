@@ -1066,7 +1066,11 @@ class EINetwork extends Sierra2 implements
             $user1 = "";
             $total = 0;
 
-            $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            if( isset($result->response->fines) ) {
+                $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            } else {
+                $fines = [];
+            }
             foreach($fines as $i => $thisFine) {
                 $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $thisFine->invoice . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->itemCharge . "\">" . 
                         "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $thisFine->itemCharge * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";

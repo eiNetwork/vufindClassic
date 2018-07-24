@@ -35,8 +35,8 @@
   // get results
   $recordTotal = $this->results->getResultTotal();
   $facetSet = $this->results->getRecommendations('side')[0]->getFacetSet();
-  $resultCategories = $facetSet ? $facetSet["format_category"]["list"] : [];
-  $resultFormats = $facetSet ? $facetSet["format"]["list"] : [];
+  $resultCategories = isset($facetSet["format_category"]["list"]) ? $facetSet["format_category"]["list"] : [];
+  $resultFormats = isset($facetSet["format"]["list"]) ? $facetSet["format"]["list"] : [];
   $usableFormats = array();
   $usableCategories = [];
   foreach( $resultFormats as $thisFormat ):

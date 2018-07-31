@@ -292,32 +292,30 @@ class EINetwork extends Sierra2 implements
             $results = parent::getHolding($id, $patron);
         }
 
-        // make any updates we are supposed to be making
-        if( isset($cachedInfo["CHANGES_TO_MAKE"]) ) {
-            foreach( $cachedInfo["CHANGES_TO_MAKE"] as $key => $thisChange ) {
-                foreach( $results as $hKey => $thisHolding ) {
-                    if( $thisHolding["itemId"] == $key ) {
-                        if( isset($thisChange["status"]) ) {
-                            $thisHolding["status"] = $thisChange["status"];
+        // make any status updates we are supposed to be making
+        if( $changes = $this->memcached->get("updatesID" . $id) ) {
+            foreach( $changes as $key => $thisChange ) {
+                // if they've already been taken care of, ignore them
+                if( !$thisChange["handled"] ) {
+                    foreach( $results as $hKey => $thisHolding ) {
+                        if( $thisHolding["itemId"] == $thisChange["inum"] ) {
+                            if( isset($thisChange["status"]) ) {
+                                $thisHolding["status"] = $thisChange["status"];
+                            }
+                            if( isset($thisChange["duedate"]) ) {
+                                $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
+                                $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
+                            }
+                            $results[$hKey] = $thisHolding;
                         }
-                        if( isset($thisChange["duedate"]) ) {
-                            $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
-                            $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
-                        }
-                        $results[$hKey] = $thisHolding;
                     }
                 }
-                unset( $cachedInfo["CHANGES_TO_MAKE"][$key] );
             }
-            $cache = $this->memcached->get("holdingID" . $id);
-            if( $cachedInfo["CHANGES_TO_MAKE"] ) {
-                $cache["CACHED_INFO"]["CHANGES_TO_MAKE"] = $cachedInfo["CHANGES_TO_MAKE"];
-            } else {
-                unset($cache["CACHED_INFO"]["CHANGES_TO_MAKE"]);
+            if( ($cache = $this->memcached->get("holdingID" . $id)) && isset($cache["CACHED_INFO"]["holding"]) ) {
+                $cache["CACHED_INFO"]["holding"] = $results;
+                $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+                $this->memcached->set("holdingID" . $id, $cache, $time);
             }
-            $cache["CACHED_INFO"]["holding"] = $results;
-            $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
-            $this->memcached->set("holdingID" . $id, $cache, $time);
         }
 
         // add in the extra details we need
@@ -1066,7 +1064,11 @@ class EINetwork extends Sierra2 implements
             $user1 = "";
             $total = 0;
 
-            $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            if( isset($result->response->fines) ) {
+                $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            } else {
+                $fines = [];
+            }
             foreach($fines as $i => $thisFine) {
                 $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $thisFine->invoice . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->itemCharge . "\">" . 
                         "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $thisFine->itemCharge * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";

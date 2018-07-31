@@ -4,11 +4,7 @@
   $memcached->addServer('localhost', 11211);
 
   // grab the start time for our circ_trans query (the time the last extract ran - 8:00PM yesterday)
-  $circTransTime = strtotime("today 20:00:00");
-  if( $circTransTime > time() ) {
-    $circTransTime = strtotime("yesterday 20:00:00");
-  }
-  $circTransTime = strftime("%Y-%m-%d %T", $circTransTime); 
+  $circTransTime = strftime("%Y-%m-%d %T", strtotime("yesterday 20:00:00")); 
 
   // calculate the check digit for a given bib number
   function getCheckDigit($id)

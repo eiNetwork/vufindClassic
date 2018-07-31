@@ -250,15 +250,20 @@ class AjaxController extends AbstractBase
             // see if we have cached holdings already. if not, grab them.
             if( !($cache = $catalog->getMemcachedVar("holdingID" . $thisID)) || !isset($cache["CACHED_INFO"]["holding"]) ) {
                 $cachedItems = $driver->getCachedItems();
-                if( $cache && isset($cache["CACHED_INFO"]) && isset($cache["CACHED_INFO"]["CHANGES_TO_MAKE"]) ) {
-                    $cachedItems["CHANGES_TO_MAKE"] = $cache["CACHED_INFO"]["CHANGES_TO_MAKE"];
-                }
                 $cache = ["CACHED_INFO" => $cachedItems];
                 $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
                 $catalog->setMemcachedVar("holdingID" . $thisID, $cache, $time);
             }
             $cache = $catalog->getMemcachedVar("holdingID" . $thisID);
-            if( !isset($cache["CACHED_INFO"]["processedHoldings"]) || isset($cache["CACHED_INFO"]["CHANGES_TO_MAKE"]) ) {
+            // see if there are any status updates we are supposed to be making
+            $changesToMake = false;
+            if( $changes = $catalog->getMemcachedVar("updatesID" . $thisID) ) {
+                foreach( $changes as $key => $thisChange ) {
+                    // if they've already been taken care of, ignore them
+                    $changesToMake |= !$thisChange["handled"];
+                }
+            }
+            if( !isset($cache["CACHED_INFO"]["processedHoldings"]) || $changesToMake ) {
                 $holdings = $driver->getRealTimeHoldings();
                 $cache = $catalog->getMemcachedVar("holdingID" . $thisID);
                 $cache["CACHED_INFO"]["processedHoldings"] = $holdings;

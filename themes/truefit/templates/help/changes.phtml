@@ -54,8 +54,8 @@
         <div>
           <ul>
             <li>Back by popular demand: the Limit to Available filter for searches! Due to circumstances beyond our control, this option disappeared from recent versions of the catalog. We've been able to re-introduce it in this version of the catalog, so enjoy!</li>
-            <li>Language tags are now shown for non-English materials. This should help patrons to find items in their preferred languages when placing holds.</li>
-            <li>Placing holds on items will now remove them from your book cart. This is now more closely aligned to the book cart behavior in previous versions of the catalog.</li>
+            <li>Language tags are now shown for non-English materials. This should help patrons to find items in their preferred languages when placing <?=$this->transEsc('holds_lowercase')?>.</li>
+            <li>Placing <?=$this->transEsc('holds_lowercase')?> on items will now remove them from your book cart. This is now more closely aligned to the book cart behavior in previous versions of the catalog.</li>
           </ul>
         </div>
         <br><div class="privacyHeader">Library Catalog v2.0.1 (May 31, 2018)</div><br>
@@ -100,7 +100,7 @@
         <br><div class="privacyHeader">October 9, 2017</div><br>
         <div>
           <ul>
-            <li>Holds and checked out items are now updated more frequently without the need to log out of your account and log back in.</li>
+            <li><?=$this->transEsc('holds_uppercase')?> and checked out items are now updated more frequently without the need to log out of your account and log back in.</li>
             <li>A "Refresh Checkouts" button has been added to allow you to update your Checkout data as needed.  This is useful if you recently renewed an item but the page has not been updated to reflect this renewal.</li>
           </ul>
         </div>
@@ -115,7 +115,7 @@
         <div>
           <ul>
             <li>You can now see the total number of people waiting for a title to become available.</li>
-            <li>An optional setting has been added to your Account Profile that lets you choose between viewing physical and e-content items in two separate lists or together in one list (default) on your Checked Out and Holds pages.  To change this setting, go to Account --> Profile and look for the option labeled "E-Content Checkouts and Holds."</li>
+            <li>An optional setting has been added to your Account Profile that lets you choose between viewing physical and e-content items in two separate lists or together in one list (default) on your Checked Out and <?=$this->transEsc('Holds')?> pages.  To change this setting, go to Account --> Profile and look for the option labeled "E-Content Checkouts and <?=$this->transEsc('Holds')?>."</li>
           </ul>
         </div>
         <br><div class="privacyHeader">August 14, 2017</div><br>
@@ -146,10 +146,10 @@
         </ol>
         <p>If you have done all of the above and you are still not receiving notice emails, please contact your local library.</p>
       </li>
-      <li><span class="privacyHeader">What's the difference between placing a Hold, placing a Request, and adding a title to my Book Cart?</span>
+      <li><span class="privacyHeader">What's the difference between placing a <?=$this->transEsc('hold_uppercase')?> and adding a title to my Book Cart?</span>
         <ul>
-          <li>"Hold" and "Request" are interchangeable terms.  When you click the "Hold" button in the Library Catalog, you are asking your library to set aside a copy of a specific title for you when it becomes available.</li>
-          <li>Your Book Cart allows you to store interesting titles until you are ready to take bulk actions on them.  For example, you can select specific titles or all titles in your Book Cart and place holds on them by clicking the "Hold" button.  You can also organize titles from your Book Cart into custom Lists where you can easily find them later.</li>
+          <li>When you click the "<?=$this->transEsc('hold_button_place_hold')?>" button in the Library Catalog, you are asking your library to set aside a copy of a specific title for you when it becomes available.</li>
+          <li>Your Book Cart allows you to store interesting titles until you are ready to take bulk actions on them.  For example, you can select specific titles or all titles in your Book Cart and place requests for them by clicking the "<?=$this->transEsc('hold_button_place_hold')?>" button.  You can also organize titles from your Book Cart into custom Lists where you can easily find them later.</li>
         </ul>
       </li>
       <li><span class="privacyHeader">How can I change my search type (e.g. from Keyword to Title or Author)?</span>

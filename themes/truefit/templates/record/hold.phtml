@@ -1,12 +1,12 @@
 <?=$this->flashmessages(false)?>
 <? $showWarning = $this->hasVolumesTitles || $this->localCopyTitles; ?>
-<h2><?=$this->transEsc($showWarning ? "Some Holds Cannot Be Placed" : (($this->changePickup?"Change ":"")."Pickup Location"))?></h2>
+<h2><?=$this->transEsc($showWarning ? ("Some " . $this->transEsc("holds_uppercase") . " Cannot Be Placed") : (($this->changePickup?"Change ":"")."Pickup Location"))?></h2>
 <span class="backupDialogLabel" style="display:none"><?=$this->transEsc("Pickup Location")?></span>
 <div class="hold-form">
   <span class="holdWarning" style="display:<?=($showWarning ? "inline" : "none")?>">
     <? if( $this->hasVolumesTitles ): ?>
       <div class="EIN-col-m-12" style="text-align:left;padding-bottom:20px">
-        <div class="EIN-col-m-12" style="font-size:16px;font-weight:700">Additional information is needed to complete your request for the following titles. Please place a hold on them individually to select your desired volume:</div>
+        <div class="EIN-col-m-12" style="font-size:16px;font-weight:700">Additional information is needed to complete your request for the following titles. Please place a <?=$this->transEsc("hold_lowercase")?> on them individually to select your desired volume:</div>
         <? foreach( $this->hasVolumesTitles as $thisTitle ): ?>
           <div class="EIN-col-m-12" style="padding-left:20px"><?=urldecode(explode("|", $thisTitle, 2)[1])?></div>
         <? endforeach; ?>      
@@ -25,7 +25,7 @@
     <? endif; ?>
     <? if( $this->titles ): ?>
       <div class="EIN-col-m-12" style="text-align:left;padding-bottom:20px">
-        <div class="EIN-col-m-12" style="font-size:16px;font-weight:700">The following titles are able to be held. Please choose a pickup location on the next page:</div>
+        <div class="EIN-col-m-12" style="font-size:16px;font-weight:700">You can place a <?=$this->transEsc("hold_lowercase")?> on the following titles. Please choose a pickup location on the next page:</div>
         <? foreach( $this->titles as $thisTitle ): ?>
           <div class="EIN-col-m-12" style="padding-left:20px"><?=urldecode(explode("|", $thisTitle, 2)[1])?></div>
         <? endforeach; ?>      
@@ -111,7 +111,7 @@
             <input type="hidden" name="holdTitles[]" value="<?=$title?>">
           <? endforeach; ?>
         <? endif; ?>
-        <span id="holdLocationError" class="formError">You must select a pickup location for your hold.</span>
+        <span id="holdLocationError" class="formError">You must select a pickup location for your <?=$this->transEsc("hold_lowercase")?>.</span>
         <button class="btn-default btn-wide"<?=(isset($this->preferredLibrary)?"":" disabled")?>>Okay</button>
       </form>
     <? endif; ?>

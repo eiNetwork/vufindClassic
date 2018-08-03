@@ -442,7 +442,7 @@ class AjaxController extends AbstractBase
                 }
                 
                 // fix the hold message
-                $holdMessage = "You are hold #" . ($thisHold["position"] + 1) . " on " . $copyCount . " cop" . (($copyCount == 1) ? "y" : "ies");
+                $holdMessage = "You are request #" . ($thisHold["position"] + 1) . " on " . $copyCount . " cop" . (($copyCount == 1) ? "y" : "ies");
 
                 $statuses[] = [
                     'id'                   => $record[0]['id'],
@@ -469,7 +469,7 @@ class AjaxController extends AbstractBase
 
             $statuses[] = [
                 'id'                   => $missingId,
-                'hold_status_message'  => "Unable to load hold status"
+                'hold_status_message'  => "Unable to load request status"
             ];
         }
 

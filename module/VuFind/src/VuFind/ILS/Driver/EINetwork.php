@@ -1114,7 +1114,7 @@ class EINetwork extends Sierra2 implements
         if( $profile["preferredlibrarycode"] == null || $profile["preferredlibrarycode"] == "none" ) {
             $notifications[] = ["attnSubject" => "<span class=\"messageWarning\">Please choose a preferred library.</span> Click here to learn how.", 
                                 "subject" => "Choose a preferred library", 
-                                "message" => "You have not yet chosen a preferred library.  Doing so will make requesting holds on physical items much easier, since your preferred library is used as the default pickup " .
+                                "message" => "You have not yet chosen a preferred library.  Doing so will make placing requests on physical items much easier, since your preferred library is used as the default pickup " .
                                              "location.  You can assign a preferred library on the <a class=\"messageLink\" href=\"/MyResearch/Profile\">profile page</a>."];
         }
         if( date_diff(date_create_from_format("m-d-y", $profile["expiration"]), date_create(date("Y-m-d")))->invert == 0 ) {
@@ -1766,13 +1766,13 @@ class EINetwork extends Sierra2 implements
                 //Hold was successful
                 if (strpos($responseText,'was successful') > 1 && strpos($responseText,'You will be notified when the status of this item says Ready For Pickup') > 0) {
                     $hold_result['success'] = true;
-                    $hold_result['message'] = '<i class=\'fa fa-info\'></i>Your hold was placed successfully';
+                    $hold_result['message'] = '<i class=\'fa fa-info\'></i>Your request was placed successfully';
                     $reason = '';
                     //Check for reasons why a hold is not successful
                 } else {
-                    if (strpos($responseText,'Request denied - already on hold for or checked out to you') > 1) {
+                    if (strpos($responseText,'Request denied - already requested or checked out to you') > 1) {
                         $hold_result['success'] = false;
-                        $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Already on hold or checked out';
+                        $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Already requested or checked out';
                     } elseif  (strpos($responseText,'No requestable items are available') > 1) {
                         $hold_result['success'] = false;
                         $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There are no requestable items available';
@@ -1788,13 +1788,13 @@ class EINetwork extends Sierra2 implements
                     // generic error message
                     } else {
                         $hold_result['success'] = false;
-                        $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your hold';
+                        $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your request';
                     }
                 }
             }	
         }else{
             $hold_result['success'] = false;
-            $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your hold';
+            $hold_result['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>There was an error placing your request';
         }
         return $hold_result;
     }

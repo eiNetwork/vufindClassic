@@ -263,7 +263,7 @@
         else:
           if( $isOverDrive ) {
             $hashKey = json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
-            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
+            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : $this->transEsc("hold_button_place_hold")) . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
             $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";
@@ -280,7 +280,7 @@
                 }
             }
         }
-        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : "Hold") : ($this->isTitleHeld ? "Holding" : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : ($accessOnline ? "Access Online" : (($this->libraryOnly || $checkinRecords) ? "In Library Only" : "Unable to Hold")))))));
+        $holdLabel = ($this->canHold ? (($holdableCopyHere && !$hasVolumes) ? "It's Here" : $this->transEsc("hold_button_place_hold")) : ($this->isTitleHeld ? $this->transEsc("hold_button_holding") : ($this->canCheckOut ? "Check Out" : ($this->isTitleCheckedOut ? "Checked Out" : ($isOverDrive ? "Learn More" : ($accessOnline ? "Access Online" : (($this->libraryOnly || $checkinRecords) ? "In Library Only" : $this->transEsc("hold_button_cant_hold"))))))));
         if( $this->isTitleCheckedOut && $isOverDrive ):
           $holdLabel .= "<i class=\"fa fa-caret-down\"></i>";
         elseif( $isOverDrive && $holdLabel == "Learn More" ):

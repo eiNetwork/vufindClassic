@@ -864,6 +864,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->cancelOverDriveHold($overDriveID, $holds["patron"]);
@@ -873,7 +876,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisCancelId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisCancelId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "cancel", "title", $thisHold["item_id"], null);
                         unset($holds["details"][$key]);
@@ -917,6 +920,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->freezeOverDriveHold($overDriveID, $holds["patron"], $doFreeze);
@@ -931,7 +937,7 @@ class EINetwork extends Sierra2 implements
 /**/
 
             foreach( $holds["details"] as $key => $thisFreezeId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisFreezeId ) { 
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "freeze", "title", isset($thisHold["item_id"]) ? $thisHold["item_id"] : $thisHold["id"], null, ($doFreeze ? "on" : "off"));
                         unset($holds["details"][$key]);
@@ -974,6 +980,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->updateOverDriveHold($overDriveID, $holds["patron"], $holds["newEmail"]);
@@ -983,7 +992,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisUpdateId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisUpdateId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "update", "title", $thisHold["item_id"], $holds["newLocation"]);
                         unset($holds["details"][$key]);

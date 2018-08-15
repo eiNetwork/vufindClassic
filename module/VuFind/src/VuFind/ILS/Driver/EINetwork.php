@@ -1079,8 +1079,9 @@ class EINetwork extends Sierra2 implements
                 $fines = [];
             }
             foreach($fines as $i => $thisFine) {
-                $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $thisFine->invoice . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->itemCharge . "\">" . 
-                        "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $thisFine->itemCharge * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";
+                $adjustedValue = $thisFine->itemCharge + $thisFine->processingFee + $thisFine->billingFee - $thisFine->amountPaid;
+                $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $adjustedValue . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->invoice . "\">" . 
+                        "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $adjustedValue * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";
                 if( $thisFine->itemTitle && $thisFine->chargeType == "Overdue" ) {
                     $msg .= "<div class=\"bold\">Overdue Item Returned</div><div style=\"margin-left:20px;text-indent:-20px\">" . str_replace("'", "\'", $thisFine->itemTitle) . "</div>" .
                             "<div><span class=\"bold\">Date Due:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDueDate, 0, 10))) . "</div>" .
@@ -1097,14 +1098,14 @@ class EINetwork extends Sierra2 implements
                 }
                 $msg .= "</td></tr>";
                 $user1 .= $thisFine->invoice . ":";
-                $total += $thisFine->itemCharge;
+                $total += $adjustedValue;
             }
 
             $msg .= "</table><input type=\"hidden\" name=\"amount\" value=\"" . sprintf("%.2f", $total * 0.01) . "\">" . 
                     "<input type=\"hidden\" name=\"user1\" value=\"" . $user1 . "\"><div class=\"center\"><div id=\"minimumPayment\" style=\"color:#f00;font-weight:700\">For payments less than $2.00, please see library staff.</div><br><span class=\"bold\">Total Selected:</span><span id=\"finesTotal\">" . sprintf("%.2f", $total * 0.01) . "</span>" . 
                     "<button class=\"btn-default btn-wide\" id=\"paypalButton\" style=\"margin:15px;cursor:default\">Pay Online</button></div><div>Clicking this button will take you to Paypal\'s secure server to enter your payment info.</div>" . 
                     "</form><script type=\"text/javascript\">function checkFees() { var total = 0; var user1 = \"\";" . 
-                    " $(\'input[name=selectedFees]\').each( function() { total += $(this).is(\":checked\") ? parseInt($(this).attr(\"id\")) : 0; user1 += $(this).is(\":checked\") ? ($(this).attr(\"value\") + \":\") : \"\" } ); " . 
+                    " $(\'input[name=selectedFees]\').each( function() { total += $(this).is(\":checked\") ? parseInt($(this).attr(\"value\")) : 0; user1 += $(this).is(\":checked\") ? ($(this).attr(\"id\") + \":\") : \"\" } ); " . 
                     "$(\"input[name=amount]\").attr(\"value\", total * 0.01); $(\"#finesTotal\").html(\"$\" + (total * 0.01).toFixed(2)); $(\"input[name=user1]\").attr(\"value\", user1); if( total >= parseInt($(\'input[name=payAmount]\').attr(\"value\")) ) { " . 
                     "$(\'#paypalButton\').prop(\"disabled\", false); $(\'#minimumPayment\').css(\"display\", \"none\"); } else " . 
                     "{ $(\'#paypalButton\').prop(\"disabled\", true); $(\'#minimumPayment\').css(\"display\", \"initial\"); } } setTimeout(checkFees, 10)</script>";

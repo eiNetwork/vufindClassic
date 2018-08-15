@@ -3,17 +3,8 @@
   $memcached = new Memcached();
   $memcached->addServer('localhost', 11211);
 
-  // grab the start time for our circ_trans query
-  $circTransTime = $memcached->get("lastCircTransTime");
-  // if it's not there, go back to the time the last extract ran (8:00PM yesterday)
-  if( !$circTransTime ) {
-    $circTransTime = strtotime("today 20:00:00");
-    if( $circTransTime > time() ) {
-      $circTransTime = strtotime("yesterday 20:00:00");
-    }
-    $circTransTime = strftime("%Y-%m-%d %T", $circTransTime); 
-  }
-  $memcached->set("lastCircTransTime", strftime("%Y-%m-%d %T"));
+  // grab the start time for our circ_trans query (the time the last extract ran - 8:00PM yesterday)
+  $circTransTime = strftime("%Y-%m-%d %T", strtotime("yesterday 20:00:00")); 
 
   // calculate the check digit for a given bib number
   function getCheckDigit($id)
@@ -48,13 +39,16 @@
     $cacheKey = "holdingID.b" . $thisRow["bnum"] . getCheckDigit($thisRow["bnum"]);
     $cachedStatus = $memcached->get($cacheKey);
     if( !$cachedStatus ) {
-      $cachedStatus = ["CACHED_INFO" => ["CHANGES_TO_MAKE" => []]];
+      $cachedStatus = ["CACHED_INFO" => []];
     } else if( !isset($cachedStatus["CACHED_INFO"]) ) {
-      $cachedStatus["CACHED_INFO"] = ["CHANGES_TO_MAKE" => []];
-    } else if( !isset($cachedStatus["CACHED_INFO"]["CHANGES_TO_MAKE"]) ) {
-      $cachedStatus["CACHED_INFO"]["CHANGES_TO_MAKE"] = [];
+      $cachedStatus["CACHED_INFO"] = [];
     }
-    return ["key" => $cacheKey, "value" => $cachedStatus];
+    $updateKey = "updatesID.b" . $thisRow["bnum"] . getCheckDigit($thisRow["bnum"]);
+    $updateStatus = $memcached->get($updateKey);
+    if( !$updateStatus ) {
+      $updateStatus = [];
+    }
+    return ["key" => $cacheKey, "value" => $cachedStatus, "updateKey" => $updateKey, "updateValue" => $updateStatus];
   }
 
   // find connection details
@@ -109,13 +103,38 @@
     // item is checked out, change it to unavailable
     if( $thisRow["op_code"] == "o" ) {
       $cache = getCache($thisRow);
-      $cache["value"]["CACHED_INFO"]["CHANGES_TO_MAKE"][$thisRow["inum"]] = ["status" => $thisRow["istatus"], "duedate" => $thisRow["due_date_gmt"]];
-      $memcached->set($cache["key"], $cache["value"]);
+      $thisChange = ["status" => $thisRow["istatus"], "duedate" => $thisRow["due_date_gmt"], "inum" => $thisRow["inum"], "bnum" => $thisRow["bnum"], "time" => $thisRow["transaction_gmt"], "handled" => false];
+      // see whether this change has already been handled
+      if( isset($cache["value"]["CACHED_INFO"]["holding"]) ) {
+        foreach( $cache["value"]["CACHED_INFO"]["holding"] as $thisItem ) {
+          // if the item ids match and the due dates match, we've already seen this. flag it as handled
+          if( $thisItem["itemId"] == $thisChange["inum"] ) {
+            $itemDueDate = (isset($thisItem["duedate"]) && ($thisItem["duedate"] != null)) ? $thisItem["duedate"] : "NULL";
+            if( $itemDueDate == strftime("%m-%d-%y", strtotime($thisChange["duedate"])) ) {
+              $thisChange["handled"] = true;
+            }
+          }
+        }
+      }
+      $cache["updateValue"][$thisRow["inum"] . "@" . $thisRow["transaction_gmt"]] = $thisChange;
+      $memcached->set($cache["updateKey"], $cache["updateValue"]);
     // this item has been returned, change it to in transit or available
     } else if( $thisRow["op_code"] == "i" ) {
       $cache = getCache($thisRow);
-      $cache["value"]["CACHED_INFO"]["CHANGES_TO_MAKE"][$thisRow["inum"]] = ["status" => $thisRow["istatus"], "duedate" => "NULL"];
-      $memcached->set($cache["key"], $cache["value"]);
+      $thisChange = ["status" => $thisRow["istatus"], "duedate" => "NULL", "inum" => $thisRow["inum"], "bnum" => $thisRow["bnum"], "time" => $thisRow["transaction_gmt"], "handled" => false];
+      // see whether this change has already been handled
+      if( isset($cache["value"]["CACHED_INFO"]["holding"]) ) {
+        foreach( $cache["value"]["CACHED_INFO"]["holding"] as $thisItem ) {
+          // if the item ids match and the due dates match, we've already seen this. flag it as handled
+          if( $thisItem["itemId"] == $thisChange["inum"] ) {
+            if( !isset($thisItem["duedate"]) || ($thisItem["duedate"] == null) ) {
+              $thisChange["handled"] = true;
+            }
+          }
+        }
+      }
+      $cache["updateValue"][$thisRow["inum"] . "@" . $thisRow["transaction_gmt"]] = $thisChange;
+      $memcached->set($cache["updateKey"], $cache["updateValue"]);
     // this item has been assigned to an item-level hold, add it to the poll table
     } else if( $thisRow["op_code"] == "ni" ) {
       mysqli_query($sqlDB, "insert into pollItems values (" . $thisRow["patron_record_id"] . "," . $thisRow["item_record_id"] . "," . $thisRow["bnum"] . ",\"" . $thisRow["istatus"] . "\") on duplicate key update patron_record_id=" . $thisRow["patron_record_id"]);

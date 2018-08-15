@@ -292,32 +292,30 @@ class EINetwork extends Sierra2 implements
             $results = parent::getHolding($id, $patron);
         }
 
-        // make any updates we are supposed to be making
-        if( isset($cachedInfo["CHANGES_TO_MAKE"]) ) {
-            foreach( $cachedInfo["CHANGES_TO_MAKE"] as $key => $thisChange ) {
-                foreach( $results as $hKey => $thisHolding ) {
-                    if( $thisHolding["itemId"] == $key ) {
-                        if( isset($thisChange["status"]) ) {
-                            $thisHolding["status"] = $thisChange["status"];
+        // make any status updates we are supposed to be making
+        if( $changes = $this->memcached->get("updatesID" . $id) ) {
+            foreach( $changes as $key => $thisChange ) {
+                // if they've already been taken care of, ignore them
+                if( !$thisChange["handled"] ) {
+                    foreach( $results as $hKey => $thisHolding ) {
+                        if( $thisHolding["itemId"] == $thisChange["inum"] ) {
+                            if( isset($thisChange["status"]) ) {
+                                $thisHolding["status"] = $thisChange["status"];
+                            }
+                            if( isset($thisChange["duedate"]) ) {
+                                $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
+                                $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
+                            }
+                            $results[$hKey] = $thisHolding;
                         }
-                        if( isset($thisChange["duedate"]) ) {
-                            $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
-                            $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
-                        }
-                        $results[$hKey] = $thisHolding;
                     }
                 }
-                unset( $cachedInfo["CHANGES_TO_MAKE"][$key] );
             }
-            $cache = $this->memcached->get("holdingID" . $id);
-            if( $cachedInfo["CHANGES_TO_MAKE"] ) {
-                $cache["CACHED_INFO"]["CHANGES_TO_MAKE"] = $cachedInfo["CHANGES_TO_MAKE"];
-            } else {
-                unset($cache["CACHED_INFO"]["CHANGES_TO_MAKE"]);
+            if( ($cache = $this->memcached->get("holdingID" . $id)) && isset($cache["CACHED_INFO"]["holding"]) ) {
+                $cache["CACHED_INFO"]["holding"] = $results;
+                $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+                $this->memcached->set("holdingID" . $id, $cache, $time);
             }
-            $cache["CACHED_INFO"]["holding"] = $results;
-            $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
-            $this->memcached->set("holdingID" . $id, $cache, $time);
         }
 
         // add in the extra details we need
@@ -866,6 +864,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->cancelOverDriveHold($overDriveID, $holds["patron"]);
@@ -875,7 +876,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisCancelId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisCancelId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "cancel", "title", $thisHold["item_id"], null);
                         unset($holds["details"][$key]);
@@ -919,6 +920,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->freezeOverDriveHold($overDriveID, $holds["patron"], $doFreeze);
@@ -933,7 +937,7 @@ class EINetwork extends Sierra2 implements
 /**/
 
             foreach( $holds["details"] as $key => $thisFreezeId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisFreezeId ) { 
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "freeze", "title", isset($thisHold["item_id"]) ? $thisHold["item_id"] : $thisHold["id"], null, ($doFreeze ? "on" : "off"));
                         unset($holds["details"][$key]);
@@ -976,6 +980,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->updateOverDriveHold($overDriveID, $holds["patron"], $holds["newEmail"]);
@@ -985,7 +992,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisUpdateId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisUpdateId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "update", "title", $thisHold["item_id"], $holds["newLocation"]);
                         unset($holds["details"][$key]);

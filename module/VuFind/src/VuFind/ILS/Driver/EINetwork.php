@@ -1460,7 +1460,7 @@ class EINetwork extends Sierra2 implements
 
         //The history is active if there is an opt out link.
         $historyActive = (strpos($pageContents, 'OptOut') > 0);
-        return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles, 'total_records' => $total_records);
+        return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles, 'total_records' => $total_records, 'page' => $page);
     }
 
     /**

@@ -98,11 +98,17 @@
                            "left join sierra_view.bib_view on (circ_trans.bib_record_id=bib_view.id) " . 
                            "left join sierra_view.statistic_group on (circ_trans.stat_group_code_num=statistic_group.code_num) " . 
                       "where transaction_gmt >= '" . $circTransTime . "' " . 
-                      "order by transaction_gmt asc"); 
+                      "order by transaction_gmt desc"); 
   while($thisRow = pg_fetch_array($results)) {
+    $cache = getCache($thisRow);
+
+    // make sure we don't have a more current status for this item
+    if( isset($cache["updateValue"][$thisRow["inum"]]) && $cache["updateValue"][$thisRow["inum"]]["time"] > $thisRow["transaction_gmt"] ) {
+      continue;
+    }
+
     // item is checked out, change it to unavailable
     if( $thisRow["op_code"] == "o" ) {
-      $cache = getCache($thisRow);
       $thisChange = ["status" => $thisRow["istatus"], "duedate" => $thisRow["due_date_gmt"], "inum" => $thisRow["inum"], "bnum" => $thisRow["bnum"], "time" => $thisRow["transaction_gmt"], "handled" => false];
       // see whether this change has already been handled
       if( isset($cache["value"]["CACHED_INFO"]["holding"]) ) {
@@ -116,11 +122,10 @@
           }
         }
       }
-      $cache["updateValue"][$thisRow["inum"] . "@" . $thisRow["transaction_gmt"]] = $thisChange;
+      $cache["updateValue"][$thisRow["inum"]] = $thisChange;
       $memcached->set($cache["updateKey"], $cache["updateValue"]);
     // this item has been returned, change it to in transit or available
     } else if( $thisRow["op_code"] == "i" ) {
-      $cache = getCache($thisRow);
       $thisChange = ["status" => $thisRow["istatus"], "duedate" => "NULL", "inum" => $thisRow["inum"], "bnum" => $thisRow["bnum"], "time" => $thisRow["transaction_gmt"], "handled" => false];
       // see whether this change has already been handled
       if( isset($cache["value"]["CACHED_INFO"]["holding"]) ) {
@@ -133,7 +138,7 @@
           }
         }
       }
-      $cache["updateValue"][$thisRow["inum"] . "@" . $thisRow["transaction_gmt"]] = $thisChange;
+      $cache["updateValue"][$thisRow["inum"]] = $thisChange;
       $memcached->set($cache["updateKey"], $cache["updateValue"]);
     // this item has been assigned to an item-level hold, add it to the poll table
     } else if( $thisRow["op_code"] == "ni" ) {

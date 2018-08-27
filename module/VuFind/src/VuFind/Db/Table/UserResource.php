@@ -150,7 +150,7 @@ class UserResource extends Gateway
         // Now build the where clause to figure out which rows to remove:
         $callback = function ($select) use ($resource_id, $user_id, $list_id) {
             $select->where->equalTo('user_id', $user_id);
-            if (null !== $resource_id) {
+            if ( !is_null($resource_id) ) {
                 if (!is_array($resource_id)) {
                     $resource_id = [$resource_id];
                 }
@@ -161,7 +161,7 @@ class UserResource extends Gateway
             // some tags have a null $list_id value. In the case of user_resource
             // rows, however, every row has a non-null $list_id value, so the
             // two cases are equivalent and may be handled identically.
-            if (null !== $list_id && true !== $list_id) {
+            if ( !is_null($list_id) && true !== $list_id) {
                 $select->where->equalTo('list_id', $list_id);
             }
         };

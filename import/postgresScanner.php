@@ -101,6 +101,34 @@
   // get sql connection
   $sqlDB = mysqli_connect($mysqlProperties["host"], $mysqlProperties["user"], $mysqlProperties["password"], $mysqlProperties["postgresScannerDbname"]);
 
+  // query for order records
+  $orderRecords = [];
+  $results = pg_query("select bv.record_num as bnum, " . 
+                             "copies, " .
+                             "location_code, " . 
+                             "location_name.name as name " . 
+                      "from sierra_view.order_view as ov " . 
+                           "join sierra_view.bib_record_order_record_link as brorl on (brorl.order_record_id=ov.id) " . 
+                           "join sierra_view.bib_view as bv on (brorl.bib_record_id=bv.id) " . 
+                           "join sierra_view.order_record_cmf as orc on (orc.order_record_id=ov.id) " . 
+                           "join sierra_view.location on (location_code=location.code) " . 
+                           "join sierra_view.location_name on (location_id=location.id) " . 
+                      "where ov.received_date_gmt is null " . 
+                            "and location_code != 'multi' " . 
+                            "and ov.ocode4 != 'n' " .
+                      "order by bv.record_num, location_code");
+  while($thisRow = pg_fetch_array($results)) {
+      // add the new row if we haven't seen this bib before
+      if( !isset($orderRecords[$thisRow["bnum"]]) ) {
+          $orderRecords[$thisRow["bnum"]] = [];
+      }
+      // add the new location code if we haven't seen it before
+      if( !isset($orderRecords[$thisRow["bnum"]][$thisRow["location_code"]]) ) {
+          $orderRecords[$thisRow["bnum"]][$thisRow["location_code"]] = ["copies" => 0, "location" => $thisRow["name"]];
+      }
+      $orderRecords[$thisRow["bnum"]][$thisRow["location_code"]]["copies"] += $thisRow["copies"];
+  }  
+
   // query for identity and lib has records
   $checkinRecords = [];
   $results = pg_query("select location_name.name, " . 
@@ -285,7 +313,7 @@
       $holds[$thisRow["record_num"]] = $thisRow["num"];
   }  
 
-  // iterate over the bibs and dump the results out
+  // iterate over the checkin record bibs and dump the results out
   foreach( $checkinRecords as $bnum => $bibCheckins ) {
     $firstTime = true;
     echo $bnum . ":\"numberOfHolds\":";
@@ -296,6 +324,14 @@
     } else {
       echo "0";
     }
+    echo ",\"orderRecords\":";
+    // if this bib has order records, add them here and remove them from the list
+    if( isset($orderRecords[$bnum]) ) {
+      echo json_encode($orderRecords[$bnum]);
+      unset($orderRecords[$bnum]);
+    } else {
+      echo "{}";
+    }
     echo ",\"checkinRecords\":[";
     // iterate over the holding locations
     foreach( $bibCheckins as $code => $value ) {
@@ -305,8 +341,21 @@
     echo "]\n";
   }
 
-  // everything in this list has holds but no checkin records
+  // iterate over the order record bibs and dump the results out
+  foreach( $orderRecords as $bnum => $bibCheckins ) {
+    echo $bnum . ":\"numberOfHolds\":";
+    // if this bib has order records AND holds on it, show the holds here and remove them from the list
+    if( isset($holds[$bnum]) ) {
+      echo $holds[$bnum];
+      unset($holds[$bnum]);
+    } else {
+      echo "0";
+    }
+    echo ",\"orderRecords\":" . json_encode($orderRecords[$bnum]) . ",\"checkinRecords\":[]\n";
+  }
+
+  // everything in this list has holds but no checkin records or order records
   foreach( $holds as $bnum => $bibHolds ) {
-    echo $bnum . ":\"numberOfHolds\":" . $bibHolds . ",\"checkinRecords\":[]\n";
+    echo $bnum . ":\"numberOfHolds\":" . $bibHolds . ",\"orderRecords\":{},\"checkinRecords\":[]\n";
   }
 ?>

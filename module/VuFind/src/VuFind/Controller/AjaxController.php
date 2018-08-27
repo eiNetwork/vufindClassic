@@ -247,7 +247,30 @@ class AjaxController extends AbstractBase
 
         foreach($ids as $thisID) {
             $driver = $this->getRecordLoader()->load( $thisID );
-            $holdings = $driver->getRealTimeHoldings();
+            // see if we have cached holdings already. if not, grab them.
+            if( !($cache = $catalog->getMemcachedVar("holdingID" . $thisID)) || !isset($cache["CACHED_INFO"]["holding"]) ) {
+                $cachedItems = $driver->getCachedItems();
+                $cache = ["CACHED_INFO" => $cachedItems];
+                $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+                $catalog->setMemcachedVar("holdingID" . $thisID, $cache, $time);
+            }
+            $cache = $catalog->getMemcachedVar("holdingID" . $thisID);
+            // see if there are any status updates we are supposed to be making
+            $changesToMake = false;
+            if( $changes = $catalog->getMemcachedVar("updatesID" . $thisID) ) {
+                foreach( $changes as $key => $thisChange ) {
+                    // if they've already been taken care of, ignore them
+                    $changesToMake |= !$thisChange["handled"];
+                }
+            }
+            if( !isset($cache["CACHED_INFO"]["processedHoldings"]) || $changesToMake ) {
+                $holdings = $driver->getRealTimeHoldings();
+                $cache = $catalog->getMemcachedVar("holdingID" . $thisID);
+                $cache["CACHED_INFO"]["processedHoldings"] = $holdings;
+                $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+                $catalog->setMemcachedVar("holdingID" . $thisID, $cache, $time);
+            }
+            $holdings = $cache["CACHED_INFO"]["processedHoldings"];
             $items = [];
             foreach($holdings as $holding) {
                 $items = array_merge($items, $holding["items"]);
@@ -341,6 +364,7 @@ class AjaxController extends AbstractBase
                 'id'                   => $missingId,
                 'availability'         => 'false',
                 'availability_message' => str_replace("<countText>", "0 copies", $messages[$isOneClick ? 'oneclick' : ($accessOnline ? 'online' : 'unavailable')]),
+                'availability_details' => false,
                 'location'             => $this->translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -364,30 +388,6 @@ class AjaxController extends AbstractBase
 
         // Done
         return $this->output($statuses, self::STATUS_OK);
-    }
-
-
-    /**
-     * Preload Item Statuses
-     *
-     * This is responsible for preloading the information for a
-     * collection of items. This is to optimize our API calls for loading items across
-     * multiple bibIDs.
-     *
-     * @return \Zend\Http\Response
-     * @author Chris Delis <cedelis@uillinois.edu>
-     * @author Tuan Nguyen <tuan@yorku.ca>
-     */
-    protected function preloadItemStatusesAjax()
-    {
-        $this->writeSession();  // avoid session write timing bug
-        $catalog = $this->getILS();
-        $ids = $this->params()->fromQuery('itemID') ? $this->params()->fromQuery('itemID') : [];
-
-        $preloadResults = $catalog->preloadItems($ids);
-
-        // Done
-        return $this->output(['itemIDs' => $ids], self::STATUS_OK);
     }
 
 
@@ -766,20 +766,44 @@ class AjaxController extends AbstractBase
         $currentLocation = $catalog->getCurrentLocation();
         $callNumbers = $locations = $volumeNumbers = [];
         $use_unknown_status = $available = false;
-        $totalItems = 0;
+        $ownedItems = 0;
+        $orderedItems = 0;
         $availableItems = 0;
         $libraryOnly = false;
+        $availableLocations = [];
+        $onOrderLocations = [];
+        $unavailableLocations = [];
+        $onOrder = false;
         foreach ($record as $info) {
-             // Find an available copy
+            // Find an available copy
             if ($info['availability']) {
                 $available = true;
                 $availableItems += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
-            }
-            if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
+                if( !$isOverDrive ) {
+                    if( !isset($availableLocations[$info['branchName']]) ) {
+                        $availableLocations[$info['branchName']] = 0;
+                    }
+                    $availableLocations[$info['branchName']] += (isset($info["copiesAvailable"])) ? $info["copiesAvailable"] : 1;
+                }
+            } else if (isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i'))) {
                 $onOrder = true;
+                if( !isset($onOrderLocations[$info['branchName']]) ) {
+                    $onOrderLocations[$info['branchName']] = 0;
+                }
+                $onOrderLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
+            } else if( !$isOverDrive && $info['location'] != "CHECKIN_RECORDS" ) {
+                if( !isset($unavailableLocations[$info['branchName']]) ) {
+                    $unavailableLocations[$info['branchName']] = 0;
+                }
+                $unavailableLocations[$info['branchName']] += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
             }
-            //$totalItems += ((isset($item["isOverDrive"]) && $item["isOverDrive"]) | ($onOrder)) ? $item["copiesOwned"] : 1;
-            $totalItems += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
+            if( isset($info["copiesOwned"]) ) {
+                if( isset($info['status']) && ((trim($info['status']) == 'order') || (trim($info['status']) == 'i')) ) {
+                    $orderedItems += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
+                } else {
+                    $ownedItems += (isset($info["copiesOwned"])) ? $info["copiesOwned"] : 1;
+                }
+            }
             // Check for a use_unknown_message flag
             if (isset($info['use_unknown_message']) && $info['use_unknown_message'] == true) {
                 $use_unknown_status = true;
@@ -800,6 +824,7 @@ class AjaxController extends AbstractBase
                 $libraryOnly = true;
             }
         }
+        $totalItems = $ownedItems + $orderedItems;
 
         // Determine call number string based on findings:
         $callNumber = $this->pickValue(
@@ -823,16 +848,17 @@ class AjaxController extends AbstractBase
                 $checkinRecords |= isset($thisRecord["libHas"]);
             }
         }
-        $availability_message = $accessOnline ? ($messages['online'] . (($totalItems > 0) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
-        if( !$accessOnline || ($totalItems > 0) ) {
+        $availability_message = $accessOnline ? ($messages['online'] . ((($ownedItems + $orderedItems) > 0) ? "<br><div style=\"height:5px\"></div>" : "")) : "";
+        if( !$accessOnline || (($ownedItems + $orderedItems) > 0) ) {
             $availability_message .= $use_unknown_status
                 ? $messages['unknown']
-                : $messages[($itsHere ? 'itshere' :
-                             ($libraryonly ? 'inlibrary' : 
-                              ($available ? 'available' : 
-                               ($onOrder ? 'order' : 
+                : $messages[(($onOrder && ($ownedItems == 0)) ? 'order' : 
+                             ($itsHere ? 'itshere' :
+                              ($libraryonly ? 'inlibrary' : 
+                               ($available ? 'available' : 
                                 ($isOneClick ? 'oneclick' : 'unavailable')))))];
-            $numberOfHolds = $item["isOverDrive"] ? $item["numberOfHolds"] : $catalog->getNumberOfHoldsOnRecord($bib);
+            $cache = $catalog->getMemcachedVar("holdingID" . $bib)["CACHED_INFO"];
+            $numberOfHolds = ($cache && !$cache["doUpdate"]) ? $cache["numberOfHolds"] : ($item["isOverDrive"] ? $item["numberOfHolds"] : 0);
             $waitlistText = $numberOfHolds ? ("<br><i class=\"fa fa-clock-o\" style=\"padding-right:6px\"></i>" . (($numberOfHolds > 1) ? ($numberOfHolds . " people") : "1 person") . " on waitlist") : "";
             if ($checkinRecords) {
                 $inLibMessage = str_replace("<countText>", (count($record[0]["checkinRecords"]) . " location" . ((count($record[0]["checkinRecords"]) == 1) ? "" : "s")) , $messages['inlibrary']);
@@ -844,16 +870,16 @@ class AjaxController extends AbstractBase
                     }
                     $serialCheckinRecords |= isset($thisRecord["libHas"]);
                 }
-                if( $totalItems > 0 ) {
-                    $inLibMessage = [$inLibMessage, str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message)];
+                if( $ownedItems > 0 ) {
+                    $inLibMessage = [$inLibMessage, str_replace("<countText>", (($ownedItems > 0) ? ($availableItems . " of ") : "") . $ownedItems . " cop" . (($ownedItems == 1) ? "y" : "ies") . $waitlistText, $availability_message)];
                 }
                 $availability_message = $inLibMessage;
-            } else if (isset($onOrder) && $onOrder && ($availableItems == 0)) {
-                $availability_message = str_replace("<countText>", ($totalItems . " cop" . (($totalItems == 1) ? "y" : "ies")) . $waitlistText, $availability_message);
             } else if( isset($item["isOverDrive"]) && $item["isOverDrive"] && $item["copiesOwned"] == 999999 ) {
                 $availability_message = str_replace("<countText>", "Always Available", $availability_message);
+            } else if( $ownedItems == 0 && $orderedItems > 0 ) {
+                $availability_message = str_replace("<countText>", $orderedItems . " cop" . (($orderedItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
             } else {
-                $availability_message = str_replace("<countText>", (($totalItems > 0) ? ($availableItems . " of ") : "") . $totalItems . " cop" . (($totalItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
+                $availability_message = str_replace("<countText>", (($ownedItems > 0) ? ($availableItems . " of ") : "") . $ownedItems . " cop" . (($ownedItems == 1) ? "y" : "ies") . $waitlistText, $availability_message);
                 if( isset($itsHere) ) {
                     $availability_message = str_replace("<itsHereText>", $itsHere["shelvingLocation"] . ((isset($itsHere["shelvingLocation"]) && isset($itsHere["callnumber"])) ? "<br>" : "") . $itsHere["callnumber"] . (isset($itsHere["number"]) ? (" " . $itsHere["number"]) : ""), $availability_message);
                 }
@@ -864,12 +890,12 @@ class AjaxController extends AbstractBase
                 } else if( isset($atPreferred) ) {
                     $availability_message = str_replace("<modifyAvailableText>", " at your preferred Libraries!", $availability_message);
                 } else if( $currentLocation ) {
-                    $availability_message = str_replace("<modifyAvailableText>", " at other Libraries", $availability_message);
+                    $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " other Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
                 } else {
-                    $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+                    $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
                 }
             } else {
-                $availability_message = str_replace("<modifyAvailableText>", "", $availability_message);
+                $availability_message = str_replace("<modifyAvailableText>", " at " . count($availableLocations) . " Librar" . ((count($availableLocations) == 1) ? "y" : "ies"), $availability_message);
             }
         }
 
@@ -890,6 +916,7 @@ class AjaxController extends AbstractBase
             'id' => $record[0]['id'],
             'availability' => ($available ? 'true' : 'false'),
             'availability_message' => $availability_message,
+            'availability_details' => ($availableLocations || $onOrderLocations || $unavailableLocations) ? json_encode(["available" => $availableLocations, "onOrder" => $onOrderLocations, "unavailable" => $unavailableLocations]) : null,
             'location' => htmlentities($location, ENT_COMPAT, 'UTF-8'),
             'locationList' => false,
             'reserve' =>
@@ -912,7 +939,7 @@ class AjaxController extends AbstractBase
         ];
 
         // add the info URL if we need it for overdrive
-        if( isset($item["isOverDrive"]) && $item["isOverDrive"] && ($totalItems == 0) ) {
+        if( isset($item["isOverDrive"]) && $item["isOverDrive"] && ($ownedItems == 0) ) {
           $overDriveInfo["learnMoreURL"] = $driver->getURLs()[0]["url"];
         }
 

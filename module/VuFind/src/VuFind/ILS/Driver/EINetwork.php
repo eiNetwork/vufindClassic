@@ -98,7 +98,7 @@ class EINetwork extends Sierra2 implements
                 return $cachedInfo;
             }
 
-            $results = $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v4/patrons/validate", \Zend\Http\Request::METHOD_POST, json_encode(["barcode" => $username, "pin" => $password]));
+            $results = $this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v5/patrons/validate", \Zend\Http\Request::METHOD_POST, json_encode(["barcode" => $username, "pin" => $password]));
             if( !$results ) {
                 $ret = [];
                 $ret['cat_username'] = urlencode($username);
@@ -248,167 +248,217 @@ class EINetwork extends Sierra2 implements
     public function getHolding($id, array $patron = null)
     {
         // see if it's there
-        if( !$this->memcached->get("holdingID" . $id) ) {
-            if( ($overDriveId = $this->getOverDriveID($id)) ) {
-                $availability = $this->getProductAvailability($overDriveId);
-                $this->memcached->set("holdingID" . $id, [[
-                        "id" => $id,
-                        "location" => "OverDrive",
-                        "isOverDrive" => true,
-                        "isOneClick" => false,
-                        "copiesOwned" => $availability->collections[0]->copiesOwned,
-                        "copiesAvailable" => $availability->collections[0]->copiesAvailable,
-                        "numberOfHolds" => $availability->collections[0]->numberOfHolds,
-                        "availability" => ($availability->collections[0]->copiesAvailable > 0)
-                       ]], 900);
-                return $this->memcached->get("holdingID" . $id);
-            }
-            $results = parent::getHolding($id, $patron);
-
-/***** BJP => This section is a temporary workaround for the orders info *****/
-            if( count($results) == 0 ) {
-                $results = $this->getOrderRecords($id);
-            }
-/***** BJP => This section is a temporary workaround for the orders info *****/
-
-            // add in the extra details we need
-            $results2 = [];
-            for($i=0; $i<count($results); $i++) {
-                // throw out online items
-                if( $results[$i]['locationCode'] == "xronl" ) {
-                    continue;
-                }
-
-                // clean call number
-                $pieces = explode("|f", $results[$i]['callnumber']);
-                $results[$i]['callnumber'] = "";
-                foreach( $pieces as $piece ) {
-                    $results[$i]['callnumber'] .= (($results[$i]['callnumber'] == "") ? "" : "<br>") . trim($piece);
-                }
-
-                // insert the display status
-                if( $results[$i]['status'] == '-' ) {
-                    $results[$i]['displayStatus'] = ($results[$i]['duedate'] == null) ? "AVAILABLE" : "CHECKED OUT";
-                } else if( $results[$i]['status'] == 'n' ) {
-                    $results[$i]['displayStatus'] = "BILLED";
-                } else if( $results[$i]['status'] == 'q' ) {
-                    $results[$i]['displayStatus'] = "BINDERY";
-                } else if( $results[$i]['status'] == 'z' ) {
-                    $results[$i]['displayStatus'] = "CLMS RETD";
-                } else if( $results[$i]['status'] == 'd' ) {
-                    $results[$i]['displayStatus'] = "DAMAGED";
-                } else if( $results[$i]['status'] == 'p' ) {
-                    $results[$i]['displayStatus'] = "DISPLAY";
-                } else if( $results[$i]['status'] == '%' ) {
-                    $results[$i]['displayStatus'] = "ILL RETURNED";
-                } else if( $results[$i]['status'] == 'i' ) {
-                    $results[$i]['displayStatus'] = "IN PROCESSING";
-                } else if( $results[$i]['status'] == 't' ) {
-                    $results[$i]['displayStatus'] = "IN TRANSIT";
-                } else if( $results[$i]['status'] == 'f' ) {
-                    $results[$i]['displayStatus'] = "LONG OVERDUE";
-                } else if( $results[$i]['status'] == '$' ) {
-                    $results[$i]['displayStatus'] = "LOST AND PAID";
-                } else if( $results[$i]['status'] == 'm' ) {
-                    $results[$i]['displayStatus'] = "MISSING";
-                } else if( $results[$i]['status'] == 'o' ) {
-                    $results[$i]['displayStatus'] = "NONCIRCULATING";
-                } else if( $results[$i]['status'] == '!' ) {
-                    $results[$i]['displayStatus'] = "ON HOLDSHELF";
-                } else if( $results[$i]['status'] == 'v' ) {
-                    $results[$i]['displayStatus'] = "ONLINE";
-                } else if( $results[$i]['status'] == 'y' ) {
-                    $results[$i]['displayStatus'] = "ONLINE REFERENCE";
-                } else if( $results[$i]['status'] == '^' ) {
-                    $results[$i]['displayStatus'] = "RENOVATION";
-                } else if( $results[$i]['status'] == 'r' ) {
-                    $results[$i]['displayStatus'] = "REPAIR";
-                } else if( $results[$i]['status'] == 'u' ) {
-                    $results[$i]['displayStatus'] = "STAFF USE";
-                } else if( $results[$i]['status'] == '?' ) {
-                    $results[$i]['displayStatus'] = "STORAGE";
-                } else if( $results[$i]['status'] == 'w' ) {
-                    $results[$i]['displayStatus'] = "WITHDRAWN";
-                } else if( $results[$i]['status'] == 'order' ) {
-                    $results[$i]['displayStatus'] = "ON ORDER";    
-                } else {
-                    $results[$i]['displayStatus'] = "UNKNOWN";
-                }
-
-                // get shelving details
-                if( !$this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode']) ) {
-                    $this->memcached->set("shelvingLocationByCode" . $results[$i]['locationCode'], $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']));
-                }
-                $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode'] );
-                $locationId = (isset($shelfLoc) && $shelfLoc) ? $shelfLoc->locationId : null;
-                if( $locationId && !$this->memcached->get("locationByID" . $locationId) ) {
-                    $this->memcached->set("locationByID" . $locationId, $this->getDBTable('location')->getByLocationId($locationId));
-                } else if( !$locationId && (strlen($results[$i]['locationCode']) == 2) && !$this->memcached->get("locationByCode" . $results[$i]['locationCode']) ) {
-                    $this->memcached->set("locationByCode" . $results[$i]['locationCode'], $this->getDBTable('location')->getByCode($results[$i]['locationCode']));
-                }
-                $location = $locationId ? $this->memcached->get("locationByID" . $locationId ) : ((strlen($results[$i]['locationCode']) == 2) ? $this->memcached->get("locationByCode" . $results[$i]['locationCode']) : null);
-                $results[$i]['branchName'] = $location ? $location->displayName : (($results[$i]['status'] == 'order') ? $results[$i]['location'] : null);
-                $results[$i]['branchCode'] = $location ? $location->code : null;
-                $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
-
-                for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
-                array_splice($results2, $j, 0, [$results[$i]]);
-            }
-
-            // if this is a magazine, we need to add the checkin records info
-            if( $this->isSerial($id) ) {
-                // get all of the locations we need to speak for
-                $neededLocations = [];
-                foreach( $results2 as $thisItem ) {
-                    if( !isset($neededLocations[$thisItem["locationCode"]]) ) {
-                        $neededLocations[$thisItem["locationCode"]] = $thisItem["locationCode"];
-                    }
-                }
-
-                // grab the checkin records and store the location info
-                $results3 = [];
-                $checkinRecords = $this->getCheckinRecords($id);
-                foreach( array_keys($checkinRecords) as $key ) {
-                    // find this location in the database
-                    if( !$this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) ) {
-                        $this->memcached->set("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"]), $this->getDBTable('shelvinglocation')->getBySierraName($checkinRecords[$key]["location"])->toArray());
-                    }
-                    $checkinRecords[$key]["code"] = [];
-                    $checkinRecords[$key]["branchCode"] = [];
-                    foreach( $this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) as $row ) {
-                        $checkinRecords[$key]["code"][] = $row["code"];
-                        $checkinRecords[$key]["branchCode"][] = $row["branchCode"];
-                        unset($neededLocations[$row["code"]]);
-                    }
-                    $results3[] = $checkinRecords[$key];
-                }
-
-                // add details for locations with no checkin records but held items
-                foreach( $neededLocations as $code ) {
-                    if( !$this->memcached->get("shelvingLocationByCode" . $code) ) {
-                        $this->memcached->set("shelvingLocationByCode" . $code, $this->getDBTable('shelvinglocation')->getByCode($code));
-                    }
-                    $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $code );
-                    if( $shelfLoc == null ) {
-                        if( !$this->memcached->get("locationByCode" . $code) ) {
-                            $this->memcached->set("locationByCode" . $code, $this->getDBTable('location')->getByCode($code));
-                        }
-                        $shelfLoc = $this->memcached->get("locationByCode" . $code );
-                    }
-                    $thisCode = [];
-                    $thisCode["location"] = isset($shelfLoc->sierraName) ? $shelfLoc->sierraName : $shelfLoc->displayName;
-                    $thisCode["code"][] = $code;
-                    $thisCode["branchCode"][] = isset($shelfLoc->branchCode) ? $shelfLoc->branchCode : $code;
-                    for( $j=0; $j<count($results3) && ($results3[$j]['location'] < $thisCode["location"]); $j++) {}
-                    array_splice($results3, $j, 0, [$thisCode]);
-                    unset($neededLocations[$code]);
-                }
-
-                array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "availability" => false, "status" => "?", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
-            }
-            $this->memcached->set("holdingID" . $id, $results2, 900);
+        if( ($overDriveId = $this->getOverDriveID($id)) ) {
+            $availability = $this->getProductAvailability($overDriveId);
+            return [["id" => $id,
+                     "location" => "OverDrive",
+                     "isOverDrive" => true,
+                     "isOneClick" => false,
+                     "copiesOwned" => $availability->collections[0]->copiesOwned,
+                     "copiesAvailable" => $availability->collections[0]->copiesAvailable,
+                     "numberOfHolds" => $availability->collections[0]->numberOfHolds,
+                     "availability" => ($availability->collections[0]->copiesAvailable > 0)
+                   ]];
         }
-        return $this->memcached->get("holdingID" . $id);
+
+        $cachedInfo = ($this->memcached->get("holdingID" . $id) && ($this->memcached->get("holdingID" . $id))["CACHED_INFO"]) ? ($this->memcached->get("holdingID" . $id))["CACHED_INFO"] : null;
+
+        if( $cachedInfo && !$cachedInfo["doUpdate"] && isset($cachedInfo["holding"]) ) {
+            $results = $cachedInfo["holding"];
+
+            // if we haven't processed these holdings yet, run through the order records
+            if( !isset($cachedInfo["processedHoldings"]) && ($cachedJson = $this->memcached->get("cachedJson" . $id)) !== null ) {
+                if( isset($cachedJson["orderRecords"]) ) {
+                    foreach( $cachedJson["orderRecords"] as $locationCode => $details ) {
+                        $results[] = [
+                                         "id" => $id,
+                                         "itemId" => null,
+                                         "availability" => false,
+                                         "status" => "order",
+                                         "location" => $details["location"],
+                                         "reserve" => "N",
+                                         "callnumber" => null,
+                                         "duedate" => null,
+                                         "returnDate" => false,
+                                         "number" => null,
+                                         "barcode" => null,
+                                         "locationCode" => $locationCode,
+                                         "copiesOwned" => $details["copies"]
+                                     ];
+                    }
+                }
+            }
+        } else {
+            $results = parent::getHolding($id, $patron);
+        }
+
+        // make any status updates we are supposed to be making
+        if( $changes = $this->memcached->get("updatesID" . $id) ) {
+            foreach( $changes as $key => $thisChange ) {
+                // if they've already been taken care of, ignore them
+                if( !$thisChange["handled"] ) {
+                    foreach( $results as $hKey => $thisHolding ) {
+                        if( $thisHolding["itemId"] == $thisChange["inum"] ) {
+                            if( isset($thisChange["status"]) ) {
+                                $thisHolding["status"] = $thisChange["status"];
+                            }
+                            if( isset($thisChange["duedate"]) ) {
+                                $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
+                                $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
+                            }
+                            $results[$hKey] = $thisHolding;
+                        }
+                    }
+                }
+            }
+            if( ($cache = $this->memcached->get("holdingID" . $id)) && isset($cache["CACHED_INFO"]["holding"]) ) {
+                $cache["CACHED_INFO"]["holding"] = $results;
+                $time = strtotime(((date("H") < "06") ? "today" : "tomorrow") . " 6:00") - time();
+                $this->memcached->set("holdingID" . $id, $cache, $time);
+            }
+        }
+
+        // add in the extra details we need
+        $results2 = [];
+        for($i=0; $i<count($results); $i++) {
+            // throw out online items
+            if( $results[$i]['locationCode'] == "xronl" ) {
+                continue;
+            }
+
+            // clean call number
+            $pieces = explode("|f", $results[$i]['callnumber']);
+            $results[$i]['callnumber'] = "";
+            foreach( $pieces as $piece ) {
+                $results[$i]['callnumber'] .= (($results[$i]['callnumber'] == "") ? "" : "<br>") . trim($piece);
+            }
+
+            // insert the display status
+            if( $results[$i]['status'] == '-' ) {
+                $results[$i]['displayStatus'] = ($results[$i]['duedate'] == null) ? "AVAILABLE" : "CHECKED OUT";
+            } else if( $results[$i]['status'] == 'n' ) {
+                $results[$i]['displayStatus'] = "BILLED";
+            } else if( $results[$i]['status'] == 'q' ) {
+                $results[$i]['displayStatus'] = "BINDERY";
+            } else if( $results[$i]['status'] == 'z' ) {
+                $results[$i]['displayStatus'] = "CLMS RETD";
+            } else if( $results[$i]['status'] == 'd' ) {
+                $results[$i]['displayStatus'] = "DAMAGED";
+            } else if( $results[$i]['status'] == 'p' ) {
+                $results[$i]['displayStatus'] = "DISPLAY";
+            } else if( $results[$i]['status'] == '%' ) {
+                $results[$i]['displayStatus'] = "ILL RETURNED";
+            } else if( $results[$i]['status'] == 'i' ) {
+                $results[$i]['displayStatus'] = "IN PROCESSING";
+            } else if( $results[$i]['status'] == 't' ) {
+                $results[$i]['displayStatus'] = "IN TRANSIT";
+            } else if( $results[$i]['status'] == 'f' ) {
+                $results[$i]['displayStatus'] = "LONG OVERDUE";
+            } else if( $results[$i]['status'] == '$' ) {
+                $results[$i]['displayStatus'] = "LOST AND PAID";
+            } else if( $results[$i]['status'] == 'm' ) {
+                $results[$i]['displayStatus'] = "MISSING";
+            } else if( $results[$i]['status'] == 'o' ) {
+                $results[$i]['displayStatus'] = "NONCIRCULATING";
+            } else if( $results[$i]['status'] == '!' ) {
+                $results[$i]['displayStatus'] = "ON HOLDSHELF";
+            } else if( $results[$i]['status'] == 'v' ) {
+                $results[$i]['displayStatus'] = "ONLINE";
+            } else if( $results[$i]['status'] == 'y' ) {
+                $results[$i]['displayStatus'] = "ONLINE REFERENCE";
+            } else if( $results[$i]['status'] == '^' ) {
+                $results[$i]['displayStatus'] = "RENOVATION";
+            } else if( $results[$i]['status'] == 'r' ) {
+                $results[$i]['displayStatus'] = "REPAIR";
+            } else if( $results[$i]['status'] == 'u' ) {
+                $results[$i]['displayStatus'] = "STAFF USE";
+            } else if( $results[$i]['status'] == '?' ) {
+                $results[$i]['displayStatus'] = "STORAGE";
+            } else if( $results[$i]['status'] == 'w' ) {
+                $results[$i]['displayStatus'] = "WITHDRAWN";
+            } else if( $results[$i]['status'] == 'order' ) {
+                $results[$i]['displayStatus'] = "ON ORDER";    
+            } else {
+                $results[$i]['displayStatus'] = "UNKNOWN";
+            }
+
+            // get shelving details
+            if( !$this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode']) ) {
+                $this->memcached->set("shelvingLocationByCode" . $results[$i]['locationCode'], $this->getDBTable('shelvinglocation')->getByCode($results[$i]['locationCode']));
+            }
+            $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $results[$i]['locationCode'] );
+            $locationId = (isset($shelfLoc) && $shelfLoc) ? $shelfLoc->locationId : null;
+            if( $locationId && !$this->memcached->get("locationByID" . $locationId) ) {
+                $this->memcached->set("locationByID" . $locationId, $this->getDBTable('location')->getByLocationId($locationId));
+            } else if( !$locationId && (strlen($results[$i]['locationCode']) == 2) && !$this->memcached->get("locationByCode" . $results[$i]['locationCode']) ) {
+                $this->memcached->set("locationByCode" . $results[$i]['locationCode'], $this->getDBTable('location')->getByCode($results[$i]['locationCode']));
+            }
+            $location = $locationId ? $this->memcached->get("locationByID" . $locationId ) : ((strlen($results[$i]['locationCode']) == 2) ? $this->memcached->get("locationByCode" . $results[$i]['locationCode']) : null);
+            $results[$i]['branchName'] = $location ? $location->displayName : (($results[$i]['status'] == 'order') ? $results[$i]['location'] : null);
+            $results[$i]['branchCode'] = $location ? $location->code : null;
+            $results[$i]['shelvingLocation'] = $shelfLoc ? $shelfLoc->shortName : null;
+
+            for($j=0; $j<count($results2) && (($results[$i]['branchName'] > $results2[$j]['branchName']) || (($results[$i]['branchName'] == $results2[$j]['branchName']) && ($results[$i]['number'] > $results2[$j]['number']))); $j++) {}
+            array_splice($results2, $j, 0, [$results[$i]]);
+        }
+
+        // if this is a magazine, we need to add the checkin records info
+        if( $this->isSerial($id) ) {
+            // get all of the locations we need to speak for
+            $neededLocations = [];
+            foreach( $results2 as $thisItem ) {
+                if( !isset($neededLocations[$thisItem["locationCode"]]) ) {
+                    $neededLocations[$thisItem["locationCode"]] = $thisItem["locationCode"];
+                }
+            }
+
+            // grab the checkin records and store the location info
+            $results3 = [];
+            if( $cachedInfo && !$cachedInfo["doUpdate"] && isset($cachedInfo["checkinRecords"]) ) {
+                $checkinRecords = $cachedInfo["checkinRecords"];
+            } else {
+                $checkinRecords = $this->getCheckinRecords($id);
+            }
+
+            foreach( array_keys($checkinRecords) as $key ) {
+                // find this location in the database
+                if( !$this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) ) {
+                    $this->memcached->set("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"]), $this->getDBTable('shelvinglocation')->getBySierraName($checkinRecords[$key]["location"])->toArray());
+                }
+                $checkinRecords[$key]["code"] = [];
+                $checkinRecords[$key]["branchCode"] = [];
+                foreach( $this->memcached->get("shelvingLocationBySierraName" . md5($checkinRecords[$key]["location"])) as $row ) {
+                    $checkinRecords[$key]["code"][] = $row["code"];
+                    $checkinRecords[$key]["branchCode"][] = $row["branchCode"];
+                    unset($neededLocations[$row["code"]]);
+                }
+                $results3[] = $checkinRecords[$key];
+            }
+
+            // add details for locations with no checkin records but held items
+            foreach( $neededLocations as $code ) {
+                if( !$this->memcached->get("shelvingLocationByCode" . $code) ) {
+                    $this->memcached->set("shelvingLocationByCode" . $code, $this->getDBTable('shelvinglocation')->getByCode($code));
+                }
+                $shelfLoc = $this->memcached->get("shelvingLocationByCode" . $code );
+                if( $shelfLoc == null ) {
+                    if( !$this->memcached->get("locationByCode" . $code) ) {
+                        $this->memcached->set("locationByCode" . $code, $this->getDBTable('location')->getByCode($code));
+                    }
+                    $shelfLoc = $this->memcached->get("locationByCode" . $code );
+                }
+                $thisCode = [];
+                $thisCode["location"] = isset($shelfLoc->sierraName) ? $shelfLoc->sierraName : $shelfLoc->displayName;
+                $thisCode["code"][] = $code;
+                $thisCode["branchCode"][] = isset($shelfLoc->branchCode) ? $shelfLoc->branchCode : $code;
+                for( $j=0; $j<count($results3) && ($results3[$j]['location'] < $thisCode["location"]); $j++) {}
+                array_splice($results3, $j, 0, [$thisCode]);
+                unset($neededLocations[$code]);
+            }
+
+            array_splice($results2, 0, 0, [["id" => $id, "location" => "CHECKIN_RECORDS", "availability" => false, "status" => "?", "items" => [], "copiesOwned" => 0, "checkinRecords" => $results3]]);
+        }
+        return $results2;
     }
 
     public function updateMyProfile($patron, $updatedInfo){
@@ -614,11 +664,11 @@ class EINetwork extends Sierra2 implements
         // clear out these intermediate cached API results
         } else if( $skipCache ) {
             $offset = 0;
-            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
             while( $this->memcached->get($hash) ) {
                 $this->memcached->set($hash, null);
                 $offset += 50;
-                $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
+                $hash = md5($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset);
             }
         }
 
@@ -682,11 +732,11 @@ class EINetwork extends Sierra2 implements
         // clear out these intermediate cached API results
         } else if( $skipCache ) {
             $offset = 0;
-            $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
+            $hash = md5($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
             while( $this->memcached->get($hash) ) {
                 $this->memcached->set($hash, null);
                 $offset += 50;
-                $hash = md5($this->config['SIERRAAPI']['url'] . "/v4/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
+                $hash = md5($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/checkouts?limit=50&offset=" . $offset);
             }
         }
 
@@ -768,10 +818,25 @@ class EINetwork extends Sierra2 implements
         // item level holds via the API don't work yet
         // BJP - neither do local copy overriding the hold
         if( true || substr($details["id"], 1, 1) == "i" ) {
-            return $this->placeItemLevelHold($details);
+            $holdsInfo = $this->placeItemLevelHold($details);
+        } else {
+            $holdsInfo = parent::placeHold($details);
         }
 
-        return parent::placeHold($details);
+        // if they successfully placed the hold, check to see whether this item is in their book cart. If so, remove it.
+        if( $holdsInfo['success'] ) {
+            // get the bookcart
+            $user = $this->getDbTable('User')->getByCatUsername($details['patron']['cat_username']);
+            $bookCart = $user->getBookCart();
+
+            // remove this item from it
+            $bookCart->removeResourcesById($user, [isset($details['bibId']) ? $details['bibId'] : $details['id']]);
+
+            // clear the cached contents of the list
+            $this->clearMemcachedVar("cachedList" . $bookCart->id);
+        }
+
+        return $holdsInfo;
     }
 
     /**
@@ -799,6 +864,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->cancelOverDriveHold($overDriveID, $holds["patron"]);
@@ -808,7 +876,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisCancelId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisCancelId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "cancel", "title", $thisHold["item_id"], null);
                         unset($holds["details"][$key]);
@@ -852,6 +920,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->freezeOverDriveHold($overDriveID, $holds["patron"], $doFreeze);
@@ -866,7 +937,7 @@ class EINetwork extends Sierra2 implements
 /**/
 
             foreach( $holds["details"] as $key => $thisFreezeId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisFreezeId ) { 
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "freeze", "title", isset($thisHold["item_id"]) ? $thisHold["item_id"] : $thisHold["id"], null, ($doFreeze ? "on" : "off"));
                         unset($holds["details"][$key]);
@@ -909,6 +980,9 @@ class EINetwork extends Sierra2 implements
             }
         }
 
+        // grab a copy of this because the OverDrive functionality can wipe it
+        $cachedHolds = $this->session->holds;
+
         // process the overdrive holds
         foreach($overDriveHolds as $overDriveID ) {
             $overDriveResults = $this->updateOverDriveHold($overDriveID, $holds["patron"], $holds["newEmail"]);
@@ -918,7 +992,7 @@ class EINetwork extends Sierra2 implements
         // compare the sierra holds to my list of holds (workaround for item-level stuff)
         if( count($holds["details"]) > 0 ) {
             foreach( $holds["details"] as $key => $thisUpdateId ) {
-                foreach( $this->session->holds as $thisHold ) {
+                foreach( $cachedHolds as $thisHold ) {
                     if( $thisHold["hold_id"] == $thisUpdateId && isset( $thisHold["item_id"] ) ) {
                         $success &= $this->updateHoldDetailed($holds["patron"], "requestId", "patronId", "update", "title", $thisHold["item_id"], $holds["newLocation"]);
                         unset($holds["details"][$key]);
@@ -999,10 +1073,15 @@ class EINetwork extends Sierra2 implements
             $user1 = "";
             $total = 0;
 
-            $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            if( isset($result->response->fines) ) {
+                $fines = is_array($result->response->fines) ? $result->response->fines : [$result->response->fines];
+            } else {
+                $fines = [];
+            }
             foreach($fines as $i => $thisFine) {
-                $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $thisFine->invoice . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->itemCharge . "\">" . 
-                        "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $thisFine->itemCharge * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";
+                $adjustedValue = $thisFine->itemCharge + $thisFine->processingFee + $thisFine->billingFee - $thisFine->amountPaid;
+                $msg .= "<tr><td style=\"padding:5px\"><input type=\"checkbox\" name=\"selectedFees\" value=\"" . $adjustedValue . "\" checked=\"checked\" onclick=\"checkFees()\" id=\"" . $thisFine->invoice . "\">" . 
+                        "</td><td style=\"padding:5px\">" . sprintf("$%.2f", $adjustedValue * 0.01) . "</td><td style=\"padding:5px;line-height:1.23em\">";
                 if( $thisFine->itemTitle && $thisFine->chargeType == "Overdue" ) {
                     $msg .= "<div class=\"bold\">Overdue Item Returned</div><div style=\"margin-left:20px;text-indent:-20px\">" . str_replace("'", "\'", $thisFine->itemTitle) . "</div>" .
                             "<div><span class=\"bold\">Date Due:</span> " . strftime("%a %b %e, %Y", strtotime(substr($thisFine->itemDueDate, 0, 10))) . "</div>" .
@@ -1019,14 +1098,14 @@ class EINetwork extends Sierra2 implements
                 }
                 $msg .= "</td></tr>";
                 $user1 .= $thisFine->invoice . ":";
-                $total += $thisFine->itemCharge;
+                $total += $adjustedValue;
             }
 
             $msg .= "</table><input type=\"hidden\" name=\"amount\" value=\"" . sprintf("%.2f", $total * 0.01) . "\">" . 
                     "<input type=\"hidden\" name=\"user1\" value=\"" . $user1 . "\"><div class=\"center\"><div id=\"minimumPayment\" style=\"color:#f00;font-weight:700\">For payments less than $2.00, please see library staff.</div><br><span class=\"bold\">Total Selected:</span><span id=\"finesTotal\">" . sprintf("%.2f", $total * 0.01) . "</span>" . 
                     "<button class=\"btn-default btn-wide\" id=\"paypalButton\" style=\"margin:15px;cursor:default\">Pay Online</button></div><div>Clicking this button will take you to Paypal\'s secure server to enter your payment info.</div>" . 
                     "</form><script type=\"text/javascript\">function checkFees() { var total = 0; var user1 = \"\";" . 
-                    " $(\'input[name=selectedFees]\').each( function() { total += $(this).is(\":checked\") ? parseInt($(this).attr(\"id\")) : 0; user1 += $(this).is(\":checked\") ? ($(this).attr(\"value\") + \":\") : \"\" } ); " . 
+                    " $(\'input[name=selectedFees]\').each( function() { total += $(this).is(\":checked\") ? parseInt($(this).attr(\"value\")) : 0; user1 += $(this).is(\":checked\") ? ($(this).attr(\"id\") + \":\") : \"\" } ); " . 
                     "$(\"input[name=amount]\").attr(\"value\", total * 0.01); $(\"#finesTotal\").html(\"$\" + (total * 0.01).toFixed(2)); $(\"input[name=user1]\").attr(\"value\", user1); if( total >= parseInt($(\'input[name=payAmount]\').attr(\"value\")) ) { " . 
                     "$(\'#paypalButton\').prop(\"disabled\", false); $(\'#minimumPayment\').css(\"display\", \"none\"); } else " . 
                     "{ $(\'#paypalButton\').prop(\"disabled\", true); $(\'#minimumPayment\').css(\"display\", \"initial\"); } } setTimeout(checkFees, 10)</script>";
@@ -1381,7 +1460,7 @@ class EINetwork extends Sierra2 implements
 
         //The history is active if there is an opt out link.
         $historyActive = (strpos($pageContents, 'OptOut') > 0);
-        return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles, 'total_records' => $total_records);
+        return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles, 'total_records' => $total_records, 'page' => $page);
     }
 
     /**
@@ -1824,77 +1903,6 @@ class EINetwork extends Sierra2 implements
         } else {
             return [];
         }
-    }
-
-    private function getOrderRecords($id) {
-        $cookieJar = tempnam("/tmp", "CURLCOOKIE");
-
-        $bib = substr($id, 2, -1);
-        $curl_url = $this->config['Catalog']['classic_url'] . "/search~S1/.b" . $bib ."/.b" . $bib . "/1,1,1,B/frameset~" . $bib;
-        $this->curl_connection = curl_init($curl_url);
-
-        curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-        curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-        curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-        curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, !($cookieJar) ? true : false);
-
-        $ordersText = curl_exec($this->curl_connection);
-        curl_close($this->curl_connection);
-
-        $orders = array();
-        $orderMatches = array();
-        if (preg_match_all('/<tr\\s+class="bibOrderEntry">.*?<td\\s*>(.*?)<\/td>/s', $ordersText, $orderMatches)){
-            for ($i = 0; $i < count($orderMatches[1]); $i++) {
-                $location = trim($orderMatches[1][$i]);
-                $location = preg_replace('/\\sC\\d{3}[\\s\\.]/', '', $location);
-
-                // pull out the relevant data
-                $count = substr($location, 0, strpos($location, " "));
-                $date = substr($location, -11, -1);
-                $name = trim(substr($location, strpos($location, "ordered for ") + 12, -15));
-
-                // find this location in the database
-                if( !$this->memcached->get("shelvingLocationBySierraName" . md5($name)) ) {
-                    $this->memcached->set("shelvingLocationBySierraName" . md5($name), $this->getDBTable('shelvinglocation')->getBySierraName($name)->toArray());
-                }
-                $row = $this->memcached->get("shelvingLocationBySierraName" . md5($name));
-
-                // test to see if it's a branch name instead of shelving location
-                if( count($row) == 0 ) {
-                    // find this location in the database
-                    if( !$this->memcached->get("locationByName" . md5($name)) ) {
-                        $row = $this->getDBTable('location')->getByName($name);
-                        $this->memcached->set("locationByName" . md5($name), [$row ? $row->toArray() : null]);
-                    }
-                    $row = $this->memcached->get("locationByName" . md5($name));
-                }
-
-                // if we got results, send them back
-                if( count($row) > 0 ) {
-                    $itemInfo = [
-                        "id" => $id,
-                        "itemId" => null,
-                        "availability" => false,
-                        "status" => "order",
-                        "location" => $name,
-                        "reserve" => "N",
-                        "callnumber" => null,
-                        "duedate" => null,
-                        "returnDate" => false,
-                        "number" => null,
-                        "barcode" => null,
-                        "locationCode" => $row[0]["code"],
-                        "copiesOwned" => $count
-                    ];
-                    $orders[] = $itemInfo;
-                }
-            }
-        }
-        return $orders;
     }
 
     /**

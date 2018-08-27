@@ -113,6 +113,9 @@ class SearchRunner
         $results = $this->resultsManager->get($searchClassId);
         $params = $results->getParams();
         $params->initFromRequest($request);
+        if( isset( $request['overrideLimit'] ) ) {
+            $params->setLimit($request['overrideLimit']);
+        }
 
         if (is_callable($setupCallback)) {
             $setupCallback($this, $params, $runningSearchId);

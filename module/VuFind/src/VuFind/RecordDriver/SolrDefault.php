@@ -466,6 +466,26 @@ class SolrDefault extends AbstractBase
     }
 
     /**
+     * Get the format category associated with the record.
+     *
+     * @return string
+     */
+    public function getFormatCategory()
+    {
+        if( isset($this->fields['format']) ) {
+            $formats = $this->fields['format'];
+            // weed out categories
+            foreach($formats as $key => $value) {
+                if( strpos($value, "Category:") !== false ) {
+                    return substr($value, 10);
+                }
+            }
+        } else {
+            return "";
+        }
+    }
+
+    /**
      * Get general notes on the record.
      *
      * @return array
@@ -521,33 +541,122 @@ class SolrDefault extends AbstractBase
      * @return mixed False if no snippet found, otherwise associative array
      * with 'snippet' and 'caption' keys.
      */
-    public function getHighlightedSnippet()
+    public function getHighlightedSnippet($lookfor)
     {
         // Only process snippets if the setting is enabled:
         if ($this->snippet) {
+            $highlights = [];
+
             // First check for preferred fields:
             foreach ($this->preferredSnippetFields as $current) {
-                if (isset($this->highlightDetails[$current][0])) {
-                    return [
-                        'snippet' => $this->highlightDetails[$current][0],
-                        'caption' => $this->getSnippetCaption($current)
-                    ];
+                if (count($lookfor) > 0 && isset($this->highlightDetails[$current][0])) {
+                    foreach( $this->highlightDetails[$current] as $thisHighlight ) {
+                        $haystack = strtolower($thisHighlight);
+                        foreach( $lookfor as $index => $value ) {
+                            if( empty($value) ) {
+                                continue;
+                            }
+
+                            // make sure it wasnt included in any of the other snippets we already added
+                            foreach( $highlights as $greenLitHighlight ) {
+                                $haystack2 = strtolower($greenLitHighlight["snippet"]);
+                                if( strpos($haystack2, $value) !== false ) {
+                                    unset($lookfor[$index]);
+                                    continue 2;
+                                }
+                            }
+
+                            if( strpos($haystack, $value) !== false ) {
+                                $highlights[] = [
+                                    'snippet' => $thisHighlight,
+                                    'caption' => $this->getSnippetCaption($current)
+                                ];
+                                unset($lookfor[$index]);
+                            }
+                        }
+                    }
                 }
+            }
+
+            if( count($lookfor) == 0 ) {
+                return $highlights;
             }
 
             // No preferred field found, so try for a non-forbidden field:
             if (isset($this->highlightDetails)
-                && is_array($this->highlightDetails)
+                && is_array($this->highlightDetails) && (count($lookfor) > 0)
             ) {
                 foreach ($this->highlightDetails as $key => $value) {
+                    $haystack = strtolower($value[0]);
                     if (!in_array($key, $this->forbiddenSnippetFields)) {
-                        return [
-                            'snippet' => $value[0],
-                            'caption' => $this->getSnippetCaption($key)
-                        ];
+                        foreach( $lookfor as $index => $value2 ) {
+                            if( empty($value2) ) {
+                                continue;
+                            }
+
+                            // make sure it wasnt included in any of the other snippets we already added
+                            foreach( $highlights as $greenLitHighlight ) {
+                                $haystack2 = strtolower($greenLitHighlight["snippet"]);
+                                if( strpos($haystack2, $value2) !== false ) {
+                                    unset($lookfor[$index]);
+                                    continue 2;
+                                }
+                            }
+
+                            if( strpos($haystack, $value2) !== false ) {
+                                $highlights[] = [
+                                    'snippet' => $value[0],
+                                    'caption' => $this->getSnippetCaption($key)
+                                ];
+                                unset($lookfor[$index]);
+                            }
+                        }
                     }
                 }
             }
+
+            if( count($lookfor) == 0 ) {
+                return $highlights;
+            }
+
+            // we still haven't found an exact match. do a fuzzy search and see if there are any close matches
+            foreach ($this->highlightDetails as $key => $value) {
+                $bits = explode("{{{{START_HILITE}}}}", $value[0]);
+                foreach( $bits as $bitIndex => $thisBit ) {
+                    if( $bitIndex == 0 ) {
+                        continue;
+                    }
+                    $highlight = strtolower(explode("{{{{END_HILITE}}}}", $thisBit, 2)[0]);
+                    foreach ($lookfor as $index => $value2 ) {
+                        // make sure it wasnt included in any of the other snippets we already added
+                        foreach( $highlights as $greenLitHighlight ) {
+                            $haystackBits = explode("{{{{START_HILITE}}}}", $greenLitHighlight["snippet"]);
+                            foreach( $haystackBits as $hBitIndex => $thisHBit ) {
+                                if( $hBitIndex == 0 ) {
+                                    continue;
+                                }
+                                $haystackHighlight = strtolower(explode("{{{{END_HILITE}}}}", $thisHBit, 2)[0]);
+                                $count = similar_text($value2, $haystackHighlight, $percent);
+                                if( $percent > 60 ) {
+                                    unset($lookfor[$index]);
+                                    continue 3;
+                                }
+                            }
+                        }
+
+                        $count = similar_text($value2, $highlight, $percent);
+                        if( $percent > 60 ) {
+                            $highlights[] = [
+                                'snippet' => $value[0],
+                                'caption' => $this->getSnippetCaption($key)
+                            ];
+                            unset($lookfor[$index]);
+                        }
+                    }
+                }
+            }
+
+            return $highlights;
         }
 
         // If we got this far, no snippet was found:
@@ -613,8 +722,15 @@ class SolrDefault extends AbstractBase
      */
     public function getItems()
     {
-        return isset($this->fields['items'])
-            ? $this->fields['items'] : [];
+        $items = [];
+        $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
+        $json = json_decode($json, true);
+        if( isset($json["holding"]) ) {
+            foreach( $json["holding"] as $thisJson ) {
+                $items[] = "i" . $thisJson["itemId"];
+            }
+        }
+        return $items;
     }
 
     /**
@@ -1825,5 +1941,51 @@ class SolrDefault extends AbstractBase
             }
         }
         return false;
+    }
+
+    public function getCachedItems()
+    {
+        $json = isset($this->fields['cachedJson']) ? $this->fields['cachedJson'] : "";
+        $json = json_decode($json, true);
+        foreach( $json["holding"] as $key => $thisJson ) {
+            $locCodeRow = $this->getDbTable('ShelvingLocation')->getByCode($thisJson["locationCode"]);
+            if( $locCodeRow ) {
+                $json["holding"][$key]["location"] = $locCodeRow->sierraName;
+            }
+        }
+        foreach( $json["orderRecords"] as $key => $thisJson ) {
+            // find this location in the database
+            $row = $this->getDBTable('shelvinglocation')->getBySierraName($thisJson["location"]);
+            $row = $row ? $row->toArray() : [];
+
+            // test to see if it's a branch name instead of shelving location
+            if( count($row) == 0 ) {
+                // find this location in the database
+                $row = $this->getDBTable('location')->getByName($thisJson["location"]);
+                $row = $row ? $row->toArray() : [];
+            }
+
+            // if we got results, send them back
+            if( count($row) > 0 ) {
+                $json["orderRecords"][$key] = [
+                    "id" => $this->getUniqueID(),
+                    "itemId" => null,
+                    "availability" => false,
+                    "status" => "order",
+                    "location" => $thisJson["location"],
+                    "reserve" => "N",
+                    "callnumber" => null,
+                    "duedate" => null,
+                    "returnDate" => false,
+                    "number" => null,
+                    "barcode" => null,
+                    "locationCode" => $row[0]["code"],
+                    "copiesOwned" => $thisJson["count"]
+                ];
+            } else {
+                unset($json["orderRecords"][$key]);
+            }
+        }
+        return $json;
     }
 }

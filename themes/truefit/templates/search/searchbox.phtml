@@ -19,7 +19,7 @@
 ?>
   <form role="search" method="get" action="<?=$this->url($basicSearch)?>" name="searchForm" id="LCsearchForm" autocomplete="off">
     <?= $this->render('search/searchTabs'); ?>
-    <table class="EIN-col-m-12" onMouseOver="hideSearchBoxTypeLabel()">
+    <table class="EIN-col-m-12">
       <tr>
         <td style="width:100%">
           <div style="padding:0 5px">
@@ -33,9 +33,11 @@
           <? endif; ?>
           <button type="submit"<?=(($this->searchType == 'advanced') ? " style=\"display:none\"" : "")?> class="btn btn-noBorderAlternate floatR searchboxBasic"><span class="sr-only">Search</span><i class="fa fa-search"></i></button>
         </td>
-        <td><span id="searchBoxTypeLabel" style="color:#3f51b5; font-weight:700; white-space:nowrap; font-size:14px"></span></td>
         <td>
-          <button class="btn btn-noBorderAlternate floatR" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();"><span class="sr-only">Search Options</span><i class="fa fa-cog" style="font-size:18px; margin:3px 0px"></i></button>
+          <button class="btn btn-noBorderAlternate floatR" data-toggle="dropdown" data-target="#searchBoxDropdown" onclick="mostRecentSearchBtn = this; moveButtons();">
+            <span id="searchBoxTypeLabel" style="color:#3f51b5; font-weight:700; white-space:nowrap; font-size:14px; display:none; margin:0px 2px 0px -2px">Keyword</span>
+            <span class="sr-only">Search Options</span><i class="fa fa-cog" style="font-size:18px; margin:3px 0px"></i>
+          </button>
         </td>
       </tr>
     </table>
@@ -116,4 +118,9 @@
         $(".stcAdvanced").parents("a").attr("href", "<?=$this->url($advSearch)?>?edit=<?=$this->escapeHtmlAttr($this->searchId)?>");
       } );
     <? endif; ?>
+    $(document).ready( function() {
+      setTimeout( function() {
+        $("#searchBoxTypeLabel").css("display", "inline");
+      }, 10 );
+    } );
   </script>

@@ -285,9 +285,9 @@ Title:
     - title^100
     - title_full_unstemmed^600
     - title_short^500
-    - title_alt^100
-    - title_new
+    - title_new^100
     - title_old
+    - title_alt
     - title_auth
     - series^100
     - series2
@@ -298,6 +298,8 @@ Title:
   QueryFields:
     title_exact:
       - [onephrase, 20000]
+    title_exact_substring:
+      - [onephrase, 10000]
     title_unstemmed:
       - [onephrase, 600]
     title_full:
@@ -307,11 +309,11 @@ Title:
     title:
       - [onephrase, 400]
       - [and, 250]
-    title_alt:
-      - [and, 200]
     title_new:
-      - [and, 100]
+      - [and, 200]
     title_old:
+      - [and, 100]
+    title_alt:
       - [and, ~]
     series:
       - [onephrase, 100]

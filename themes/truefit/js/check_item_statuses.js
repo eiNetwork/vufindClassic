@@ -33,68 +33,21 @@ function handleHoldStatusResponse(response) {
 }
 
 function checkItemStatuses() {
-  var id = $.map($('.ajaxItem'), function(i) {
-    return [$.map($(i).find('.hiddenItemId'), function(j) { return $(j)[0].value; } )];
-  });
-  if (!id.length) {
-    return;
-  }
   $(".ajax-availability").removeClass('hidden');
 
-  // sort these by number of items
-  id.sort(function(a,b) { return a.length - b.length; });
+  // grab all of the bibIDs
+  var bibIDs = [];
+  $('.hiddenLoadThisStatus').each( function() {
+    bibIDs.push($(this).siblings('.hiddenId')[0].value);
+    $(this).remove();
+  } );
 
-  var itemPreloadIDs = [];
-  var pageSize = 100;
-  while( id.length ) {
-    itemPreloadIDs = itemPreloadIDs.concat(id[0].splice(0, pageSize - itemPreloadIDs.length));
-    if( id[0].length == 0 ) {
-      id.splice(0,1);
-    }
-    if( itemPreloadIDs.length == pageSize ) {
-      $.ajax({
-        dataType: 'json',
-        url: path + '/AJAX/JSON?method=preloadItemStatuses',
-        data: {itemID:itemPreloadIDs},
-        success: handleItemPreloadResponse
-      });
-      itemPreloadIDs = [];
-    }
-  }
-
-  if( itemPreloadIDs.length ) {
-    $.ajax({
-      dataType: 'json',
-      url: path + '/AJAX/JSON?method=preloadItemStatuses',
-      data: {itemID:itemPreloadIDs},
-      success: handleItemPreloadResponse
-    });
-  } else {
-    handleItemPreloadResponse({status:"OK", data:{itemIDs:[]}});
-  }
-}
-
-function handleItemPreloadResponse(response) {  
-  if(response.status == 'OK') {
-    // remove all of the preloaded items
-    $.each(response.data.itemIDs, function(i, result) {
-      $('.hiddenItemId[value="' + result + '"]').remove();
-    } );
-    // grab all of the bibIDs
-    var bibIDs = [];
-    $('.hiddenLoadThisStatus').each( function() {
-      if( $(this).siblings('.hiddenItemId').length == 0 ) {
-        bibIDs.push($(this).siblings('.hiddenId')[0].value);
-        $(this).remove();
-      }
-    } );
-    $.ajax({
-      dataType: 'json',
-      url: path + '/AJAX/JSON?method=getItemStatuses',
-      data: {id:bibIDs},
-      success: handleItemStatusResponse
-    });
-  }
+  $.ajax({
+    dataType: 'json',
+    url: path + '/AJAX/JSON?method=getItemStatuses',
+    data: {id:bibIDs},
+    success: handleItemStatusResponse
+  });
 }
 
 function handleItemStatusResponse(response) { 
@@ -113,6 +66,12 @@ function handleItemStatusResponse(response) {
         }
       } else {
         item.find('.status').empty().append(result.availability_message);
+      }
+      if( result.availability_details ) {
+        item.find('.status').parent().append("<span class='availabilityDetailsJSON hidden'>" + result.availability_details + "</span>");
+        item.find('.status').parent().attr("onmouseenter","ShowLocationsToolTip($(this).parent());");
+        item.find('.status').parent().attr("onmouseleave","HideLocationsToolTip();");
+        item.find('.status').parent().attr("ontouchstart","ToggleLocationsToolTip($(this).parent());");
       }
       item.each( function() {
         var heldItemID = $(this).find('.volumeInfo.hidden').html();

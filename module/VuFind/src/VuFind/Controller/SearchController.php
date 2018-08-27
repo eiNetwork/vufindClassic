@@ -285,6 +285,12 @@ class SearchController extends AbstractSearch
      */
     public function homeAction()
     {
+        // see if they want the children's catalog
+        if( $this->params()->fromQuery('childrenOnly') == 'true' ) {
+            $expiration = time() + 1209600;
+            setcookie("einChildrensCatalog", "true", $expiration, '/');
+        }
+
         // reset to retaining filters
         $this->getILS()->setSessionVar("retainFilters", true);
 
@@ -362,10 +368,21 @@ class SearchController extends AbstractSearch
             $hiddenFilters[] = 'date_added:["' . strftime("%Y-%m-%dT00:00:00Z", time() - $range * 86400) . '" TO *]';
         }
 
+        // check for children only tag
+        if( ($this->params()->fromQuery('childrenOnly') == 'true') || (isset($_COOKIE["einChildrensCatalog"]) && ($_COOKIE["einChildrensCatalog"] == "true")) ) {
+            $hiddenFilters[] = 'target_audience_full:"Children"';
+        }
+
+        // only keep ones with 5 or more holding locations
+        $hiddenFilters[] = 'num_holding_locations:[5 TO *]';
+
         // If we found hidden filters above, apply them now:
         if (!empty($hiddenFilters)) {
             $this->getRequest()->getQuery()->set('hiddenFilters', $hiddenFilters);
         }
+
+        // get extra bibs
+        $this->getRequest()->getQuery()->set('overrideLimit', '40');
 
         // sort by newest first
         $this->getRequest()->getQuery()->set('sort', 'date_added desc');
@@ -580,8 +597,8 @@ class SearchController extends AbstractSearch
     {
         // Special case -- redirect tag searches.
         $tag = $this->params()->fromQuery('tag');
+        $query = $this->getRequest()->getQuery();
         if (!empty($tag)) {
-            $query = $this->getRequest()->getQuery();
             $query->set('lookfor', $tag);
             $query->set('type', 'tag');
         }
@@ -679,6 +696,8 @@ class SearchController extends AbstractSearch
         if( $this->getRequest()->getQuery("fl") === null ) {
             $this->getRequest()->getQuery()->set('fl', $this->getConfig()->LimitedSearchFields->shortList);
         }
+
+        $this->getRequest()->getQuery()->set('hl.snippets', '10');
 
         // Default case -- standard behavior.
         $view = parent::resultsAction();

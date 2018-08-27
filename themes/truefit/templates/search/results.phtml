@@ -35,8 +35,8 @@
   // get results
   $recordTotal = $this->results->getResultTotal();
   $facetSet = $this->results->getRecommendations('side')[0]->getFacetSet();
-  $resultCategories = $facetSet ? $facetSet["format_category"]["list"] : [];
-  $resultFormats = $facetSet ? $facetSet["format"]["list"] : [];
+  $resultCategories = isset($facetSet["format_category"]["list"]) ? $facetSet["format_category"]["list"] : [];
+  $resultFormats = isset($facetSet["format"]["list"]) ? $facetSet["format"]["list"] : [];
   $usableFormats = array();
   $usableCategories = [];
   foreach( $resultFormats as $thisFormat ):
@@ -51,6 +51,8 @@
       $usableFormats["Category: " . $categoryName] = array("count" => 0);
     endif;
   endforeach;
+
+  $currentLocation = $this->ils()->getDriver()->getCurrentLocation();
 ?>
 
 <div class="row">
@@ -138,6 +140,7 @@
               $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
             <? else: ?>
               $('#searchTypeLabel').html("Advanced");
+              $('#searchBoxTypeLabel').html("Advanced");
             <? endif; ?>
 
             setTimeout(function() {
@@ -154,7 +157,7 @@
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
               <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
-              <div class="filterTagDiv"><span class="filterTag"><?=$bits[1]?>
+              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available " . (($bits[1] != "*") ? "Here" : "Somewhere")) : $bits[1])?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
                   <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>
@@ -184,9 +187,11 @@
             // change the search type label to be the display text, not the search type
             <? if( $this->searchType != "Advanced" ): ?>
               $('#searchTypeLabel').html(document.getElementById('searchTypeBtn_' + $('#searchTypeLabel').html()).childNodes[1].nodeValue);
+              $('#searchBoxTypeLabel').html($('#searchTypeLabel').html());
               $('.searchTypeInput').attr("value", "<?=$this->searchType?>");
             <? else: ?>
               $('#searchTypeLabel').html("Advanced");
+              $('#searchBoxTypeLabel').html("Advanced");
             <? endif; ?>
           });
         </script>
@@ -208,7 +213,7 @@
             <div class="filterTagDiv">Refined to:</div>
             <? foreach( ($params["filter"]) as $key => $value ): ?>
               <? $bits = explode("\"",$value,2); $bits[1] = substr($bits[1], 0, -1); ?>
-              <div class="filterTagDiv"><span class="filterTag"><?=$bits[1]?>
+              <div class="filterTagDiv"><span class="filterTag"><?=(($bits[0] == "~available_at:") ? ("Available " . (($bits[1] != "*") ? "Here" : "Somewhere")) : $bits[1])?>
                 <a href="<?=$this->currentPath() . $this->results->getUrlQuery()->removeFacet(substr($bits[0], (substr($bits[0], 0, 1) == "~") ? 1 : 0, -1), $bits[1], true, ((substr($bits[0], 0, 1) == "~") ? 'OR' : 'AND'), $params)?>">
                   <span class="sr-only">Remove</span><i class="fa fa-close"></i>
                 </a>

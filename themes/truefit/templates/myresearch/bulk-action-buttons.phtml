@@ -165,7 +165,7 @@
       <div class="dropdown" id="listBulkDropdown<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown" style="width:100%">
           <? if (isset($list)): ?>
-            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form'), '<?=$bulkID?>'); return false;">Hold</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form'), '<?=$bulkID?>'); return false;"><?=$this->transEsc('hold_button_place_hold')?></button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','delete');bulkActionSubmit($(this).parents('form'));return false;">Remove...</button></li>
             <hr class="stretchHR">
             <? if( $lists = $user->getLists() ): ?>
@@ -197,7 +197,7 @@
       <div class="dropdown" id="listBulkDropdownMobile<?=$bulkID?>">
         <ul role="navigation" class="dropdown-menu standardDropdown manageListDropdown" style="width:100%">
           <? if (isset($list)): ?>
-            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form'), '<?=$bulkID?>'); return false;">Hold</button></li>
+            <li><button class="btn-dropdown btn-standardDropdown" onclick="HoldSelected($(this).parents('form'), '<?=$bulkID?>'); return false;"><?=$this->transEsc('hold_button_place_hold')?></button></li>
             <li><button class="btn-dropdown btn-standardDropdown" onclick="$('#bulkAction<?=$bulkID?>').attr('name','delete');bulkActionSubmit($(this).parents('form'));return false;">Remove...</button></li>
             <hr class="stretchHR">
             <? if( $lists = $user->getLists() ): ?>

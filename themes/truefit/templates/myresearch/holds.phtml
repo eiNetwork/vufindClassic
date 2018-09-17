@@ -20,7 +20,7 @@
 
 <div class="EIN-col-m-12 padded">
   <div class="EIN-hide-m EIN-col-t-3 EIN-col-3 accordionButtonsLeft">
-    <div class="facetTitle">Holds</div>
+    <div class="facetTitle"><?=$this->transEsc('Holds')?></div>
     <? foreach($order as $holdType): ?>
       <? $totalHolds += count($this->holdList[$holdType]); ?>
       <div class="panel-heading">
@@ -37,14 +37,14 @@
     <div class="panel-heading"></div>
   </div> 
   <div class="EIN-col-m-12 EIN-col-t-9 EIN-col-9 panel-group" id="holdAccordion">
-    <h1 class="pageTitle EIN-hide-t EIN-hide">Holds</h1>
+    <h1 class="pageTitle EIN-hide-t EIN-hide"><?=$this->transEsc('Holds')?></h1>
     <? if( $totalHolds == 0 ): ?>
       <div class="EIN-col-m-12" style="height:50px"></div>
-      <div class="center" style="margin:0px 20px">You don't currently have any holds. If you have recently placed/updated/cancelled a hold, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
+      <div class="center" style="margin:0px 20px">You don't currently have any <?=$this->transEsc('holds_lowercase')?>. If you have recently placed/updated/cancelled a <?=$this->transEsc('hold_lowercase')?>, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
       <div class="center">
         <form action="<?=$this->url('myresearch-holds')?>" method="post">
           <input type="hidden" name="reloadHolds" value="true">
-          <button class="btn-default btn-wide">Refresh My Holds</button>
+          <button class="btn-default btn-wide">Refresh My <?=$this->transEsc('Holds')?></button>
         </form>
       </div>
       <div class="EIN-col-m-12" style="height:50px"></div>
@@ -74,11 +74,11 @@
                 </form>
                 <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
                 <? if( $holdType == "all" ): ?>
-                  <div class="center" style="margin:0px 20px">If you have recently placed/updated/cancelled a hold, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
+                  <div class="center" style="margin:0px 20px">If you have recently placed/updated/cancelled a <?=$this->transEsc('hold_lowercase')?>, it may be a few minutes before this page reflects those changes. You can use the button below to check.</div><br>
                   <div class="center">
                     <form action="<?=$this->url('myresearch-holds')?>" method="post">
                       <input type="hidden" name="reloadHolds" value="true">
-                      <button class="btn-default btn-wide">Refresh My Holds</button>
+                      <button class="btn-default btn-wide">Refresh My <?=$this->transEsc('Holds')?></button>
                     </form>
                   </div>
                   <div class="EIN-col-m-12"><hr style="margin:15px 0px 5px"></div>

@@ -285,6 +285,12 @@ class SearchController extends AbstractSearch
      */
     public function homeAction()
     {
+        // see if they want the children's catalog
+        if( $this->params()->fromQuery('childrenOnly') == 'true' ) {
+            $expiration = time() + 1209600;
+            setcookie("einChildrensCatalog", "true", $expiration, '/');
+        }
+
         // reset to retaining filters
         $this->getILS()->setSessionVar("retainFilters", true);
 
@@ -360,6 +366,11 @@ class SearchController extends AbstractSearch
             // Use a Solr filter to show results:
             //$hiddenFilters[] = $this->newItems()->getSolrFilter($range);
             $hiddenFilters[] = 'date_added:["' . strftime("%Y-%m-%dT00:00:00Z", time() - $range * 86400) . '" TO *]';
+        }
+
+        // check for children only tag
+        if( ($this->params()->fromQuery('childrenOnly') == 'true') || (isset($_COOKIE["einChildrensCatalog"]) && ($_COOKIE["einChildrensCatalog"] == "true")) ) {
+            $hiddenFilters[] = 'target_audience_full:"Children"';
         }
 
         // only keep ones with 5 or more holding locations

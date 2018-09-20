@@ -90,7 +90,7 @@ function handleItemStatusResponse(response) {
       var leftButton = item.find('.leftButton');
       var leftButtonMenu = item.find('#holdButtonDropdown' + result.id.replace(".","") + ',#holdButtonDropdownMobile' + result.id.replace(".",""));
       if( result.isHolding ) {
-        leftButton.empty().append('Holding');
+        leftButton.empty().append('Requested');
       } else if( ("canCheckOut" in result) && result.canCheckOut ) {
         leftButton.prop('disabled', false);
         leftButton.wrap("<a href=\"" + result.checkoutLink + "\" target=\"loginFrame\"></a>");
@@ -131,11 +131,11 @@ function handleItemStatusResponse(response) {
         leftButton.prop('disabled', false);
         leftButton.wrap("<a href=\"" + result.holdLink + "\" target=\"loginFrame\"></a>");
         leftButton.attr('onClick', "$(this).html('<i class=\\\'fa fa-spinner bwSpinner\\\'></i>&nbsp;Loading...')");
-        leftButton.empty().append('Hold');
+        leftButton.empty().append('Request');
       } else if( result.holdArgs != '' ) {
         leftButton.prop('disabled', false);
         leftButton.attr('onClick', "Lightbox.get('Record','" + (result.hasVolumes ? "SelectItem" : "Hold") + "'," + result.holdArgs + ")");
-        leftButton.empty().append('Hold');
+        leftButton.empty().append('Request');
       } else if( result.learnMoreURL != null ) {
         leftButton.empty().append('Learn More');
         leftButton.prop('disabled', false);
@@ -147,7 +147,7 @@ function handleItemStatusResponse(response) {
       } else if( result.libraryOnly ) {
         leftButton.empty().append('In Library Only');
       } else {
-        leftButton.empty().append('Unable to Hold');
+        leftButton.empty().append('Unable to Request');
       }
       if (typeof(result.full_status) != 'undefined'
         && result.full_status.length > 0

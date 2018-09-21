@@ -460,6 +460,9 @@ class Holds extends AbstractRequestBase
                     if( $results['result'] ) {
                         $successes++;
                         $successMsg .= $title . "<br>";
+
+                        // clear the cached contents of the list
+                        $catalog->removeFromBookCart($id);
                     } else {
                         $failures++;
                         $failureMsg .= $title . "<br>";

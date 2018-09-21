@@ -97,6 +97,9 @@ trait HoldsTrait
             $results = $catalog->placeOverDriveHold($overDriveId, $patron);
             if( $results['result'] ) {
                 $results['message']['tokens'] = ['%%url%%' => $this->url()->fromRoute('myresearch-holds')];
+
+                // remove this item from the bookcart
+                $catalog->removeFromBookCart($gatheredDetails['id']);
             }
             $this->flashMessenger()->setNamespace($results['result'] ? 'info' : 'error')->addMessage($results['message']);
             $view = $this->createViewModel(['skip' => true, 'title' => 'Hold Item', 'reloadParent' => true]);

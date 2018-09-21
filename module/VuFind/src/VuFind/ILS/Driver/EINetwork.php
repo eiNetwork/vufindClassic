@@ -825,15 +825,7 @@ class EINetwork extends Sierra2 implements
 
         // if they successfully placed the hold, check to see whether this item is in their book cart. If so, remove it.
         if( $holdsInfo['success'] ) {
-            // get the bookcart
-            $user = $this->getDbTable('User')->getByCatUsername($details['patron']['cat_username']);
-            $bookCart = $user->getBookCart();
-
-            // remove this item from it
-            $bookCart->removeResourcesById($user, [isset($details['bibId']) ? $details['bibId'] : $details['id']]);
-
-            // clear the cached contents of the list
-            $this->clearMemcachedVar("cachedList" . $bookCart->id);
+            $this->removeFromBookCart([isset($details['bibId']) ? $details['bibId'] : $details['id']]);
         }
 
         return $holdsInfo;
@@ -1174,6 +1166,29 @@ class EINetwork extends Sierra2 implements
             $this->session->dismissedAnnouncements = [];
         }
         $this->session->dismissedAnnouncements[$hash] = time();
+    }
+
+    /**
+     * Remove from book cart
+     *
+     * This removes the given bib from the logged in user's book cart.
+     *
+     * @param string  $id    The record id to remove from the book cart
+     */
+    public function removeFromBookCart($id) {
+        if( !isset($this->session->patron) ) {
+            return;
+        }
+
+        // get the bookcart
+        $user = $this->getDbTable('User')->getByCatUsername($this->session->patron["cat_username"]);
+        $bookCart = $user->getBookCart();
+
+        // remove this item from it
+        $bookCart->removeResourcesById($user, [$id]);
+
+        // clear the cached contents of the list
+        $this->clearMemcachedVar("cachedList" . $bookCart->id);
     }
 
     /**

@@ -536,6 +536,9 @@ toc:
 #  DismaxFields:
 #    - contents^100
   QueryFields:
+    contents_unstemmed:
+      - [and, 600]
+      - [or, 10]
     contents:
       - [and, 100]
       - [or, ~]

@@ -310,6 +310,9 @@
       // failure, find the error message and display it in the modal
       } else {
         processingLogin = false;
+        if( messages.innerHTML.indexOf("fa-info") >= 0 ) {
+          ToggleLoginModal(document.getElementById('loginModalLogin'));
+        }
         document.getElementById(loginToggle + "Footer").style.display = "block";
         document.getElementById("loadingFooter").style.display = "none";
         document.getElementById("loginFlashMessages").innerHTML = messages.innerHTML;

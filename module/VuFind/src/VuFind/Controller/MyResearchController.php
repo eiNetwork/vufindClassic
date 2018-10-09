@@ -199,11 +199,10 @@ class MyResearchController extends AbstractBase
 
         if( $result["success"] ) {
             $this->flashMessenger()->setNamespace('info')->addMessage(["msg" => "register_success", "html" => true, "tokens" => ["%%%barcode%%%" => $result["barcode"]]]);
-            return $this->createViewModel(["suppressFlashMessages" => true, "reloadParent" => true]);
         } else {
             $this->flashMessenger()->setNamespace('error')->addMessage("register_failure");
-            return $this->createViewModel();
         }
+        return $this->createViewModel();
     }
 
     /**

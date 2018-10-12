@@ -263,7 +263,7 @@
         else:
           if( $isOverDrive ) {
             $hashKey = json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
-            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : $this->transEsc("hold_button_place_hold")) . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
+            $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
             $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
           } else {
             $holdClick = " onClick=\"Lightbox.get('Record'," . ((!$this->canHold && $this->canCheckOut) ? ("'Checkout'," . $this->idArgs) : ($hasVolumes ? ("'SelectItem'," . $this->holdArgs) : ("'Hold'," . $this->holdArgs))) . ")\"";

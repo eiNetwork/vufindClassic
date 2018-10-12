@@ -265,7 +265,7 @@
           if( $isOverDrive ) {
             if( $this->holdArgs ) {
               $hashKey = json_decode(str_replace("'", "\"", $this->holdArgs))->hashKey;
-              $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : $this->transEsc("hold_button_place_hold")) . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
+              $holdLink = $this->recordLink()->getActionUrl($this->driver, (!$this->canHold && $this->canCheckOut) ? "Checkout" : "Hold") . (($hashKey != "") ? ("?hashKey=" . $hashKey) : "");
             }
             $holdClick = " onClick=\"$(this).html('<i class=\'fa fa-spinner bwSpinner\'></i>&nbsp;Loading...')\"";
           } else {

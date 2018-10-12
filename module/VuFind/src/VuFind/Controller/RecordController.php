@@ -411,8 +411,7 @@ class RecordController extends AbstractRecord
         $canHold = (!empty($driver->tryMethod('getRealTimeTitleHold')));
         foreach($holdings as $thisBib) {
             foreach($thisBib["items"] as $item) {
-                $noRequests = isset($item["callnumber"]) && (strpos($item["callnumber"],"<br>NO REQUESTS") !== false);
-                if( $canHold && !$noRequests && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
+                if( $canHold && ($currentLocation["code"] != $item["branchCode"] || !$item["availability"]) && (($item["status"] == '-') || ($item["status"] == 't') || ($item["status"] == '!')) ) {
                     for($j=0; $j<count($availableHoldings) && (($availableHoldings[$j]["location"] < $item["location"]) || (($availableHoldings[$j]["location"] == $item["location"]) && ($availableHoldings[$j]["number"] < $item["number"]))); $j++ ) {}
                     array_splice($availableHoldings, $j, 0, [$item]);
                 } else if($item["location"] != "CHECKIN_RECORDS") {

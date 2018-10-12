@@ -16,10 +16,8 @@
           <td><button class="btn-dropdown btn-standardDropdown btn-pickupLocation" onmouseover="HighlightRow(this, true);" onmouseout="HighlightRow(this, false);" onclick="return SelectItem('<?=$this->escapeHtmlAttr(".i" . $item["itemId"] . "a")?>');"><?=$item["displayStatus"]?></button></td>
         </tr>
       <? endforeach; ?>
-    <? elseif(count($this->unavailableHoldings) > 0): ?>
-      <tr><td colspan="3" class="messageWarning center">No holdable items</td></tr>
     <? endif; ?>
-    <? if( (count($this->unavailableHoldings) > 0) ): ?>
+    <? if( (count($this->availableHoldings) > 0) && (count($this->unavailableHoldings) > 0) ): ?>
       <tr><td colspan="3"><div class="modal-break"></div></td></tr>
     <? endif; ?>
     <? if( count($this->unavailableHoldings) > 0): ?>
@@ -33,7 +31,7 @@
         <tr>
           <td><span class="btn-pickupLocation"><?=$item["location"]?></span></td>
           <td><span class="btn-pickupLocation"><?=$item["number"]?></span></td>
-          <td><span class="btn-pickupLocation"><?=(($item["displayStatus"]=="AVAILABLE") ? ((strpos($item["callnumber"],"<br>NO REQUESTS") === false) ? "IT'S HERE" : "NO REQUESTS") : $item["displayStatus"])?></span></td>
+          <td><span class="btn-pickupLocation"><?=(($item["displayStatus"]=="AVAILABLE") ? "IT'S HERE" : $item["displayStatus"])?></span></td>
         </tr>
       <? endforeach; ?>
     <? endif; ?>

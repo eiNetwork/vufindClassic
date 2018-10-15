@@ -96,7 +96,7 @@
               <input id="notification" name="notification" value="<?=$selected?>" class="hidden">
             </div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
-            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">E-Content Checkouts and Holds</div>
+            <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">E-Content Checkouts and <?=$this->transEsc('Holds')?></div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue">
               <?
                 $selected = (isset($this->profile['splitEcontent']) && $this->profile['splitEcontent'] != "") ? $this->profile['splitEcontent'] : 'N';
@@ -111,7 +111,7 @@
               <input id="splitEcontent" name="splitEcontent" value="<?=$selected?>" class="hidden">
             </div>
             <div class="EIN-hide-m EIN-col-t-4 EIN-col-4 fieldTitle">&nbsp;</div>
-            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldTitle" style="margin-top:5px">This option lets you choose between viewing physical and e-content items in two separate lists or together in one list (default) on your Checked Out and Holds pages.</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldTitle" style="margin-top:5px">This option lets you choose between viewing physical and e-content items in two separate lists or together in one list (default) on your Checked Out and <?=$this->transEsc('Holds')?> pages.</div>
           </form>
         </div>
       </div>

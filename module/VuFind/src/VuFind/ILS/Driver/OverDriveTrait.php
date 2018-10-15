@@ -469,7 +469,7 @@ trait OverDriveTrait {
                     $hold['expirationDate'] = strtotime($curTitle->holdExpires);
                 }
                 $availability = $this->getProductAvailability($curTitle->reserveId);
-                $hold['position'] = "You are hold #" . $hold['holdQueuePosition'] . " on " . $availability->copiesOwned . 
+                $hold['position'] = "You are request #" . $hold['holdQueuePosition'] . " on " . $availability->copiesOwned . 
                                     " cop" . (($availability->copiesOwned == 1) ? "y" : "ies");
 
                 $holds[count($holds)] = $hold;
@@ -555,7 +555,7 @@ trait OverDriveTrait {
                         'msg' => 'hold_place_success_html',
                     ];
             }else{
-                $holdResult['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Sorry, but we could not place a hold for you on this title.  ' . $response->message;
+                $holdResult['message'] = '<i class=\'fa fa-exclamation-triangle\'></i>Sorry, but we could not place a request for you on this title.  ' . $response->message;
             }
         }
 
@@ -583,9 +583,9 @@ trait OverDriveTrait {
         $updateHoldResult['message'] = '';
         if ($response === true){
             $updateHoldResult['result'] = true;
-            $updateHoldResult['message'] = 'Your hold was updated successfully.';
+            $updateHoldResult['message'] = 'Your request was updated successfully.';
         }else{
-            $updateHoldResult['message'] = 'There was an error updating your hold.  ' . $response->message;
+            $updateHoldResult['message'] = 'There was an error updating your request.  ' . $response->message;
         }
         return $updateHoldResult;
     }
@@ -607,9 +607,9 @@ trait OverDriveTrait {
         $cancelHoldResult['message'] = '';
         if ($response === true){
             $cancelHoldResult['result'] = true;
-            $cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
+            $cancelHoldResult['message'] = 'Your request was cancelled successfully.';
         }else{
-            $cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
+            $cancelHoldResult['message'] = 'There was an error cancelling your request.  ' . $response->message;
         }
         return $cancelHoldResult;
     }
@@ -641,9 +641,9 @@ trait OverDriveTrait {
 
         if ($response === true || ($doFreeze && ($response->reserveId == $overDriveId) && isset($response->holdSuspension))){
             $freezeHoldResult['result'] = true;
-            $freezeHoldResult['message'] = 'Your hold was ' . ($doFreeze ? "" : "un") . 'frozen successfully.';
+            $freezeHoldResult['message'] = 'Your request was ' . ($doFreeze ? "" : "un") . 'frozen successfully.';
         }else{
-            $freezeHoldResult['message'] = 'There was an error ' . ($doFreeze ? "" : "un") . 'freezing your hold.  ' . $response->message;
+            $freezeHoldResult['message'] = 'There was an error ' . ($doFreeze ? "" : "un") . 'freezing your request.  ' . $response->message;
         }
         return $freezeHoldResult;
     }

@@ -112,7 +112,7 @@ class Holds extends AbstractRequestBase
                     );
                 } else {
                     $cancelIDs = $params->fromPost('cancelSelectedIDS');
-                    $replacement = ((count($cancelIDs) > 1) ? (count($cancelIDs) . " holds") : "hold") . "?<br>";
+                    $replacement = ((count($cancelIDs) > 1) ? (count($cancelIDs) . " requests") : "request") . "?<br>";
                     foreach($params->fromPost('holdTitles') as $title) {
                         $replacement .= "<br><span class=\"bold\">Title: </span>" . urldecode($title);
                     }
@@ -208,7 +208,7 @@ class Holds extends AbstractRequestBase
                     );
                 } else {
                     $freezeIDs = $params->fromPost('freezeSelectedIDS');
-                    $replacement = ((count($freezeIDs) > 1) ? (count($freezeIDs) . " holds") : "hold") . "?<br>";
+                    $replacement = ((count($freezeIDs) > 1) ? (count($freezeIDs) . " requests") : "request") . "?<br>";
                     foreach($params->fromPost('holdTitles') as $title) {
                         $replacement .= "<br><span class=\"bold\">Title: </span>" . urldecode($title);
                     }
@@ -304,7 +304,7 @@ class Holds extends AbstractRequestBase
                     );
                 } else {
                     $unfreezeIDs = $params->fromPost('unfreezeSelectedIDS');
-                    $replacement = ((count($unfreezeIDs) > 1) ? (count($unfreezeIDs) . " holds") : "hold") . "?<br>";
+                    $replacement = ((count($unfreezeIDs) > 1) ? (count($unfreezeIDs) . " requests") : "request") . "?<br>";
                     foreach($params->fromPost('holdTitles') as $title) {
                         $replacement .= "<br><span class=\"bold\">Title: </span>" . urldecode($title);
                     }

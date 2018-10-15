@@ -49,7 +49,7 @@
           <a href="#section3" class="helpLink">Other Topics</a><br>
           <div class="helpLinkSubsection"><a href="#section3-1" class="helpLink">Other Search Options and Advanced Search</a></div>
           <div class="helpLinkSubsection"><a href="#section3-2" class="helpLink">Saving Searches</a></div>
-          <div class="helpLinkSubsection"><a href="#section3-3" class="helpLink">Hold to Place a Hold (Request)</a></div>
+          <div class="helpLinkSubsection"><a href="#section3-3" class="helpLink">How to Place a <?=$this->transEsc('hold_uppercase')?></a></div>
           <div class="helpLinkSubsection"><a href="#section3-4" class="helpLink">Accessing EContent Items</a></div>
         </div>
         <div class="EIN-col-m-6 EIN-col-t-4 helpQuickJumpSection">
@@ -58,8 +58,8 @@
           <div class="helpLinkSubsection"><a href="#section4-2" class="helpLink">Preferred Libraries</a></div>
           <div class="helpLinkSubsection"><a href="#section4-3" class="helpLink">Checked Out</a></div>
           <div class="helpLinkSubsection"><a href="#section4-4" class="helpLink">How to Renew Items</a></div>
-          <div class="helpLinkSubsection"><a href="#section4-5" class="helpLink">Holds</a></div>
-          <div class="helpLinkSubsection"><a href="#section4-6" class="helpLink">How to Freeze Holds</a></div>
+          <div class="helpLinkSubsection"><a href="#section4-5" class="helpLink"><?=$this->transEsc('holds_uppercase')?></a></div>
+          <div class="helpLinkSubsection"><a href="#section4-6" class="helpLink">How to Freeze <?=$this->transEsc('holds_uppercase')?></a></div>
           <div class="helpLinkSubsection"><a href="#section4-7" class="helpLink">Lists and Book Cart</a></div>
           <div class="helpLinkSubsection"><a href="#section4-8" class="helpLink">Reading History</a></div>
           <div class="helpLinkSubsection"><a href="#section4-9" class="helpLink">Saved Searches</a></div>
@@ -284,13 +284,13 @@
       </div>
     </div>
     <div class="helpSubsection" id="section3-3">
-      <div class="helpSubsectionHeader">Hold to Place a Hold (Request)</div>
-      <div class="helpContent">A hold is a request or order for the first available item to be sent to the library you designate as a pickup location. The item will be held for you at that library, and you will
-        receive an email or phone message (depending on your account preferences) that the item it ready to pick up. There are several ways that you can place a hold.<br><br>
-        <ul><li>Click the <span class="helpEmphasis">Hold</span> button on the Search results</li>
+      <div class="helpSubsectionHeader">How to Place a <?=$this->transEsc('hold_uppercase')?></div>
+      <div class="helpContent">A <?=$this->transEsc('hold_lowercase')?> is an order for the first available item to be sent to the library you designate as a pickup location. The item will be held for you at that library, and you will
+        receive an email or phone message (depending on your account preferences) that the item it ready to pick up. There are several ways that you can place a <?=$this->transEsc('hold_lowercase')?>.<br><br>
+        <ul><li>Click the <span class="helpEmphasis"><?=$this->transEsc('hold_button_place_hold')?></span> button on the Search results</li>
         <li>Click the check box next to an item on a List or in your Book Cart, and at the top of the page, click the <span class="helpEmphasis">On Selected</span> drop down menu and choose
-        <span class="helpEmphasis">Hold</span>.</li></ul><br>
-        You can see the status of your holds on the <span class="helpEmphasis">Holds</span> page on the Account menu. You can also cancel, freeze, and change the pickup location of your holds on this page.
+        <span class="helpEmphasis"><?=$this->transEsc('hold_button_place_hold')?></span>.</li></ul><br>
+        You can see the status of your <?=$this->transEsc('holds_lowercase')?> on the <span class="helpEmphasis"><?=$this->transEsc('Holds')?></span> page on the Account menu. You can also cancel, freeze, and change the pickup location of your <?=$this->transEsc('holds_lowercase')?> on this page.
        </div>
     </div>
     <div class="helpSubsection" id="section3-4">
@@ -309,14 +309,14 @@
     <div class="helpSubsection" id="section4-1">
       <div class="helpSubsectionHeader">Accessing Your Library Account</div>
       <div class="helpContent">When you are logged in, you can access the Account drop down menu at the top right corner of the page. Depending on the device you are using, the Account menu will either be labeled
-        <span class="helpEmphasis">Account</span>, or it will be the <span class="helpEmphasis"><i class="fa fa-bars"></i></span> icon. You can use the Account menu to see what you have checked out and on hold,
-        renew items, download ebooks, cancel and freeze holds, view your reading history, and set your preferences.
+        <span class="helpEmphasis">Account</span>, or it will be the <span class="helpEmphasis"><i class="fa fa-bars"></i></span> icon. You can use the Account menu to see what you have checked out,
+        renew items, download ebooks, view/cancel/freeze your <?=$this->transEsc('holds_lowercase')?>, view your reading history, and set your preferences.
       </div>
     </div>
     <div class="helpSubsection" id="section4-2">
       <div class="helpSubsectionHeader">Preferred Libraries</div>
       <div class="helpContent">As a patron, you have the option to select two <span class="helpEmphasis">Preferred Libraries</span> (in order of preference) where you would like to pick up your requested items.
-        When these choices are specified, your first choice becomes the default pickup location for when you place a hold. If you're logged in, your preferred libraries are also used in your search results in
+        When these choices are specified, your first choice becomes the default pickup location for when you place a <?=$this->transEsc('hold_lowercase')?>. If you're logged in, your preferred libraries are also used in your search results in
         the following ways:<br><br>
         <ul><li>When you <span class="helpEmphasis">Filter Results</span> by location, your preferred libraries show at the top of the list.</li>
         <li>The initial search results screen will indicate if the title is available at your preferred libraries.</li>
@@ -343,27 +343,27 @@
       </div>
     </div>
     <div class="helpSubsection" id="section4-5">
-      <div class="helpSubsectionHeader">Holds</div>
-      <div class="helpContent">To go to the <span class="helpEmphasis">Holds</span> page, log in at the top right corner of the page. Once you are logged in, click the Account drop down menu at the top right and
-        select <span class="helpEmphasis">Holds</span>. The <span class="helpEmphasis">Holds</span> page shows what items you have on hold and their status.<br><br>
-        <ul><li>The <span class="helpEmphasis">Pending</span> status means that your hold request is waiting for an available item.</li>
+      <div class="helpSubsectionHeader"><?=$this->transEsc('Holds')?></div>
+      <div class="helpContent">To go to the <span class="helpEmphasis"><?=$this->transEsc('Holds')?></span> page, log in at the top right corner of the page. Once you are logged in, click the Account drop down menu at the top right and
+        select <span class="helpEmphasis"><?=$this->transEsc('Holds')?></span>. The <span class="helpEmphasis"><?=$this->transEsc('Holds')?></span> page shows your <?=$this->transEsc('holds_lowercase')?> and their status.<br><br>
+        <ul><li>The <span class="helpEmphasis">Pending</span> status means that your <?=$this->transEsc('hold_lowercase')?> is waiting for an available item.</li>
         <li>The <span class="helpEmphasis">In Transit</span> status mean that an item is on its way to the pickup library.</li>
         <li><span class="helpEmphasis">Ready for Pickup</span> means your requested item is being held for you at the pickup library.</li>
-        <li><span class="helpEmphasis">Frozen</li> means that you're a holding your place in the queue of people waiting for this item, but the item won't be held for you until you unfreeze the hold and you're
+        <li><span class="helpEmphasis">Frozen</li> means that you're a holding your place in the queue of people waiting for this item, but the item won't be held for you until you unfreeze the <?=$this->transEsc('hold_lowercase')?> and you're
         the next person in the queue.</li></ul><br>
-        If a hold is in <span class="helpEmphasis">Pending</span> status, you can <span class="helpEmphasis">Cancel</span>, <span class="helpEmphasis">Freeze</span>, or
-        <span class="helpEmphasis">Change Pickup Location</span> for that hold. To do any of these functions, check the box to the left of the hold to select the item, and at the top of the page, click the drop
-        down menu labeled <span class="helpEmphasis">On Selected</span>, and click the desired action for the selected holds.
+        If a <?=$this->transEsc('hold_lowercase')?> is in <span class="helpEmphasis">Pending</span> status, you can <span class="helpEmphasis">Cancel</span>, <span class="helpEmphasis">Freeze</span>, or
+        <span class="helpEmphasis">Change Pickup Location</span> for that <?=$this->transEsc('hold_lowercase')?>. To do any of these functions, check the box to the left of the <?=$this->transEsc('hold_lowercase')?> to select the item, and at the top of the page, click the drop
+        down menu labeled <span class="helpEmphasis">On Selected</span>, and click the desired action for the selected <?=$this->transEsc('holds_lowercase')?>.
       </div>
     </div>
     <div class="helpSubsection" id="section4-6">
-      <div class="helpSubsectionHeader">How to Freeze Holds</div>
-      <div class="helpContent">Freezing holds offers a way to avoid having your requested items expire when you are out of town or otherwise unable to them up from the library. If your hold reaches the top of
-        the queue while it is frozen, it will be skipped so that holds placed by other patrons can be filled. When you reactivate your hold, you will be placed at the front of the queue.<br><br>
-        There are two situations in which a hold cannot be frozen:
-        <ol><li>The hold is more than 255 days old.</li>
-        <li>The hold is about to be filled (this means the item is available, on the holdshelf or in transit to the holdshelf.</li></ol><br>
-        To freeze a hold, go to the <span class="helpEmphasis">Holds</span> page from the main navigation menu. You can freeze holds by checking the appropriate boxes in the
+      <div class="helpSubsectionHeader">How to Freeze <?=$this->transEsc('holds_uppercase')?></div>
+      <div class="helpContent">Freezing <?=$this->transEsc('holds_lowercase')?> offers a way to avoid having your requested items expire when you are out of town or otherwise unable to them up from the library. If your <?=$this->transEsc('hold_lowercase')?> reaches the top of
+        the queue while it is frozen, it will be skipped so that <?=$this->transEsc('holds_lowercase')?> placed by other patrons can be filled. When you reactivate your <?=$this->transEsc('hold_lowercase')?>, you will be placed at the front of the queue.<br><br>
+        There are two situations in which a <?=$this->transEsc('hold_lowercase')?> cannot be frozen:
+        <ol><li>The <?=$this->transEsc('hold_lowercase')?> is more than 255 days old.</li>
+        <li>The <?=$this->transEsc('hold_lowercase')?> is about to be filled (this means the item is available, on the holdshelf or in transit to the holdshelf.</li></ol><br>
+        To freeze a <?=$this->transEsc('hold_lowercase')?>, go to the <span class="helpEmphasis"><?=$this->transEsc('Holds')?></span> page from the main navigation menu. You can freeze <?=$this->transEsc('holds_lowercase')?> by checking the appropriate boxes in the
         <span class="helpEmphasis">Pending<span> section and choosing the <span class="helpEmphasis">Freeze</span> option from the <span class="helpEmphasis">On Selected</span> dropdown.
       </div>
     </div>
@@ -376,7 +376,7 @@
         To view your Lists or Book Cart, log in at the top right corner of the page. Once you are logged in, click the Account drop down menu at the top right and select either <span class="helpEmphasis">Lists</span>
         or <span class="helpEmphasis">Book Cart</span>. On the Lists page, you can click the name of the list in the left panel to view the contents of the list.<br><br>
         From your list or cart, you can remove or request items you have added. To remove a single item, click the <span class="helpEmphasis">Carts/Lists</span> button, then click the list name to remove the item
-        from that list. To request a single item, click the <span class="helpEmphasis">Hold</span> button. It is also possible to remove or request multiple items in your book cart at one time by using the checkboxes
+        from that list. To request a single item, click the <span class="helpEmphasis"><?=$this->transEsc('hold_button_place_hold')?></span> button. It is also possible to remove or request multiple items in your book cart at one time by using the checkboxes
         to the left and the <span class="helpEmphasis">On Selected</span> button at the top of the page. Book Carts are limited to 300 items, and Lists are limited to 300 items for each list.
        </div>
     </div>
@@ -406,7 +406,7 @@
         <ul><li>To change your email or phone number, select click <span class="helpEmphasis">About Me</span> in the left panel, and click the pencil icon to the right.</li>
         <li>The Notification Preference indicates whether you would like to receive an email or phone call when an item is ready for pickup or overdue. The profile shows your current notification preference. Click
         the drop down to change it.</li>
-        <li>By default, physical items and econtent are shown together on the Checked Out and Holds pages. You can change this option if you would like to display physical items and econtent separately.</li>
+        <li>By default, physical items and econtent are shown together on the Checked Out and <?=$this->transEsc('Holds')?> pages. You can change this option if you would like to display physical items and econtent separately.</li>
         <li>Select <span class="helpEmphasis">Change PIN</span> to change your library card PIN number.</li>
         <li>Select <span class="helpEmphasis">Preferred Libraries</span> to select your Preferred and Alternate libraries. Your Home Library is based on your addresss. Please contact your local library if you need to
         change your address. </li>
@@ -418,7 +418,7 @@
       <div class="helpContent">
         <div class="helpFAQHeader">What are Text Notifications?</div>
         <div class="helpFAQSection">Text Notifications are an optional subscription service that enables subscribers to connect to their library accounts via text message. Users
-          can receive notifications, renew checked out items, and request information about their holds, checked out items, and late fees with this service.<br><br>This is a free service offered to anyone
+          can receive notifications, renew checked out items, and request information about their <?=$this->transEsc('holds_lowercase')?>, checked out items, and late fees with this service.<br><br>This is a free service offered to anyone
           registered at an Allegheny County public library. Depending on your cellular phone plan, additional per-message charges may be assessed by your carrier.
         </div>
         <div class="helpFAQHeader">How do I sign up?</div>
@@ -430,10 +430,10 @@
         </div>
         <div class="helpFAQHeader">What types of notices can I get?</div>
         <div class="helpFAQSection">You can opt in or out of any of the following notice types by texting the associated keyword to <span class="helpEmphasis">(412) 459-7442</span>. When you sign
-          up you will be enrolled in hold pickup, renewal, and overdue notices by default.<br><br>
+          up you will be enrolled in <?=$this->transEsc('hold_lowercase')?> pickup, renewal, and overdue notices by default.<br><br>
           <table style="width:100%">
             <tr style="font-weight:700"><td>Notice Type</td><td>Keyword</td><td>Default<td></tr>
-            <tr><td>Hold pickup</td><td class="helpEmphasis">HOLDS</td><td>Enrolled<td></tr>
+            <tr><td><?=$this->transEsc('hold_uppercase')?> pickup</td><td class="helpEmphasis">HOLDS</td><td>Enrolled<td></tr>
             <tr><td>Renewal</td><td class="helpEmphasis">RENEW</td><td>Enrolled<td></tr>
             <tr><td>Overdue</td><td class="helpEmphasis">OVERDUE</td><td>Enrolled<td></tr>
             <tr><td>Late Fee</td><td class="helpEmphasis">LATEFEE</td><td>Not Enrolled<td></tr>
@@ -460,8 +460,8 @@
         <div class="helpFAQHeader">When are notices sent?</div>
         <div class="helpFAQSection">Notices are sent daily between the hours of 9:00 AM and 8:00 PM, however you can access your account information at any time using the keywords listed in the Keyword
           Quick Reference section under "How can I use this service get information about my account?".<br><br>
-          <span style="font-weight:700">Hold Pickup Notices</span><br>
-          <div style="margin-left:10px">Hold pickup notices are sent when a requested item is available at your pickup location.</div><br>
+          <span style="font-weight:700"><?=$this->transEsc('hold_uppercase')?> Pickup Notices</span><br>
+          <div style="margin-left:10px"><?=$this->transEsc('hold_uppercase')?> pickup notices are sent when a requested item is available at your pickup location.</div><br>
           <span style="font-weight:700">Late Fee Notices</span><br>
           <div style="margin-left:10px">If you opt in to late fee notices, you will receive notices the first notice when you owe $10 or more. Subsequent notices will be sent at 7 days, 14 days, and 21 days.</div><br>
           <span style="font-weight:700">Renewal Notices</span><br>

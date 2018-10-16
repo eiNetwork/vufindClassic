@@ -447,12 +447,26 @@
       <script type="text/javascript">
         $('.panel-heading a').on('click',function(e){
           // prevent them from dismissing the last open section if we're in tablet or desktop layout
+          var content = $($(this).attr("href")).find(".privacyText");
           if($(document).width() >= 600) {
             if($($(this).attr("href")).hasClass('in')){
               e.stopPropagation();
             }
             // You can also add preventDefault to remove the anchor behavior that makes the page jump
             e.preventDefault();
+
+            // adjust this so the text is next to the tab (keep it inside the div though)
+            var target = $(this).offset().top - $(".accordionButtonsLeft").offset().top;
+            setTimeout( function() {
+              var height = content.height();
+              if( (target + height + 11) > $(".accordionButtonsLeft").height() ) {
+                target = $(".accordionButtonsLeft").height() - height - 25;
+              }
+              content.css("margin-top", (target > 0) ? target : 0);
+            }, 10);
+          } else {
+            // clear the buffer zone if we are in mobile layout
+            content.css("margin-top", 0);
           }
         });
         $('body').css({"overflow-y":"hidden"});

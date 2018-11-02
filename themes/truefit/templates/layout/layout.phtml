@@ -318,25 +318,59 @@
         }, 20);
       }
       var descTimeout;
+      var lastTarget;
       function ShowDescriptionToolTip(id,target) {
+        lastTarget = target;
         descTimeout = setTimeout(function() {
-          $.ajax({
-            dataType: 'json',
-            url: path + '/AJAX/JSON?method=getDescription',
-            data: {id:id},
-            success: function(response) {
-              if(response.status == 'OK' && response.data.description) {
-                $('#descriptionToolTipContents').html(response.data.description);
-                var left = $(target).offset().left + ($(target).outerWidth() / 2) - ($('#descriptionToolTip').outerWidth() / 2);
-                $('#descriptionToolTip').css({"display":"initial", "left":((left > 0) ? left : 0), "top":($(target).offset().top + $(target).height())});
-              }
-            }
-          });
+          if( id == "NoveList" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("NoveList Plus is a comprehensive readers' advisory resource for fiction and nonfiction. " +
+                                                                    "With an intuitive interface and extensive proprietary content, NoveList Plus answers the " +
+                                                                    "question: What should I read next?")}});
+          } else if( id == "SelectReads" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("Turn your library's collection into your own personal book shelf with MySelectReads!" +
+                                                                    "<br><br>Think of MySelectReads as your personal librarian - alerting you to new titles " +
+                                                                    "on subjects you've selected for yourself. Choose topics you're interested in, enter your " +
+                                                                    "email address and you'll get a weekly bulletin with book recommendations generated " +
+                                                                    "specifically for you - it's that simple!")}});
+          } else if( id == "AuthorCheck" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("Using AuthorCheck, you can track your favorite author, explore authors the library owns " +
+                                                                    "books by, track books in series, see titles the library owns in book series, and receive " +
+                                                                    "auto email notification.")}});
+          } else if( id == "NewBookAlerts" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("New Book Alerts is a free online service that showcases the newest titles purchased " +
+                                                                    "by your local library.")}});
+          } else if( id == "DatabasesArticles" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("Use this link to find a number of online resources freely accessible with your library " +
+                                                                    "card.<br><br>**Note: Some of these resources may require you to be physically present " +
+                                                                    "at a library location to view them.")}});
+          } else if( id == "ILL" ) {
+            ProcessAjaxDescription({status:'OK', data:{description:("Interlibrary Loan (ILL) is the borrowing and lending of materials between libraries to " +
+                                                                    "supplement collections. It may be used to borrow materials that are not available within " +
+                                                                    "the collections of the eiNetwork's participating libraries and is frequently used for " +
+                                                                    "the purposes of research.")}});
+          } else {
+            $.ajax({
+              dataType: 'json',
+              url: path + '/AJAX/JSON?method=getDescription',
+              data: {id:id},
+              success: ProcessAjaxDescription
+            });
+          }
         }, 500);
       }
       function HideDescriptionToolTip() {
         clearTimeout( descTimeout );
         $('#descriptionToolTip').css({"display":"none"});
+      }
+      function ProcessAjaxDescription(response) {
+        if(response.status == 'OK' && response.data.description) {
+          $('#descriptionToolTipContents').html(response.data.description);
+          var left = $(lastTarget).offset().left + ($(lastTarget).outerWidth() / 2) - ($('#descriptionToolTip').outerWidth() / 2);
+          if( (left + $('#descriptionToolTip').outerWidth()) > $(window).width() ) {
+            left = $(window).width() - $('#descriptionToolTip').outerWidth();
+          }
+          $('#descriptionToolTip').css({"display":"initial", "left":((left > 0) ? left : 0), "top":($(lastTarget).offset().top + $(lastTarget).height())});
+        }
       }
       var locTimeout;
       var clearLocTimeout;

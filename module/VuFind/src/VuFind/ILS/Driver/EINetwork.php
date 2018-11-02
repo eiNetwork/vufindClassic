@@ -673,7 +673,6 @@ class EINetwork extends Sierra2 implements
         }
 
         $sierraHolds = parent::getMyHolds($patron);
-        $sierraHolds = $this->addHoldPickupDates($patron, $sierraHolds);
 
         $overDriveHolds = $this->getOverDriveHolds((object)$patron);
         foreach($overDriveHolds as $hold) {
@@ -1595,79 +1594,6 @@ class EINetwork extends Sierra2 implements
         //Strip HTML comments
         $patronInfoDump = preg_replace("/<!--([^(-->)]*)-->/"," ",$patronInfoDump);
         return $patronInfoDump;
-    }
-
-    /**
-     * Add hold pickup dates to an already existing array of Sierra Holds
-     *
-     * @param   array   $patron         The patron array
-     * @param   array   $holds          The action to perform
-     *
-     * @return  array   the result of adding the screen-scraped pickup dates to the $holds array.
-     */
-    public function addHoldPickupDates($patron, $holds) {
-      //go to the holds page and get the number of holds on the account
-      $sresult = $this->_fetchPatronInfoPage($patron, "holds");
-      $sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sresult);
-      $s = substr($sresult, stripos($sresult, 'patFunc'));
-      $s = substr($s,strpos($s,">")+1);
-      $s = substr($s,0,stripos($s,"</table"));
-      $s = preg_replace ("/<br \/>/","", $s);
-
-      $srows = preg_split("/<tr([^>]*)>/",$s);
-      $scount = 0;
-      $skeys = array_pad(array(),10,"");
-      foreach ($srows as $srow) {
-        $scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
-        $curHoldItemID = null;
-        $curHoldPickupDate = null;
-
-        //Holds page occassionally has a header with number of items checked out.
-        for ($i=0; $i < sizeof($scols); $i++) {				
-          $scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-          $scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-          $scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-
-          if ($scount <= 2) {
-            $skeys[$i] = $scols[$i];
-          } else if ($scount > 1) {
-            // get the itemID
-            if ($skeys[$i] == "CANCEL") { //Only check Cancel key, not Cancel if not filled by
-              //Extract the id from the checkbox
-              $matches = array();
-              $numMatches = preg_match_all('/.*?cancel(.*?)x(\\d\\d).*/s', $scols[$i], $matches);
-              if ($numMatches > 0) {
-                $curHoldItemID = $matches[1][0];
-              }
-            }
-
-            if (stripos($skeys[$i],"STATUS") > -1) {
-              $status = trim(strip_tags($scols[$i]));
-              $status = strtolower($status);
-              $status = ucwords($status);
-              if ($status !="&nbsp" && preg_match('/READY.*(\d{2}-\d{2}-\d{2})/i', $status, $matches)){
-                //Get expiration date
-                $exipirationDate = $matches[1];
-                $curHoldPickupDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
-                $curHoldPickupDate = $curHoldPickupDate->format("M j, Y");
-              }
-            }
-          }
-        } //End of columns
-
-        // add this info to the correct hold
-        if ($scount > 2 && $curHoldPickupDate && $curHoldItemID) {
-          foreach( $holds as $key => $thisHold ) {
-            if( isset($thisHold["available"]) && $thisHold["available"] && substr($thisHold["item_id"], 1, -1) == $curHoldItemID ) {
-              $holds[$key]["released"] = $curHoldPickupDate;
-            };
-          }
-        }
-
-        $scount++;
-      }//End of the row
-
-      return $holds;
     }
 
     /**

@@ -33,6 +33,7 @@
 namespace VuFind\ILS\Driver;
 
 use VuFind\Exception\ILS as ILSException;
+use DateTime;
 use Memcached;
 
 /**
@@ -444,7 +445,7 @@ class Sierra2 extends Sierra implements
         $offset = count($holds);
 
         while( !isset($jsonVals) || (count($holds) < $jsonVals->total) ) {
-            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/holds?limit=50&offset=" . $offset));
+            $jsonVals = json_decode($this->sendAPIRequest($this->config['SIERRAAPI']['url'] . "/v5/patrons/" . $patron['id'] . "/holds?fields=record,frozen,placed,notNeededAfterDate,pickupByDate,pickupLocation,status,priority&limit=50&offset=" . $offset));
 
             // make the initial items API call to get bib info
             $itemIDList = "";
@@ -482,6 +483,11 @@ class Sierra2 extends Sierra implements
                 $thisItem['location'] = isset($jsonVals->entries[$i]->pickupLocation->name) ? $jsonVals->entries[$i]->pickupLocation->name : null;
                 $thisItem['create'] = $jsonVals->entries[$i]->placed;
                 $thisItem['expire'] = $jsonVals->entries[$i]->notNeededAfterDate;
+                if( isset($jsonVals->entries[$i]->pickupByDate) ) {
+                    $curHoldPickupDate = DateTime::createFromFormat('Y-m-d', substr($jsonVals->entries[$i]->pickupByDate, 0, 10));
+                    $curHoldPickupDate = $curHoldPickupDate->format("M j, Y");
+                    $thisItem['released'] = $curHoldPickupDate;
+                }
                 $thisItem['status'] = isset($jsonVals->entries[$i]->status->code) ? $jsonVals->entries[$i]->status->code : null;
                 $thisItem['frozen'] = $jsonVals->entries[$i]->frozen;
                 if( isset($jsonVals->entries[$i]->status->code) && in_array($jsonVals->entries[$i]->status->code, ["i", "b", "j"]) ) {

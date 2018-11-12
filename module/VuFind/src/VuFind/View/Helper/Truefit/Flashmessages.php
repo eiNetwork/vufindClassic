@@ -80,7 +80,9 @@ class Flashmessages extends \VuFind\View\Helper\Bootstrap3\Flashmessages
                 // append the message to the html
                 $html .= '<div class="' . ((strpos($msg['msg'], '<nodesktop></nodesktop>') !== false) ? "EIN-hide " : "") . ((strpos($msg['msg'], 'fa-exclamation-triangle') == false) ? $this->getClassForNamespace($ns) : 'alert alert-danger') . ' alert-dismissible">';
                 $closeCode = ($ns == 'announcement') ? (' onclick="$(\'#bonusFrame' . $msg['announceHash'] . '\').attr(\'src\', \'/MyResearch/DismissAnnouncement?hash=' . $msg['announceHash'] . '\')"') : '';
-                $html .= '<button type="button" class="close" data-dismiss="alert"' . $closeCode . '><i aria-hidden="true" class="fa fa-close"></i><span class="sr-only">Close</span></button>';
+                if( !isset($msg['hideClose']) || !($msg['hideClose']) ) {
+                    $html .= '<button type="button" class="close" data-dismiss="alert"' . $closeCode . '><i aria-hidden="true" class="fa fa-close"></i><span class="sr-only">Close</span></button>';
+                }
                 $html .= '<p class="message">' . ($helper ? $helper($msg['msg'], $tokens, $default) : $msg['msg']);
                 $html .= '</p></div>';
                 if( $ns == 'announcement' ) {

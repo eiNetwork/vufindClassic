@@ -198,12 +198,11 @@ class MyResearchController extends AbstractBase
         $result = $this->getILS()->selfRegister($params);
 
         if( $result["success"] ) {
-            $this->flashMessenger()->setNamespace('info')->addMessage(["msg" => "register_success", "html" => true, "tokens" => ["%%%barcode%%%" => $result["barcode"]]]);
-            return $this->createViewModel(["suppressFlashMessages" => true, "reloadParent" => true]);
+            $this->flashMessenger()->setNamespace('info')->addMessage(["msg" => "register_success", "html" => true, "hideClose" => true, "tokens" => ["%%%barcode%%%" => $result["barcode"]]]);
         } else {
             $this->flashMessenger()->setNamespace('error')->addMessage("register_failure");
-            return $this->createViewModel();
         }
+        return $this->createViewModel();
     }
 
     /**

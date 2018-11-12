@@ -776,6 +776,7 @@ class EINetwork extends Sierra2 implements
     public function renewMyItems($items){
         // invalidate the cached data
         $this->session->staleCheckoutsHash = md5(json_encode($this->session->checkouts));
+        unset($this->session->patron);
 
         return parent::renewMyItems($items);
     }
@@ -1014,8 +1015,9 @@ class EINetwork extends Sierra2 implements
     public function getNotifications($profile){
         $notifications = [];
         if( $profile["moneyOwed"] > 0 ) {
-            $sc = new SoapClient("https://iiisy1.einetwork.net/iii/wspatroninfo/patroninfo.wsdl", array("trace" => 1, "exception" => 0));
-            $sc->__setLocation("https://iiisy1.einetwork.net/iii/wspatroninfo/");
+            $domain = substr($this->config['SIERRAAPI']['url'], 0, strrpos($this->config['SIERRAAPI']['url'], "/"));
+            $sc = new SoapClient($domain . "/wspatroninfo/patroninfo.wsdl", array("trace" => 1, "exception" => 0));
+            $sc->__setLocation($domain . "/wspatroninfo/");
             // Call wsdl function 
             $result = $sc->patronInfo(array("request" => array( 
                 "index"    => 'barcode', 

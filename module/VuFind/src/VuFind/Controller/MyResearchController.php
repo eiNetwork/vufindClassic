@@ -2130,4 +2130,15 @@ class MyResearchController extends AbstractBase
         $view->suppressFlashMessages = true;
         return $view;
     }
+
+    /**
+     * Quipu registration page
+     */
+    public function quipuRegistrationAction()
+    {
+        // return a blank
+        $view = $this->createViewModel();
+        $view->setTemplate('myresearch/quipuRegistration');
+        return $view;
+    }
 }

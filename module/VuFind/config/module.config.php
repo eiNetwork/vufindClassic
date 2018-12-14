@@ -765,7 +765,7 @@ $staticRoutes = [
     'MyResearch/Email', 'MyResearch/BookCart', 'MyResearch/Fines', 'MyResearch/GetCard',
     'MyResearch/Holds', 'MyResearch/Home',
     'MyResearch/ILLRequests', 'MyResearch/Logout', 'MyResearch/LogoutWarning', 'MyResearch/MyList',
-    'MyResearch/NewPassword', 'MyResearch/Notifications', 'MyResearch/PINReset', 'MyResearch/Profile',
+    'MyResearch/NewPassword', 'MyResearch/Notifications', 'MyResearch/PINReset', 'MyResearch/Profile', 'MyResearch/QuipuRegistration',
     'MyResearch/Recover', 'MyResearch/ResetPIN', 'MyResearch/SaveSearch', 'MyResearch/SMShelp',
     'MyResearch/StorageRetrievalRequests', 'MyResearch/UserLogin',
     'MyResearch/Verify',

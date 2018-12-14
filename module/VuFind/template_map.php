@@ -59,6 +59,7 @@ return array(
     'myresearch/comingsoon'                      => APPLICATION_PATH . '/themes/truefit/templates/myresearch/comingsoon.phtml',
     'myresearch/showMessage'                     => APPLICATION_PATH . '/themes/truefit/templates/myresearch/showMessage.phtml',
     'myresearch/resetpin'                        => APPLICATION_PATH . '/themes/truefit/templates/myresearch/resetpin.phtml',
+    'myresearch/quipuRegistration'               => APPLICATION_PATH . '/themes/truefit/templates/myresearch/quipuRegistration.phtml',
     'myresearch/addbulk'                         => APPLICATION_PATH . '/themes/truefit/templates/myresearch/addbulk.phtml',
     'myresearch/checkedout'                      => APPLICATION_PATH . '/themes/truefit/templates/myresearch/checkedout.phtml',
     'myresearch/facets'                          => APPLICATION_PATH . '/themes/truefit/templates/myresearch/facets.phtml',

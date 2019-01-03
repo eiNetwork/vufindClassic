@@ -50,6 +50,7 @@ trait OverDriveTrait {
         'video-wmv' => 'OverDrive Video',
         'video-wmv-mobile' => 'OverDrive Video (mobile)',
         'video-streaming' => 'Streaming Video',
+        'overdrive-magazine' => 'OverDrive Magazine',
         'periodicals-nook' => 'NOOK Periodical'
     );
 
@@ -365,7 +366,7 @@ trait OverDriveTrait {
                     foreach ($curTitle->formats as $id => $format){
                         if ($format->formatType == 'ebook-mediado'){
                             $bookshelfItem['mediaDo'] = true;
-                        }elseif ($format->formatType == 'ebook-overdrive'){
+                        }elseif ($format->formatType == 'ebook-overdrive' || $format->formatType == 'magazine-overdrive'){
                             $bookshelfItem['overdriveRead'] = true;
                         }elseif ($format->formatType == 'video-streaming'){
                             $bookshelfItem['streamingVideo'] = true;
@@ -383,6 +384,11 @@ trait OverDriveTrait {
                         if ($format->formatType == 'ebook-mediado') {
                             if (isset($curFormat['downloadUrl'])){
                                 $bookshelfItem['mediaDoUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'ebook-mediado', $user);
+                            }
+                        // OverDrive Magazine - access online instead of download
+                        }elseif ($format->formatType == 'magazine-overdrive') {
+                            if (isset($curFormat['downloadUrl'])){
+                                $bookshelfItem['overdriveReadUrl'] = $this->getDownloadLink($bookshelfItem['overDriveId'], 'magazine-overdrive', $user);
                             }
                         // OverDrive Read - access online instead of download
                         }elseif ($format->formatType == 'ebook-overdrive') {
@@ -772,6 +778,9 @@ trait OverDriveTrait {
 
         $url .= '?errorpageurl=' . $odProcessURL;
         if ($format == 'ebook-overdrive'){
+            $url .= '&odreadauthurl=' . $odProcessURL;
+        }
+        if ($format == 'magazine-overdrive'){
             $url .= '&odreadauthurl=' . $odProcessURL;
         }
         if ($format == 'audiobook-overdrive'){

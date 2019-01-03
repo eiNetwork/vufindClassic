@@ -179,7 +179,7 @@ class RecordController extends AbstractRecord
                         $view->canReturn = isset($thisItem["earlyReturn"]) && $thisItem["earlyReturn"];
                         $view->availableFormats = $thisItem["format"];
                         if(isset($thisItem["overdriveRead"]) && $thisItem["overdriveRead"]) {
-                            $view->ODread = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-overdrive", $user);
+                            $view->ODread = $catalog->getDownloadLink($thisItem["overDriveId"], (strpos($thisItem["format"], "OverDrive Magazine") === false) ? "ebook-overdrive" : "magazine-overdrive", $user);
                         }
                         if(isset($thisItem["mediaDo"]) && $thisItem["mediaDo"]) {
                             $view->mediaDo = $catalog->getDownloadLink($thisItem["overDriveId"], "ebook-mediado", $user);

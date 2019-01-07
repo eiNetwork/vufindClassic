@@ -142,63 +142,20 @@
       $memcached->set($cache["updateKey"], $cache["updateValue"]);
     // this item has been assigned to an item-level hold, add it to the poll table
     } else if( $thisRow["op_code"] == "ni" ) {
-      mysqli_query($sqlDB, "insert into pollItems values (" . $thisRow["patron_record_id"] . "," . $thisRow["item_record_id"] . "," . $thisRow["bnum"] . ",\"" . $thisRow["istatus"] . "\") on duplicate key update patron_record_id=" . $thisRow["patron_record_id"]);
-    }
-  }
-
-  // check everything in the poll items table (to reduce queries to postgres, we do this in groups of 100)
-  $results2 = mysqli_query($sqlDB, "select *, bib_record_num as bnum from pollItems");
-  $thisMysqlRow = mysqli_fetch_assoc($results2);
-  while( $thisMysqlRow ) {
-    // start building the postgres query (we're checking these items to see what their status is. eventually they're going to change from available to in transit to on holdshelf)
-    $queryString = "select item_view.item_status_code as istatus, item_view.record_num as inum, concat('p', patron_record_id, 'i', record_id) as key " .
-                   "from sierra_view.item_view join sierra_view.hold on (item_view.id=hold.record_id) where ";
-    $statuses = [];
-    while( $thisMysqlRow && count($statuses) < 100 ) {
-      $queryString .= (count($statuses) ? "or " : "") . "(hold.record_id=" . $thisMysqlRow["item_record_id"] . " and hold.patron_record_id=" . $thisMysqlRow["patron_record_id"] . ")";
-      // keep track of what mysql thinks the status is
-      $statuses["p" . $thisMysqlRow["patron_record_id"] . "i" . $thisMysqlRow["item_record_id"]] = $thisMysqlRow["item_status_code"];
-      $thisMysqlRow = mysqli_fetch_assoc($results2);
-    }
-    $results3 = pg_query($queryString);
-
-    // see which rows need updated
-    $updateSqlQueries = [];
-    while( $thisRow = pg_fetch_array($results3) ) {
-      // make sure this item is in the mysql database
-      if( array_key_exists($thisRow["key"], $statuses) ) {
-        // postgres has an updated status, so add this the relevant update query
-        if( $statuses[$thisRow["key"]] != $thisRow["istatus"] ) {
-          if( !isset($updateSqlQueries[$thisRow["istatus"]]) ) {
-            $updateSqlQueries[$thisRow["istatus"]] = "update pollItems set item_status_code=\"" . $thisRow["istatus"] . "\" where";
-          } else {
-            $updateSqlQueries[$thisRow["istatus"]] .= " or";
+      $thisChange = ["status" => $thisRow["istatus"], "duedate" => "NULL", "inum" => $thisRow["inum"], "bnum" => $thisRow["bnum"], "time" => $thisRow["transaction_gmt"], "handled" => false];
+      // see whether this change has already been handled
+      if( isset($cache["value"]["CACHED_INFO"]["holding"]) ) {
+        foreach( $cache["value"]["CACHED_INFO"]["holding"] as $thisItem ) {
+          // if the item ids match and the statuses match, we've already seen this. flag it as handled
+          if( $thisItem["itemId"] == $thisChange["inum"] ) {
+            if( $thisItem["status"] == $thisChange["status"] ) {
+              $thisChange["handled"] = true;
+            }
           }
-          $itemSplit = explode("i", $thisRow["key"]);
-          $patronSplit = explode("p", $itemSplit[0]);
-          $updateSqlQueries[$thisRow["istatus"]] .= " (item_record_id=" . $itemSplit[1] . " and patron_record_id=" . $patronSplit[1] . ")";
         }
-        // remove it from the list of items to be handled
-        unset( $statuses[$thisRow["key"]] );
       }
-    }
-
-    // anything that wasn't found needs to be deleted, either because it's been checked out or the hold has been cancelled and the item is available again
-    if( count($statuses) ) {
-      $sqlQueryString = "delete from pollItems ";
-      $firstTime = true;
-      foreach( $statuses as $key => $value ) {
-        $itemSplit = explode("i", $key);
-        $patronSplit = explode("p", $itemSplit[0]);
-        $sqlQueryString .= ($firstTime ? " where" : " or") . " (patron_record_id=" . $patronSplit[1] . " and item_record_id=" . $itemSplit[1] . ")";
-        $firstTime = false;
-      }
-      mysqli_query($sqlDB, $sqlQueryString);
-    }
-
-    // everything in the updates dictionary needs to be updated
-    foreach( $updateSqlQueries as $thisQuery ) {
-      mysqli_query($sqlDB, $thisQuery);
+      $cache["updateValue"][$thisRow["inum"]] = $thisChange;
+      $memcached->set($cache["updateKey"], $cache["updateValue"]);
     }
   }
 ?>

@@ -79,7 +79,12 @@
   // get postgres connection
   $db = pg_connect("host=" . $postgresProperties["host"] . " port=" . $postgresProperties["port"] . " dbname=" . $postgresProperties["dbname"] . " user=" . $postgresProperties["user"] . " password=" . $postgresProperties["password"]);
 
-  // this query gets all item status changes since the last time we ran this script
+  // this query gets the first status change occurring after our cutoff time
+  $results = pg_query("select min(id) as minID from sierra_view.circ_trans where transaction_gmt >= '" . $circTransTime . "' and op_code in ('i','o','ni')");
+  $minID = pg_fetch_array($results);
+  $minID = $minID["minid"];
+
+  // this query gets all item status changes happening after the minID
   $results = pg_query("select patron_view.barcode as pbar, " . 
                              "item_view.barcode as ibar, " . 
                              "item_view.location_code as iloc, " . 
@@ -97,7 +102,7 @@
                            "left join sierra_view.item_view on (circ_trans.item_record_id=item_view.id) " . 
                            "left join sierra_view.bib_view on (circ_trans.bib_record_id=bib_view.id) " . 
                            "left join sierra_view.statistic_group on (circ_trans.stat_group_code_num=statistic_group.code_num) " . 
-                      "where transaction_gmt >= '" . $circTransTime . "' " . 
+                      "where circ_trans.id >= " . $minID . " and op_code in ('i','o','ni') " .
                       "order by transaction_gmt desc"); 
   while($thisRow = pg_fetch_array($results)) {
     $cache = getCache($thisRow);
@@ -148,7 +153,7 @@
         foreach( $cache["value"]["CACHED_INFO"]["holding"] as $thisItem ) {
           // if the item ids match and the statuses match, we've already seen this. flag it as handled
           if( $thisItem["itemId"] == $thisChange["inum"] ) {
-            if( $thisItem["status"] == $thisChange["status"] ) {
+            if( ($thisItem["status"] == $thisChange["status"]) && (!isset($thisItem["duedate"]) || ($thisItem["duedate"] == null)) ) {
               $thisChange["handled"] = true;
             }
           }

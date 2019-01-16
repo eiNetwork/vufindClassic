@@ -530,7 +530,7 @@ class MyResearchController extends AbstractBase
         if( isset($profile["phone2"]) && (strlen($profile["phone2"]) != 12 || preg_match('/\d{3}-\d{3}-\d{4}/', $profile["phone2"]) != 1) ) {
             $this->flashMessenger()->addMessage('correct_phone_format', 'info');
         }
-        if( !isset($profile["preferredlibrarycode"]) || !$profile["preferredlibrarycode"] ) {
+        if( (!isset($profile["preferredlibrarycode"]) || !$profile["preferredlibrarycode"]) && (!isset($profile["alternatelibrarycode"]) || !$profile["alternatelibrarycode"]) ) {
             $this->flashMessenger()->addMessage('set_preferred_library', 'info');
         }
 

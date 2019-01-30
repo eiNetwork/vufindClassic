@@ -265,7 +265,7 @@ class EINetwork extends Sierra2 implements
                    ]];
         }
 
-        $cachedInfo = ($this->memcached->get("holdingID" . $id) && ($this->memcached->get("holdingID" . $id))["CACHED_INFO"]) ? ($this->memcached->get("holdingID" . $id))["CACHED_INFO"] : null;
+        $cachedInfo = ($this->memcached->get("holdingID" . $id))["CACHED_INFO"] ?? null;
 
         if( $cachedInfo && !$cachedInfo["doUpdate"] && isset($cachedInfo["holding"]) ) {
             $results = $cachedInfo["holding"];
@@ -305,10 +305,14 @@ class EINetwork extends Sierra2 implements
                         if( $thisHolding["itemId"] == $thisChange["inum"] ) {
                             if( isset($thisChange["status"]) ) {
                                 $thisHolding["status"] = $thisChange["status"];
+                                $thisHolding["availability"] = (in_array($thisChange["status"], ["-","o","p","v","y"]) && !$thisHolding["duedate"]);
                             }
                             if( isset($thisChange["duedate"]) ) {
                                 $thisHolding["duedate"] = ($thisChange["duedate"] != "NULL") ? strftime("%m-%d-%y", strtotime($thisChange["duedate"])) : null;
-                                $thisHolding["availability"] = (($thisChange["status"] == "-") && !$thisHolding["duedate"]);
+                                $thisHolding["availability"] = (in_array($thisChange["status"], ["-","o","p","v","y"]) && !$thisHolding["duedate"]);
+                            }
+                            if( $thisChange["suppressed"] ?? false ) {
+                                $thisHolding["suppressed"] = true;
                             }
                             $results[$hKey] = $thisHolding;
                         }
@@ -325,8 +329,8 @@ class EINetwork extends Sierra2 implements
         // add in the extra details we need
         $results2 = [];
         for($i=0; $i<count($results); $i++) {
-            // throw out online items
-            if( $results[$i]['locationCode'] == "xronl" ) {
+            // throw out online or suppressed items
+            if( $results[$i]['locationCode'] == "xronl" || ($results[$i]["suppressed"] ?? false) ) {
                 continue;
             }
 

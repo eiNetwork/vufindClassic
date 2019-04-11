@@ -653,6 +653,7 @@ class AjaxController extends AbstractBase
         $isHolding = false;
         $isOverDrive = false;
         $isOneClick = false;
+        $isCheckedOut = false;
         $accessOnline = $driver->hasOnlineAccess();
         $overDriveInfo = ["canCheckOut" => false];
         $holdArgs = "";
@@ -729,6 +730,7 @@ class AjaxController extends AbstractBase
             foreach($checkedOutItems as $thisItem) {
                 if($thisItem['id'] == $bib) {
                     $overDriveInfo["canCheckOut"] = false;
+                    $isCheckedOut = true;
                     $canHold = $hasVolumes;
                     if( isset($thisItem["overDriveId"]) ) {
                         $overDriveInfo["isCheckedOut"] = true;
@@ -927,6 +929,8 @@ class AjaxController extends AbstractBase
             'callnumber' => htmlentities($callNumber, ENT_COMPAT, 'UTF-8'),
             'hasVolumes' => $hasVolumes,
             'volume_number' => htmlentities($volumeNumber, ENT_COMPAT, 'UTF-8'),
+            'isOverDrive' => $isOverDrive,
+            'isCheckedOut' => $isCheckedOut,
             'isHolding' => $isHolding,
             'checkinRecords' => $checkinRecords,
             'itsHere' => isset($itsHere),

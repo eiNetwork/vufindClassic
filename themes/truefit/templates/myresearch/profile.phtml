@@ -95,6 +95,8 @@
               </div>
               <input id="notification" name="notification" value="<?=$selected?>" class="hidden">
             </div>
+            <div class="EIN-hide-m EIN-col-t-4 EIN-col-4 fieldTitle">&nbsp;</div>
+            <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldTitle" style="margin-top:5px"><a href="" onClick="return ShowShoutBombInfo();">Click here</a> to get information about text notifications.</div>
             <div class="EIN-col-m-12"><hr style="margin:5px 0"></div>
             <div class="EIN-col-m-12 EIN-col-t-4 EIN-col-4 fieldTitle">E-Content Checkouts and <?=$this->transEsc('Holds')?></div>
             <div class="EIN-col-m-12 EIN-col-t-8 EIN-col-8 fieldValue">
@@ -315,6 +317,21 @@
       </div>
     </div>
     <script type="text/javascript">
+      function ShowShoutBombInfo() {
+        Lightbox.addOpenAction( function AddShoutBombJump() {
+          $('#modal').on('shown.bs.modal', function JumpToShoutBomb() {
+            location.hash = '#section4-11';
+            location.hash = '';
+
+            // remove this function from the open stack
+            $('#modal').off('shown.bs.modal', JumpToShoutBomb);
+            Lightbox.openStack.pop(AddShoutBombJump);
+          } );
+        } );
+        Lightbox.get('Help','Home');
+        return false;
+      }
+
       function TestPINFocus(element) {
         if( !($(element).hasClass("userHasFocused")) ) {
           element.value = "";

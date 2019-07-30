@@ -204,7 +204,23 @@
   }  
 
   // grab the latest issue
-  $results = pg_query("select location_name.name, " .
+  $results = pg_query(// generate the temporary table
+                      "create temporary table maxABoxes (target_num, latest_box_count) on commit drop as " .
+                      "select varfield_view.record_num, " .
+                             "max(box_count) " .
+                      "from sierra_view.bib_view " .
+                           "join sierra_view.bib_record_holding_record_link on (bib_record_holding_record_link.bib_record_id=bib_view.id) " .
+                           "join sierra_view.holding_record on (bib_record_holding_record_link.holding_record_id=holding_record.id) " .
+                           "join sierra_view.varfield_view on (varfield_view.record_id=holding_record_id) " .
+                           "join sierra_view.holding_record_card using (holding_record_id) " .
+                           "join sierra_view.holding_record_cardlink on (holding_record_card.id=holding_record_cardlink.holding_record_card_id) " .
+                           "join sierra_view.holding_record_box on (holding_record_box.holding_record_cardlink_id=holding_record_cardlink.id) " .
+                      "where box_status_code='A' and " .
+                            "varfield_type_code in ('h','i','j') " .
+                      "group by varfield_view.record_num; " .
+
+                      // now make the actual query leveraging that temp table
+                      "select location_name.name, " .
                              "varfield_type_code, " . 
                              "field_content, " . 
                              "location_code, " . 
@@ -231,19 +247,7 @@
                            "join sierra_view.holding_record_card using (holding_record_id) " . 
                            "join sierra_view.holding_record_cardlink on (holding_record_card.id=holding_record_cardlink.holding_record_card_id) " . 
                            "join sierra_view.holding_record_box on (holding_record_box.holding_record_cardlink_id=holding_record_cardlink.id) " . 
-                           "join (" . 
-                           "  select varfield_view.record_num as target_num, max(box_count) as latest_box_count " . 
-                           "  from sierra_view.bib_view " . 
-                           "  join sierra_view.bib_record_holding_record_link on (bib_record_holding_record_link.bib_record_id=bib_view.id) " . 
-                           "  join sierra_view.holding_record on (bib_record_holding_record_link.holding_record_id=holding_record.id) " . 
-                           "  join sierra_view.varfield_view on (varfield_view.record_id=holding_record_id) " . 
-                           "  join sierra_view.holding_record_card using (holding_record_id) " . 
-                           "  join sierra_view.holding_record_cardlink on (holding_record_card.id=holding_record_cardlink.holding_record_card_id) " . 
-                           "  join sierra_view.holding_record_box on (holding_record_box.holding_record_cardlink_id=holding_record_cardlink.id) " . 
-                           "  where box_status_code='A' " . 
-                           "  and varfield_type_code in ('h','i','j') " . 
-                           "  group by varfield_view.record_num " . 
-                           ") as maxABoxes on (target_num=varfield_view.record_num and latest_box_count=box_count) " . 
+                           "join maxABoxes on (target_num=varfield_view.record_num and latest_box_count=box_count) " .
                       "where box_status_code='A' " . 
                             "and scode4 != 'n' " . 
                             "and varfield_type_code in ('h','i','j') " . 
